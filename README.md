@@ -18,6 +18,13 @@ riscv_application_profiler --help
 riscv_application_profiler profile --help
 ```
 
+To generate a log file, run:
+```shell
+spike --log-commits <path-to-binary>
+```
+
+**NOTE**: You need to use ``--enable-commitlog`` while configuring [spike](https://github.com/riscv-software-src/riscv-isa-sim#build-steps).
+
 To profile an application, run:
 ```shell
 riscv_application_profiler profile --log <path-to-log> --output <path-to-output-file>
@@ -33,7 +40,7 @@ Command line arguements:
 Example:
 
 ```shell
-riscv_application_profiler profile --log ./tests/programs/hello.log --output ./tests/programs/hello.profile
+riscv_application_profiler profile --log ./tests/hello.log --output ./tests/hello.profile
 ```
 
 **Note**: The log file should be an execution log generated using spike as of today. Support for configuring log formats will be added in the future.
