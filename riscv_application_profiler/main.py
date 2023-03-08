@@ -1,5 +1,6 @@
 import click
 from riscv_application_profiler import __version__
+from riscv_application_profiler.profiler import run
 
 # Top level group named 'cli'
 @click.group()
@@ -39,3 +40,6 @@ def profile(log, output):
 
     print("***************************")
     print("Profiling the application...\n\n")
+
+    # Invoke the actual profiler
+    run(log, output)
