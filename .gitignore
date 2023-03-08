@@ -1,0 +1,7 @@
+# Pycache files
+*.pyc
+
+# package information
+*.egg-info/
+dist/
+.python-version
