@@ -40,7 +40,7 @@ Command line arguements:
 Example:
 
 ```shell
-riscv_application_profiler profile --log ./tests/programs/hello.log --output ./tests/programs/hello.profile
+riscv_application_profiler profile --log ./tests/hello.log --output ./tests/hello.profile
 ```
 
 **Note**: The log file should be an execution log generated using spike as of today. Support for configuring log formats will be added in the future.
