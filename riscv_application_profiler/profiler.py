@@ -14,6 +14,7 @@ def run(log, output):
             line_count=line_count+1
             
         else:
+        
             print(line,line_count)
     
             
