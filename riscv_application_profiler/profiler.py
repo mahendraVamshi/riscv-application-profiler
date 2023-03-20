@@ -2,7 +2,7 @@ import re
 from riscv_application_profiler.consts import *
 import pprint as prettyprint
 
-def run(log, output):
+def run(log, disass, output):
     '''
     Parses the given log and generates meaningful information.
     '''
@@ -13,7 +13,12 @@ def run(log, output):
         lines = logfile.readlines()
 
     # Find all the matches
-    matches_list = [re.findall(commitlog_regex, line, re.M) for line in lines]
+    cl_matches_list = [re.findall(commitlog_regex, line, re.M) for line in lines]
 
-    # log the number of matches
-    print(f"Found {len(matches_list)} matches out of {len(lines)} lines.")
+    # Open the disassembly file and read lines
+    with open(disass, 'r') as disassfile:
+        # Read the disassembly file
+        lines = disassfile.readlines()
+
+    # Find all the matches
+    d_matches_list = [re.findall(disass_regex, line, re.M) for line in lines]

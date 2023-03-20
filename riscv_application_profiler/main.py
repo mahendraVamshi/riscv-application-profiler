@@ -9,7 +9,7 @@ def cli():
 	'''Command Line Interface for riscv_application_profiler'''
 
 @click.version_option(version=__version__)
-# CLI option ''.
+# CLI option 'log'.
 # Expects an ISA string.
 @click.option(
 	'-l',
@@ -17,7 +17,15 @@ def cli():
 	help=
 	'This option expects the path to an execution log.',
 	required=True)
-# CLI option 'build_dir'.
+# CLI option 'disass'.
+# Expects an ISA string.
+@click.option(
+	'-d',
+	'--disass',
+	help=
+	'This option expects the path to a disassembly.',
+	required=True)
+# CLI option 'output.
 # Expects a directory.
 @click.option('-o',
 			  '--output',
@@ -27,7 +35,7 @@ def cli():
 			  required=False)
 # CLI function 'generate'
 @cli.command()
-def profile(log, output):
+def profile(log, disass, output):
     '''
     Generates the hardware description of the decoder
     '''
@@ -42,4 +50,4 @@ def profile(log, output):
     print("Profiling the application...\n\n")
 
     # Invoke the actual profiler
-    run(log, output)
+    run(log, disass, output)
