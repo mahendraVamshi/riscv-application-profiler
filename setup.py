@@ -2,6 +2,7 @@
 
 import os
 from setuptools import setup, find_packages
+import codecs
 
 # Base directory of package
 here = os.path.abspath(os.path.dirname(__file__))
@@ -25,7 +26,7 @@ setup_requirements = []
 test_requirements = []
 
 setup(
-    name='risv-application-profiler',
+    name='riscv-application-profiler',
     version='0.0.0',
     description="RISC-V Application Profiler",
     long_description=readme + '\n\n',
@@ -39,7 +40,7 @@ setup(
     author_email='',
     license="BSD-3-Clause",
     packages=find_packages(),
-    package_dir={'riscv_application_profiler': 'riscv_application_profiler/'},
+    package_dir={'riscv_application_profiler': 'riscv_application_profiler'},
     package_data={'riscv_application_profiler': ['requirements.txt']},
     install_requires=read_requires(),
     python_requires='>=3.7.0',
