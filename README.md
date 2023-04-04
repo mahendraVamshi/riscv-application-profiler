@@ -27,7 +27,7 @@ spike --log-commits <path-to-binary>
 
 To profile an application, run:
 ```shell
-riscv_application_profiler profile --log <path-to-log> --disass <path-to-disass> --output <path-to-output-file>
+riscv_application_profiler profile --log <path-to-log> --output <path-to-output-file>
 ```
 
 Command line arguements:
@@ -40,7 +40,7 @@ Command line arguements:
 Example:
 
 ```shell
-riscv_application_profiler profile --log ./tests/hello.log --disass tests/hello.disass --output ./tests/hello.profile
+riscv_application_profiler profile --log ./tests/hello.log --output ./tests/hello.profile
 ```
 
 **Note**: The log file should be an execution log generated using spike as of today. Support for configuring log formats will be added in the future.
