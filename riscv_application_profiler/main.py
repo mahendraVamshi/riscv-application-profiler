@@ -2,6 +2,10 @@ from pathlib import Path
 import click
 from riscv_application_profiler import __version__
 from riscv_application_profiler.profiler import run
+from riscv_isac.log import logger
+from riscv_isac.main import setup
+import riscv_isac.plugins.spike as isac_spike_plugin
+import os
 
 # Top level group named 'cli'
 @click.group()
@@ -27,22 +31,24 @@ def cli():
 	default='./app.profile',
 	show_default=True,
 	required=False)
+@click.option('--verbose', '-v', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
 # CLI function 'generate'
 @cli.command()
-def profile(log, output):
+def profile(log, output, verbose):
     '''
     Generates the hardware description of the decoder
     '''
-    print("***************************")
-    print("RISC-V Application Profiler")
-    print("***************************")
+    logger.level(verbose)
+    logger.info("**********************************")
+    logger.info(f"RISC-V Application Profiler v{__version__}")
+    logger.info("**********************************")
 
-    print("Log file: ", log)
+    log_file = Path(log)
+    logger.info(f"\nLog file: {log_file.absolute()}")
     output_dir = Path(output)
-    print("Output file: ", output_dir)
-
-    print("***************************")
-    print("Profiling the application...\n\n")
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    logger.info(f"Output directory: {output_dir.absolute()}")
 
     # Invoke the actual profiler
-    run(log, output_dir)
+    run(log_file, output_dir)

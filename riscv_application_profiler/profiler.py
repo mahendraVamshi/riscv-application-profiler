@@ -3,7 +3,10 @@ from riscv_application_profiler.consts import *
 import pprint as prettyprint
 import math
 
-def run(log, disass, output):
+def run(log, output):
+    pass
+
+def old(log, disass, output):
     '''
     Parses the given log and generates meaningful information.
     '''
