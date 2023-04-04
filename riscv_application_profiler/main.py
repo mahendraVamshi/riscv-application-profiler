@@ -1,3 +1,4 @@
+from pathlib import Path
 import click
 from riscv_application_profiler import __version__
 from riscv_application_profiler.profiler import run
@@ -17,25 +18,18 @@ def cli():
 	help=
 	'This option expects the path to an execution log.',
 	required=True)
-# CLI option 'disass'.
-# Expects an ISA string.
-@click.option(
-	'-d',
-	'--disass',
-	help=
-	'This option expects the path to a disassembly.',
-	required=True)
 # CLI option 'output.
 # Expects a directory.
-@click.option('-o',
-			  '--output',
-			  help="Path to the output file.",
-			  default='./app.profile',
-			  show_default=True,
-			  required=False)
+@click.option(
+	'-o',
+	'--output',
+	help="Path to the output file.",
+	default='./app.profile',
+	show_default=True,
+	required=False)
 # CLI function 'generate'
 @cli.command()
-def profile(log, disass, output):
+def profile(log, output):
     '''
     Generates the hardware description of the decoder
     '''
@@ -44,10 +38,11 @@ def profile(log, disass, output):
     print("***************************")
 
     print("Log file: ", log)
-    print("Output file: ", output)
+    output_dir = Path(output)
+    print("Output file: ", output_dir)
 
     print("***************************")
     print("Profiling the application...\n\n")
 
     # Invoke the actual profiler
-    run(log, disass, output)
+    run(log, output_dir)
