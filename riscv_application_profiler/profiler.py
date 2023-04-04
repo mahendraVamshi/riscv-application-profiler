@@ -115,3 +115,74 @@ def run(log, output, verbose):
             
 
 #         #print(instsruction)
+
+# from branch 'sowmya'
+    # B_type_count=0
+
+
+
+    # for i in range (len(cl_matches_list)):
+        
+    #     # converting instruction which is hexadecimal format to binary 
+    #     instruction= "{0:08b}".format(int(cl_matches_list[i][1][2:], 16))
+        
+    #     # making all instructions 32 bit wide by adding zeros in the start
+    #     if (len(instruction)!=32):
+    #         d=(32-len(instruction))
+    #         instruction=('0'*d)+instruction
+
+    #     #checking MSB value by shifting the number 31 bits to the right and AND with 1
+    #     MSB = (int(instruction) >> 31) & 1
+
+    #     #checking if the instruction is a branch
+    #     if(instruction[25:32]=='1100011'):
+    #         B_type_count+=1
+
+    #         #the branch is positive if MSB is 0, else it is negative
+    #         if MSB == 0:
+    #             print("forward branch")
+                
+                
+    #             #calculating the offset size
+    #             bits_11to8=instruction[20:24] #python indexing starts from left
+    #             bits_8to11=bits_11to8[::-1] #reversing the order to concatenate for 12 bit immediate value
+
+    #             bits_30to25=instruction[1:7]
+    #             bits_25to30=bits_30to25[::-1]
+
+    #             bit_7=instruction[24:25]
+
+    #             offset=bit_7 + bits_25to30 + bits_8to11
+    #             offset_positive=int(offset,2)
+    #             print("branch offset size is: ",offset_positive)
+    #             print("\n")
+
+    #         else:
+    #             print("backward branch")
+                
+                
+    #             #calculating the offset size
+    #             bits_11to8=instruction[20:24] #python indexing starts from left
+    #             bits_8to11=bits_11to8[::-1] #reversing the order to concatenate for 12 bit immediate value
+
+    #             bits_30to25=instruction[1:7]
+    #             bits_25to30=bits_30to25[::-1]
+
+    #             bit_7=instruction[24:25]
+    #             bit_31= instruction[0:1]
+
+    #             offset= bit_31+bit_7 + bits_25to30 + bits_8to11
+                
+    #             offset_decimal=int(offset,2) #converting the string to integer
+    #             offset_negative = ~offset_decimal+1 #taking 2's complement
+    #             print("branch offset size is: ",offset_negative)
+                
+               
+
+    #             #calculating the loop iterations
+    #             loop_iterations=0
+    #             loop_iterations = abs (offset_negative) // 2
+    #             print("number of loop iterations is: ",loop_iterations)
+    #             print("\n")
+                
+    # print("number of branches= %d" %(B_type_count))
