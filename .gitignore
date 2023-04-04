@@ -5,3 +5,6 @@
 *.egg-info/
 dist/
 .python-version
+
+# build files
+build/
