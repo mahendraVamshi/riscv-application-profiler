@@ -6,6 +6,7 @@ from riscv_isac.log import logger
 from riscv_isac.main import setup
 import riscv_isac.plugins.spike as isac_spike_plugin
 import os
+from git import Repo
 
 # Top level group named 'cli'
 @click.group()
@@ -43,12 +44,16 @@ def profile(log, output, verbose):
     logger.info(f"RISC-V Application Profiler v{__version__}")
     logger.info("**********************************")
 
-    log_file = Path(log)
-    logger.info(f"\nLog file: {log_file.absolute()}")
-    output_dir = Path(output)
+    log_file = str(Path(log).absolute())
+    logger.info(f"\nLog file: {log_file}")
+    output_dir = str(Path(output).absolute())
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    logger.info(f"Output directory: {output_dir.absolute()}")
+    logger.info(f"Output directory: {output_dir}")
+    if not os.path.exists(f'{output_dir}/riscv-opcodes'):
+        logger.info(f'Cloning riscv-opcodes...')
+        repo = Repo.clone_from('https://github.com/riscv/riscv-opcodes', f'{output_dir}/riscv-opcodes')
+        repo.git.checkout('master')
 
     # Invoke the actual profiler
-    run(log_file, output_dir)
+    run(log_file, output_dir, verbose)
