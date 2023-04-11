@@ -22,11 +22,12 @@ def group_by_operation(operations: list, master_inst_list: list):
 
     # Create a dictionary with the operations as keys
     op_dict = {op: [] for op in operations}
-    # for entry in master_inst_list:
-    #     if entry.instr is None:
-    #         continue
-    #     if entry.instr.operation in operations:
-    #         op_dict[entry.instr.operation].append(entry)
+    for op in operations:
+        for entry in master_inst_list:
+            if entry.instr is None:
+                continue
+            if entry.instr in op:
+                op_dict[op].append(entry)
     counts = {op: len(op_dict[op]) for op in operations}
     logger.info('Done.')
     return (op_dict, counts)
