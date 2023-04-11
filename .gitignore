@@ -8,3 +8,11 @@ dist/
 
 # build files
 build/
+
+# riscv opcodes
+riscv_opcodes
+riscv_opcodes/
+
+#files from isac build
+constants.py
+rvopcodesdecoder.py
