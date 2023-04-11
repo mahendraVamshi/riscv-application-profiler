@@ -24,9 +24,9 @@ def group_by_operation(operations: list, master_inst_list: list):
     op_dict = {op: [] for op in operations}
     for op in operations:
         for entry in master_inst_list:
-            if entry.instr is None:
+            if entry.instr_name is None:
                 continue
-            if entry.instr in op:
+            if entry.instr_name in op:
                 op_dict[op].append(entry)
     counts = {op: len(op_dict[op]) for op in operations}
     logger.info('Done.')
