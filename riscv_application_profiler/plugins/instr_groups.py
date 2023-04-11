@@ -4,6 +4,7 @@
 # this file classifies instructions into groups based on the conditions defined by the user.
 
 from riscv_isac.log import *
+from riscv_application_profiler.consts import *
 
 def group_by_operation(operations: list, master_inst_list: list):
     '''
@@ -21,13 +22,13 @@ def group_by_operation(operations: list, master_inst_list: list):
     logger.info("Grouping instructions by operation.")
 
     # Create a dictionary with the operations as keys
-    op_dict = {op: [] for op in operations}
+    op_dict = {f'{op}': [] for op in operations}
     for op in operations:
         for entry in master_inst_list:
             if entry.instr_name is None:
                 continue
-            if entry.instr_name in op:
+            if entry.instr_name in ops_dict[op]:
                 op_dict[op].append(entry)
-    counts = {op: len(op_dict[op]) for op in operations}
+    counts = {f'{op}': len(op_dict[op]) for op in operations}
     logger.info('Done.')
     return (op_dict, counts)
