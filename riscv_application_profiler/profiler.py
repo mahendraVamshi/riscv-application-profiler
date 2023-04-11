@@ -7,6 +7,21 @@ from riscv_isac.plugins.spike import *
 from riscv_application_profiler.plugins import instr_groups
 from riscv_application_profiler.plugins import branch_ops
 
+def print_stats(op_dict, counts):
+    '''
+    Prints the statistics of the grouped instructions.
+
+    Args:
+        - op_dict: A dictionary with the operations as keys and a list of InstructionEntry
+            objects as values.
+        - counts: A dictionary with the operations as keys and the number of instructions
+            in each group as values.
+    '''
+    logger.info("Printing statistics.")
+    for op in op_dict.keys():
+        logger.info(f'{op}: {counts[op]}')
+    logger.info("Done.")
+
 def run(log, output, verbose):
     from build.rvopcodesdecoder import disassembler
     spike_parser = spike()
