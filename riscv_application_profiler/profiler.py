@@ -2,14 +2,13 @@ import re
 from riscv_application_profiler.consts import *
 import pprint as prettyprint
 import math
-from riscv_isac.data.rvopcodesdecoder import disassembler
 from riscv_isac.log import *
 from riscv_isac.plugins.spike import *
 from riscv_application_profiler.plugins import instr_groups
 from riscv_application_profiler.plugins import branch_ops
 
 def run(log, output, verbose):
-    logger.debug("Entered run().")
+    from build.rvopcodesdecoder import disassembler
     spike_parser = spike()
     spike_parser.setup(trace=str(log), arch='rv64')
     iter_commitlog = spike_parser.__iter__()
@@ -20,7 +19,7 @@ def run(log, output, verbose):
     logger.info(f'Parsed {len(cl_matches_list)} instructions.')
     logger.info("Decoding...")
     isac_decoder = disassembler()
-    isac_decoder.setup(arch='rv64', opcodes_path=f'{output}/riscv-opcodes')
+    isac_decoder.setup(arch='rv64')
     master_inst_list = []
     for entry in cl_matches_list:
         if entry.instr is None:

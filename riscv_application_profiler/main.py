@@ -1,9 +1,10 @@
 from pathlib import Path
+import shutil
 import click
 from riscv_application_profiler import __version__
 from riscv_application_profiler.profiler import run
+from riscv_application_profiler.isac_port import isac_setup_routine
 from riscv_isac.log import logger
-from riscv_isac.main import setup
 import riscv_isac.plugins.spike as isac_spike_plugin
 import os
 from git import Repo
@@ -39,21 +40,25 @@ def profile(log, output, verbose):
     '''
     Generates the hardware description of the decoder
     '''
+
+    log_file = str(Path(log).absolute())
+    output_dir = str(Path(output).absolute())
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    else:
+        shutil.rmtree(output_dir)
+        os.makedirs(output_dir)
+
+    # setup isac
+    isac_setup_routine(lib_dir=output_dir)
+
     logger.level(verbose)
     logger.info("**********************************")
     logger.info(f"RISC-V Application Profiler v{__version__}")
     logger.info("**********************************")
 
-    log_file = str(Path(log).absolute())
     logger.info(f"\nLog file: {log_file}")
-    output_dir = str(Path(output).absolute())
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
     logger.info(f"Output directory: {output_dir}")
-    if not os.path.exists(f'{output_dir}/riscv-opcodes'):
-        logger.info(f'Cloning riscv-opcodes...')
-        repo = Repo.clone_from('https://github.com/riscv/riscv-opcodes', f'{output_dir}/riscv-opcodes')
-        repo.git.checkout('master')
 
     # Invoke the actual profiler
     run(log_file, output_dir, verbose)
