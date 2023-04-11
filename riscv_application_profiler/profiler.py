@@ -57,6 +57,7 @@ def run(log, output, verbose):
         'branches'
     ]
     op_dict1, counts1 = instr_groups.group_by_operation(groups, master_inst_list)
+    print_stats(op_dict1, counts1)
 
     # Group by branch sizes
     branch_threshold = 0
