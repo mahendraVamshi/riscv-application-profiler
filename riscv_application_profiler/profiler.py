@@ -5,7 +5,7 @@ import math
 from riscv_isac.log import *
 from riscv_isac.plugins.spike import *
 from riscv_application_profiler.plugins import instr_groups
-from plugins import branch_ops
+from riscv_application_profiler.plugins import branch_ops
 
 def print_stats(op_dict, counts):
     '''
@@ -23,7 +23,7 @@ def print_stats(op_dict, counts):
     logger.info("Done.")
 
 def run(log, output):#, verbose):
-    from riscv_isac.data.rvopcodesdecoder import disassembler
+    from build.rvopcodesdecoder import disassembler
     spike_parser = spike()
     spike_parser.setup(trace=str(log), arch='rv64')
     iter_commitlog = spike_parser.__iter__()
