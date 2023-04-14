@@ -22,7 +22,7 @@ def print_stats(op_dict, counts):
         logger.info(f'{op}: {counts[op]}')
     logger.info("Done.")
 
-def run(log, output):#, verbose):
+def run(log, output, verbose):
     from build.rvopcodesdecoder import disassembler
     spike_parser = spike()
     spike_parser.setup(trace=str(log), arch='rv64')

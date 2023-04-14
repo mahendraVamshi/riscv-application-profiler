@@ -33,10 +33,10 @@ def cli():
 	default='./app.profile',
 	show_default=True,
 	required=False)
-#@click.option('--verbose', '-v', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
+@click.option('--verbose', '-v', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
 # CLI function 'generate'
 @cli.command()
-def profile(log, output):#, verbose):
+def profile(log, output, verbose):
     '''
     Generates the hardware description of the decoder
     '''
@@ -52,7 +52,11 @@ def profile(log, output):#, verbose):
     # setup isac
     isac_setup_routine(lib_dir=output_dir)
 
-    #logger.level(verbose)
+# hi 
+#g
+#gffdds
+
+    logger.level(verbose)
     logger.info("**********************************")
     logger.info(f"RISC-V Application Profiler v{__version__}")
     logger.info("**********************************")
@@ -61,4 +65,4 @@ def profile(log, output):#, verbose):
     logger.info(f"Output directory: {output_dir}")
 
     # Invoke the actual profiler
-    run(log_file, output_dir)#, verbose)
+    run(log_file, output_dir, verbose)
