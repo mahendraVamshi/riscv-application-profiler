@@ -12,7 +12,7 @@ def read(*parts):
     with codecs.open(os.path.join(here, *parts), 'r') as fp:
         return fp.read()
 def read_requires():
-    with open(os.path.join(here, "riscv_application_profiler/requirements.txt"),
+    with open(os.path.join(here, "riscv_application_profiler\\requirements.txt"),
               "r") as reqfile:
         return reqfile.read().splitlines()
 
