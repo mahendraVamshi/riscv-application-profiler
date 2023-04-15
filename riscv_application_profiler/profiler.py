@@ -22,10 +22,10 @@ def print_stats(op_dict, counts):
         logger.info(f'{op}: {counts[op]}')
     logger.info("Done.")
 
-def run(log, output, verbose):
+def run(log, isa, output, verbose):
     from build.rvopcodesdecoder import disassembler
     spike_parser = spike()
-    spike_parser.setup(trace=str(log), arch='rv64')
+    spike_parser.setup(trace=str(log), arch=isa)
     iter_commitlog = spike_parser.__iter__()
     with open(log, 'r') as logfile:
         # Read the log file
@@ -34,7 +34,7 @@ def run(log, output, verbose):
     logger.info(f'Parsed {len(cl_matches_list)} instructions.')
     logger.info("Decoding...")
     isac_decoder = disassembler()
-    isac_decoder.setup(arch='rv64')
+    isac_decoder.setup(arch=isa)
     master_inst_list = []
     for entry in cl_matches_list:
         if entry.instr is None:
@@ -54,8 +54,12 @@ def run(log, output, verbose):
         'reg computes',
         'reg shifts',
         'jumps',
-        'branches'
+        'branches',
+        'mul'
     ]
+
+   # groups = list(ops_dict.keys())
+
     op_dict1, counts1 = instr_groups.group_by_operation(groups, master_inst_list)
     print_stats(op_dict1, counts1)
 

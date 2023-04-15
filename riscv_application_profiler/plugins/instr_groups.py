@@ -7,6 +7,8 @@ from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 
 def group_by_operation(operations: list, master_inst_list: list):
+
+    print (*master_inst_list[:6])
     '''
     Groups instructions based on the operation.
 
