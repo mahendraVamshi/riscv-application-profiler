@@ -5,6 +5,7 @@
 # this file classifies instructions into 'long' and 'short' branches based on branch offsets.
 
 from riscv_isac.log import *
+from riscv_application_profiler.consts import *
 
 def group_by_branch_offset(master_inst_list: list, branch_threshold: int = 0):
     '''
@@ -22,14 +23,14 @@ def group_by_branch_offset(master_inst_list: list, branch_threshold: int = 0):
     logger.info("Grouping instructions by branch offset.")
     # Create a dictionary with the operations as keys
     op_dict = {'long': [], 'short': []}
-    # for entry in master_inst_list:
-    #     if entry.instr is None:
-    #         continue
-    #     if entry.instr.operation == 'branches':
-    #         if entry.instr.offset > branch_threshold:
-    #             op_dict['long'].append(entry)
-    #         else:
-    #             op_dict['short'].append(entry)
+    
+    for entry in master_inst_list:
+        if entry.instr_name in ops_dict['branches']:
+            if entry.imm < branch_threshold:
+                op_dict['short'].append(entry)
+            else:
+                op_dict['long'].append(entry)
+    
     counts = {op: len(op_dict[op]) for op in op_dict.keys()}
     logger.info('Done.')
     return (op_dict, counts)
@@ -49,14 +50,15 @@ def group_by_branch_sign(master_inst_list: list):
     logger.info("Grouping instructions by branch offset sign.")
     # Create a dictionary with the operations as keys
     op_dict = {'positive': [], 'negative': []}
-    # for entry in master_inst_list:
-    #     if entry.instr is None:
-    #         continue
-    #     if entry.instr.operation == 'branches':
-    #         if entry.instr.offset > 0:
-    #             op_dict['positive'].append(entry)
-    #         else:
-    #             op_dict['negative'].append(entry)
+    for entry in master_inst_list:
+        if entry.instr_name in ops_dict['branches']:
+            if entry.imm<0:
+                op_dict['negative'].append(entry)
+            else:
+                op_dict['positive'].append(entry)
+    
+        
+ 
     counts = {op: len(op_dict[op]) for op in op_dict.keys()}
     logger.info('Done.')
     return (op_dict, counts)

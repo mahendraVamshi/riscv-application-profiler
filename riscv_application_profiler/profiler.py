@@ -7,6 +7,7 @@ from riscv_isac.plugins.spike import *
 from riscv_application_profiler.plugins import instr_groups
 from riscv_application_profiler.plugins import branch_ops
 
+
 def print_stats(op_dict, counts):
     '''
     Prints the statistics of the grouped instructions.
@@ -62,9 +63,11 @@ def run(log, output, verbose):
     # Group by branch sizes
     branch_threshold = 0
     op_dict2, counts2 = branch_ops.group_by_branch_offset(master_inst_list, branch_threshold)
+    print_stats(op_dict2, counts2)
 
     # Group by branch signs
     op_dict3, counts3 = branch_ops.group_by_branch_sign(master_inst_list)
+    print_stats(op_dict3, counts3)
 
 # def old(log, disass, output):
 #     '''
