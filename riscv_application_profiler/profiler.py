@@ -46,7 +46,7 @@ def run(log, output, verbose):
     # print_stats(op_dict1, counts1)
 
     # Group by branch sizes
-    branch_threshold = 0
+    branch_threshold = branch_ops.compute_threshold(master_inst_list)
     op_dict2, counts2 = branch_ops.group_by_branch_offset(master_inst_list, branch_threshold)
     # print_stats(op_dict2, counts2)
 
