@@ -32,7 +32,7 @@ def group_by_branch_offset(master_inst_list: list, branch_threshold: int = 0):
                 op_dict['long'].append(entry)
     
     counts = {op: len(op_dict[op]) for op in op_dict.keys()}
-    logger.info('Done.')
+    logger.debug('Done.')
     return (op_dict, counts)
 
 def group_by_branch_sign(master_inst_list: list):
@@ -60,5 +60,5 @@ def group_by_branch_sign(master_inst_list: list):
         
  
     counts = {op: len(op_dict[op]) for op in op_dict.keys()}
-    logger.info('Done.')
+    logger.debug('Done.')
     return (op_dict, counts)

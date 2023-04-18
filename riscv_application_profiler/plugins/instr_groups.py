@@ -30,5 +30,5 @@ def group_by_operation(operations: list, master_inst_list: list):
             if entry.instr_name in ops_dict[op]:
                 op_dict[op].append(entry)
     counts = {f'{op}': len(op_dict[op]) for op in operations}
-    logger.info('Done.')
+    logger.debug('Done.')
     return (op_dict, counts)
