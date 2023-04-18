@@ -33,7 +33,7 @@ def cli():
      default='RV64I',
      show_default=True,
      required=False,
-     type=click.Choice(['RV32I', 'RV64I', 'RV32M', 'RV64M', 'RV32F', 'RV64F'],case_sensitive=False)
+     type=click.Choice(['RV32I', 'RV64I', 'RV32IM', 'RV64IM', 'RV32F', 'RV64F'],case_sensitive=False)
      )
 # CLI option 'output.
 # Expects a directory.

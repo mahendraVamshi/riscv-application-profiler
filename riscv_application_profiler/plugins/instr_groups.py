@@ -6,7 +6,8 @@
 from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 
-def group_by_operation(operations: list, master_inst_list: list):
+def group_by_operation(operations: list, isa, master_inst_list: list):
+    
 
     print (*master_inst_list[:6])
     '''
@@ -29,7 +30,7 @@ def group_by_operation(operations: list, master_inst_list: list):
         for entry in master_inst_list:
             if entry.instr_name is None:
                 continue
-            if entry.instr_name in ops_dict[op]:
+            if entry.instr_name in ops_dict[op][isa]:
                 op_dict[op].append(entry)
     counts = {f'{op}': len(op_dict[op]) for op in operations}
     logger.info('Done.')

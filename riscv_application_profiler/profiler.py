@@ -25,7 +25,7 @@ def print_stats(op_dict, counts):
 def run(log, isa, output, verbose):
     from build.rvopcodesdecoder import disassembler
     spike_parser = spike()
-    spike_parser.setup(trace=str(log), arch=isa)
+    spike_parser.setup(trace=str(log), arch='rv64')
     iter_commitlog = spike_parser.__iter__()
     with open(log, 'r') as logfile:
         # Read the log file
@@ -34,7 +34,7 @@ def run(log, isa, output, verbose):
     logger.info(f'Parsed {len(cl_matches_list)} instructions.')
     logger.info("Decoding...")
     isac_decoder = disassembler()
-    isac_decoder.setup(arch=isa)
+    isac_decoder.setup(arch='rv64')
     master_inst_list = []
     for entry in cl_matches_list:
         if entry.instr is None:
@@ -60,7 +60,7 @@ def run(log, isa, output, verbose):
 
    # groups = list(ops_dict.keys())
 
-    op_dict1, counts1 = instr_groups.group_by_operation(groups, master_inst_list)
+    op_dict1, counts1 = instr_groups.group_by_operation(groups, isa, master_inst_list)
     print_stats(op_dict1, counts1)
 
     # Group by branch sizes
