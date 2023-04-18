@@ -20,6 +20,8 @@ def isac_setup_routine(lib_dir):
     Sets up the riscv-isac environment.
     '''
 
+    os.makedirs(lib_dir, exist_ok=True)
+
     # Clone the riscv-isac repository
     isac_repo = repo_setup('https://github.com/riscv-software-src/riscv-isac.git', lib_dir, '0.17.0')
 
