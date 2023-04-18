@@ -1,30 +1,12 @@
-import re
 from riscv_application_profiler.consts import *
-import pprint as prettyprint
-import math
 from riscv_isac.log import *
 from riscv_isac.plugins.spike import *
 from riscv_application_profiler.plugins import instr_groups
 from riscv_application_profiler.plugins import branch_ops
-
-
-def print_stats(op_dict, counts):
-    '''
-    Prints the statistics of the grouped instructions.
-
-    Args:
-        - op_dict: A dictionary with the operations as keys and a list of InstructionEntry
-            objects as values.
-        - counts: A dictionary with the operations as keys and the number of instructions
-            in each group as values.
-    '''
-    logger.info("Printing statistics.")
-    for op in op_dict.keys():
-        logger.info(f'{op}: {counts[op]}')
-    logger.info("Done.")
+from riscv_application_profiler.utils import *
 
 def run(log, output, verbose):
-    from build.rvopcodesdecoder import disassembler
+    from rvopcodesdecoder import disassembler
     spike_parser = spike()
     spike_parser.setup(trace=str(log), arch='rv64')
     iter_commitlog = spike_parser.__iter__()
@@ -46,6 +28,9 @@ def run(log, output, verbose):
     logger.info("Done decoding instructions.")
     logger.info("Starting to profile...")
 
+    utils = Utilities(log, output)
+    utils.metadata()
+
     # Grouping by operations
     groups = [
         'loads',
@@ -58,16 +43,20 @@ def run(log, output, verbose):
         'branches'
     ]
     op_dict1, counts1 = instr_groups.group_by_operation(groups, master_inst_list)
-    print_stats(op_dict1, counts1)
+    # print_stats(op_dict1, counts1)
 
     # Group by branch sizes
     branch_threshold = 0
     op_dict2, counts2 = branch_ops.group_by_branch_offset(master_inst_list, branch_threshold)
-    print_stats(op_dict2, counts2)
+    # print_stats(op_dict2, counts2)
 
     # Group by branch signs
     op_dict3, counts3 = branch_ops.group_by_branch_sign(master_inst_list)
-    print_stats(op_dict3, counts3)
+    # print_stats(op_dict3, counts3)
+
+    utils.tabulate_stats(op_dict1, counts1, metric_name="Grouping Instructions by Type of Operation.")
+    utils.tabulate_stats(op_dict2, counts2, metric_name="Grouping Branches by Offset Size.")
+    utils.tabulate_stats(op_dict3, counts3, metric_name="Grouping Branches by Direction.")
 
 # def old(log, disass, output):
 #     '''
