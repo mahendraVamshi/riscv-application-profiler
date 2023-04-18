@@ -6,6 +6,27 @@
 
 from riscv_isac.log import *
 from riscv_application_profiler.consts import *
+import statistics
+
+def compute_threshold(master_inst_list: list) -> int:
+    '''
+    compute the mean plus two standard deviations as the threshold
+    
+    Args:
+        - master_inst_list: A list of InstructionEntry objects.
+    '''
+
+    # compute the list of branch offsets from the master_inst_list where each entry has an imm field
+    branch_offsets = [entry.imm for entry in master_inst_list if entry.instr_name in ops_dict['branches']]
+
+    # compute the mean and standard deviation of the branch offsets
+    mean = statistics.mean(branch_offsets)
+    std_dev = statistics.stdev(branch_offsets)
+
+    # compute the threshold as the mean plus two standard deviations
+    threshold = mean + 2*std_dev
+
+    return int(threshold)
 
 def group_by_branch_offset(master_inst_list: list, branch_threshold: int = 0):
     '''
