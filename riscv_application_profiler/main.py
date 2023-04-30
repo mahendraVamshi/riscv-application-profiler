@@ -30,10 +30,10 @@ def cli():
      '-i',
      '--isa',
      help='Set ISA extensions',
-     default='RV64I',
+     default='RV32IM',
      show_default=True,
      required=False,
-     type=click.Choice(['RV32I', 'RV64I', 'RV32IM', 'RV64IM', 'RV32F', 'RV64F'],case_sensitive=False)
+     type=click.Choice(['RV32I', 'RV64I', 'RV32IM', 'RV64IM', 'RV32IMF', 'RV64IMF'],case_sensitive=False)
      )
 # CLI option 'output.
 # Expects a directory.
