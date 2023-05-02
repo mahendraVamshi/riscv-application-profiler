@@ -31,9 +31,9 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
 
     # group = re.findall(isa_regex,isa)
     # extensions_list=[i for i in group[0] if i!='']
-    # print(extensions_list)
+    # print(extension_list)
     
-
+    #listq=[]
     # Create a dictionary with the operations as keys
     op_dict = {f'{op}': [] for op in operations}
     for op in operations:
@@ -47,6 +47,9 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
 
                 if entry.instr_name in ops_dict[isa][i][op]:
                     op_dict[op].append(entry)
+                # else:
+                #     listq.append(entry.instr_name)
     counts = {f'{op}': len(op_dict[op]) for op in operations}
     logger.info('Done.')
+    #print (listq)
     return (op_dict, counts)

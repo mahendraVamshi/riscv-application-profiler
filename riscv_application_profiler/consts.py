@@ -63,8 +63,9 @@ ops_dict = {
     'loads' :['c.lwsp', 'c.lw', ], 
     'stores':['c.swsp', 'c.sw', ], 
     'imm computes' : ['c.li', 'c.lui', 'c.addi', 'c.addi16sp', 'c.addi4spn', 'c.andi',],
-    'reg commputes' : ['c.add', 'c.addw', 'c.sub', 'c.subw', 'c.and', 'c.or', 'c.xor', 'c.mv', ],
     'imm shifts' : ['c.slli', 'c.srli', 'c.srai', ],
+    'reg computes' : ['c.add', 'c.addw', 'c.sub', 'c.subw', 'c.and', 'c.or', 'c.xor', 'c.mv', ],
+    'reg shifts' : ['c.sll', 'c.srl', 'c.sra'],
     'jumps' : ['c.j', 'c.jal', 'c.jr', 'c.jalr'],
     'branches' : ['c.beqz', 'c.bnez', 'c.bltz', 'c.bgez', 'c.bltz', 'c.bgez', 'c.bltzal', 'c.bgezal'],
 
@@ -76,11 +77,11 @@ ops_dict = {
     'loads' : ['ld', 'lh', 'lhu', 'lb', 'lbu', 'lw','lwu'],
     'stores' : ['sb', 'sh', 'sw', 'sd'],
     'imm computes' : ['addi', 'addiw', 'andi', 'ori', 'xori', 'slti', 'sltiu', 'auipc', 'lui'],
-    'imm shifts' : ['slli', 'srli', 'srai'], 'rv64i' : ['slli', 'srli', 'srai', 'slliw', 'srliw', 'sraiw'],
-    'reg computes' : ['add', 'sub', 'slt', 'sltu', 'xor', 'or', 'and'], 'rv64i' : ['add', 'sub','slt', 'sltu', 'xor', 'or', 'and', 'addw', 'subw'],
-    'reg shifts' : ['sll', 'srl', 'sra'], 'rv64i' : ['sll', 'srl', 'sra', 'sllw', 'srlw', 'sraw'],
-    'jumps' : ['jal', 'jalr'], 'rv64i' : ['jal', 'jal'],
-    'branches' : ['bge', 'bgeu', 'blt', 'bltu', 'beq', 'bne'], 'rv64i' : ['bge', 'bgeu', 'blt', 'bltu', 'beq', 'bne'],
+    'imm shifts' : ['slli', 'srli', 'srai', 'slliw', 'srliw', 'sraiw'],
+    'reg computes' : ['add', 'sub','slt', 'sltu', 'xor', 'or', 'and', 'addw', 'subw'],
+    'reg shifts' : ['sll', 'srl', 'sra', 'sllw', 'srlw', 'sraw'],
+    'jumps' : ['jal', 'jal', ],
+    'branches' : ['bge', 'bgeu', 'blt', 'bltu', 'beq', 'bne'],
     #'mul' : []
     },
     'M' : {
