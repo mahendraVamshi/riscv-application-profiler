@@ -1,6 +1,6 @@
 commitlog_regex="^core\s+\d+:\s+\d*\s+(0x[0-9a-fA-F]+)\s+\((0x[0-9a-fA-F]+)\)\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?"
 disass_regex = "^\s*([0-9a-f]+):\s+([0-9a-f]+)\s+([a-z][a-z\.0-9]*)"
-isa_regex = "(i)(m)*(f)*(d)*(c)*"
+#isa_regex = "(i)(m)*(f)*(d)*(c)*"
 #rv32im = [rv32,i,m]
 
 # ops_dict = {
@@ -14,14 +14,14 @@ isa_regex = "(i)(m)*(f)*(d)*(c)*"
 #     'branches' : {'rv32i' : ['bge', 'bgeu', 'blt', 'bltu', 'beq', 'bne'], 'rv64i' : ['bge', 'bgeu', 'blt', 'bltu', 'beq', 'bne']}
 # }
 
-extensions = {
-    'rv32i': ['add', 'addi', 'and', 'andi', 'auipc', 'beq', 'bge', 'bgeu', 'blt', 'bltu', 'bne', 'jal', 'jalr',  'lui', 'lw', 'or', 'ori', 'sb', 'sh', 'sll', 'slli', 'slt', 'slti', 'sltiu', 'sltu', 'sra', 'srai', 'srl', 'srli', 'sub', 'sw', 'xor', 'xori'],
-    'rv64i': ['add', 'addi', 'addiw', 'addw', 'and', 'andi', 'auipc', 'beq', 'bge', 'bgeu', 'blt', 'bltu', 'bne', 'jal', 'jalr','lui', 'or', 'ori', 'sb', 'sd', 'sh', 'sll', 'slli', 'slliw', 'sllw', 'slt', 'slti', 'sltiu', 'sltu', 'sra', 'srai', 'sraiw', 'sraw', 'srl', 'srli', 'srliw', 'srlw', 'sub', 'subw', 'sw', 'xor', 'xori'],
-    #'rv32im': ['div', 'divu', 'mul', 'mulh', 'mulhsu', 'mulhu', 'rem','remu'],
-    'rv64im': ['div', 'divu', 'mul', 'mulh', 'mulhsu', 'mulhu', 'rem', 'remu', 'divuw', 'divw', 'mulw', 'mulh', 'mulhu', 'mulhsu', 'remuw', 'remw'],
-    'rv32f': ['fadd.s', 'fclass.s', 'fcvt.s.w', 'fcvt.s.wu', 'fcvt.w.s', 'fcvt.wu.s', 'fdiv.s', 'feq.s', 'fle.s', 'flt.s', 'flw', 'fmadd.s', 'fmax.s', 'fmin.s', 'fmsub.s', 'fmul.s', 'fnmadd.s', 'fnmsub.s', 'fsqrt.s', 'fsgnj.s', 'fsgnjn.s', 'fsgnjx.s', 'fsqrt.s', 'fsub.s'],
-    'rv64f': ['fadd.d', 'fclass.d', 'fcvt.d.s', 'fcvt.d.w', 'fcvt.d.wu', 'fcvt.s.d', 'fcvt.w.d', 'fcvt.wu.d', 'fdiv.d', 'feq.d', 'fle.d', 'flt.d', 'fld', 'fmadd.d', 'fmax.d', 'fmin.d', 'fmsub.d', 'fmul.d', 'fnmadd.d', 'fnmsub.d', 'fsqrt.d', 'fsgnj.d', 'fsgnjn.d', 'fsgnjx.d', 'fsqrt.d', 'fsub.d'],
-}
+# extensions = {
+#     'rv32i': ['add', 'addi', 'and', 'andi', 'auipc', 'beq', 'bge', 'bgeu', 'blt', 'bltu', 'bne', 'jal', 'jalr',  'lui', 'lw', 'or', 'ori', 'sb', 'sh', 'sll', 'slli', 'slt', 'slti', 'sltiu', 'sltu', 'sra', 'srai', 'srl', 'srli', 'sub', 'sw', 'xor', 'xori'],
+#     'rv64i': ['add', 'addi', 'addiw', 'addw', 'and', 'andi', 'auipc', 'beq', 'bge', 'bgeu', 'blt', 'bltu', 'bne', 'jal', 'jalr','lui', 'or', 'ori', 'sb', 'sd', 'sh', 'sll', 'slli', 'slliw', 'sllw', 'slt', 'slti', 'sltiu', 'sltu', 'sra', 'srai', 'sraiw', 'sraw', 'srl', 'srli', 'srliw', 'srlw', 'sub', 'subw', 'sw', 'xor', 'xori'],
+#     #'rv32im': ['div', 'divu', 'mul', 'mulh', 'mulhsu', 'mulhu', 'rem','remu'],
+#     'rv64im': ['div', 'divu', 'mul', 'mulh', 'mulhsu', 'mulhu', 'rem', 'remu', 'divuw', 'divw', 'mulw', 'mulh', 'mulhu', 'mulhsu', 'remuw', 'remw'],
+#     'rv32/64f': ['fadd.s', 'fclass.s', 'fcvt.s.w', 'fcvt.s.wu', 'fcvt.w.s', 'fcvt.wu.s', 'fdiv.s', 'feq.s', 'fle.s', 'flt.s', 'flw', 'fmadd.s', 'fmax.s', 'fmin.s', 'fmsub.s', 'fmul.s', 'fnmadd.s', 'fnmsub.s', 'fsqrt.s', 'fsgnj.s', 'fsgnjn.s', 'fsgnjx.s', 'fsqrt.s', 'fsub.s'],
+#     'rv64d': ['fadd.d', 'fclass.d', 'fcvt.d.s', 'fcvt.d.w', 'fcvt.d.wu', 'fcvt.s.d', 'fcvt.w.d', 'fcvt.wu.d', 'fdiv.d', 'feq.d', 'fle.d', 'flt.d', 'fld', 'fmadd.d', 'fmax.d', 'fmin.d', 'fmsub.d', 'fmul.d', 'fnmadd.d', 'fnmsub.d', 'fsqrt.d', 'fsgnj.d', 'fsgnjn.d', 'fsgnjx.d', 'fsqrt.d', 'fsub.d'],
+# }
 
 # for key in ops_dict:
 #     ops_dict[key]['rv32mi'] = ops_dict[key]['rv32i']
@@ -36,9 +36,9 @@ extensions = {
 
 
 ops_dict = {
-    'rv32' : {
-    'i' : {
-    'loads' : ['lb', 'lbu', 'lh', 'lhu',],
+    'RV32' : {
+    'I' : {
+    'loads' : ['lb', 'lbu', 'lh', 'lhu','lw',],
     'stores' : ['sb', 'sh', 'sw'],
     'imm computes' : ['addi', 'andi', 'ori', 'xori', 'slti', 'sltiu', 'auipc', 'lui'],
     'imm shifts' : ['slli', 'srli', 'srai'], 'rv64i' : ['slli', 'srli', 'srai', 'slliw', 'srliw', 'sraiw'],
@@ -46,17 +46,63 @@ ops_dict = {
     'reg shifts' : ['sll', 'srl', 'sra'], 'rv64i' : ['sll', 'srl', 'sra', 'sllw', 'srlw', 'sraw'],
     'jumps' : ['jal', 'jalr'], 'rv64i' : ['jal', 'jal'],
     'branches' : ['bge', 'bgeu', 'blt', 'bltu', 'beq', 'bne'], 'rv64i' : ['bge', 'bgeu', 'blt', 'bltu', 'beq', 'bne'],
-    'mul' : []
+    #'mul' : []
     },
-    'm' : {
-    'loads' :[],'stores':[],'imm computes' :[],'imm shifts' :[],'reg computes' :[],'reg shifts' :[],'jumps' :[],'branches' :[],
-    'mul' : ['div', 'divu', 'mul', 'mulh', 'mulhsu', 'mulhu', 'rem','remu']
+    'M' : {
+    'loads' :[],
+    'stores':[],
+    'imm computes' :[],
+    'imm shifts' :[],
+    'reg computes' :['div', 'divu', 'mul', 'mulh', 'mulhsu', 'mulhu', 'rem','remu'],
+    'reg shifts' :[],
+    'jumps' :[],
+    'branches' :[],
+    #'mul' : ['div', 'divu', 'mul', 'mulh', 'mulhsu', 'mulhu', 'rem','remu']
+    },
+    'C' : {
+    'loads' :['c.lwsp', 'c.lw', ], 
+    'stores':['c.swsp', 'c.sw', ], 
+    'imm computes' : ['c.li', 'c.lui', 'c.addi', 'c.addi16sp', 'c.addi4spn', 'c.andi',],
+    'reg commputes' : ['c.add', 'c.addw', 'c.sub', 'c.subw', 'c.and', 'c.or', 'c.xor', 'c.mv', ],
+    'imm shifts' : ['c.slli', 'c.srli', 'c.srai', ],
+    'jumps' : ['c.j', 'c.jal', 'c.jr', 'c.jalr'],
+    'branches' : ['c.beqz', 'c.bnez', 'c.bltz', 'c.bgez', 'c.bltz', 'c.bgez', 'c.bltzal', 'c.bgezal'],
+
+    },#c.nop, c.ebreak, c.mv,
     },
 
-    'rv64' : {
-    'i' : {
-    'loads' : ['ld', 'lh', 'lhu', 'lb', 'lbu', 'lw','lwu']
-    }
+    'RV64' : {
+    'I' : {
+    'loads' : ['ld', 'lh', 'lhu', 'lb', 'lbu', 'lw','lwu'],
+    'stores' : ['sb', 'sh', 'sw', 'sd'],
+    'imm computes' : ['addi', 'addiw', 'andi', 'ori', 'xori', 'slti', 'sltiu', 'auipc', 'lui'],
+    'imm shifts' : ['slli', 'srli', 'srai'], 'rv64i' : ['slli', 'srli', 'srai', 'slliw', 'srliw', 'sraiw'],
+    'reg computes' : ['add', 'sub', 'slt', 'sltu', 'xor', 'or', 'and'], 'rv64i' : ['add', 'sub','slt', 'sltu', 'xor', 'or', 'and', 'addw', 'subw'],
+    'reg shifts' : ['sll', 'srl', 'sra'], 'rv64i' : ['sll', 'srl', 'sra', 'sllw', 'srlw', 'sraw'],
+    'jumps' : ['jal', 'jalr'], 'rv64i' : ['jal', 'jal'],
+    'branches' : ['bge', 'bgeu', 'blt', 'bltu', 'beq', 'bne'], 'rv64i' : ['bge', 'bgeu', 'blt', 'bltu', 'beq', 'bne'],
+    #'mul' : []
+    },
+    'M' : {
+    'loads' :[],
+    'stores':[],
+    'imm computes' :[],
+    'imm shifts' :[],
+    'reg computes' :['div', 'divu', 'mul', 'mulh', 'mulhsu', 'mulhu', 'rem','remu'],
+    'reg shifts' :[],
+    'jumps' :[],
+    'branches' :[],
+    #'mul' : ['div', 'divu', 'mul', 'mulh', 'mulhsu', 'mulhu', 'rem','remu']
+    },
+    'C' : {
+    'loads' : ['c.lwsp', 'c.ldsp', 'c.lw', 'c.ld', ], # c.lq, c.lqsp, c.flwsp, c.fldsp, c.fld, c.flw
+    'stores' : ['c.swsp', 'c.sdsp', 'c.sw', 'c.sd',], #c.sq,  c.sqsp, c.fswsp, c.fsdsp, c.fsd, c.fsw
+    'imm computes' : ['c.addi4spn', 'c.addi', 'c.addiw', 'c.li', 'c.lui', 'c.addi16sp', 'c.addi4spn', 'c.addi', 'c.addiw', 'c.li', 'c.lui', 'c.addi16sp'],
+    'imm shifts' : ['c.slli', 'c.srli', 'c.srai'],
+    'reg computes' : ['c.add', 'c.sub', 'c.xor', 'c.or', 'c.and', 'c.subw', 'c.addw', 'c.mv'],
+    'reg shifts' : ['c.sll', 'c.srl', 'c.sra'],
+    'jumps' : ['c.j', 'c.jal', 'c.jr', 'c.jalr'],
+    'branches' : ['c.beqz', 'c.bnez', 'c.bltz', 'c.bgez', 'c.bltz', 'c.bgez', 'c.bltzal', 'c.bgezal'],
     }
 }
 }

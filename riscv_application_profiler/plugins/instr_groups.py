@@ -7,10 +7,10 @@ from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import re
 
-def group_by_operation(operations: list, isa, master_inst_list: list):
+def group_by_operation(operations: list, isa, extension_list, master_inst_list: list):
     
 
-    print (*master_inst_list[:6])
+    #print (*master_inst_list[:6])
     '''
     Groups instructions based on the operation.
 
@@ -25,27 +25,27 @@ def group_by_operation(operations: list, isa, master_inst_list: list):
     '''
     logger.info("Grouping instructions by operation.")
 
-    isa=isa.lower()
-    ISA=isa[:4]
+    # isa=isa.lower()
+    # ISA=isa[:4]
 
 
-    group = re.findall(isa_regex,isa)
-    extensions_list=[i for i in group[0] if i!='']
-    print(extensions_list)
+    # group = re.findall(isa_regex,isa)
+    # extensions_list=[i for i in group[0] if i!='']
+    # print(extensions_list)
     
 
     # Create a dictionary with the operations as keys
     op_dict = {f'{op}': [] for op in operations}
     for op in operations:
-        print(op)
+        #print(op)
         for entry in master_inst_list:
             if entry.instr_name is None:
                 continue
             #if entry.instr_name in ops_dict[op][isa]:
 
-            for i in extensions_list:
+            for i in extension_list:
 
-                if entry.instr_name in ops_dict[ISA][i][op]:
+                if entry.instr_name in ops_dict[isa][i][op]:
                     op_dict[op].append(entry)
     counts = {f'{op}': len(op_dict[op]) for op in operations}
     logger.info('Done.')

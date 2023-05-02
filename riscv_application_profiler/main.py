@@ -30,7 +30,7 @@ def cli():
      '-i',
      '--isa',
      help='Set ISA extensions',
-     default='RV32IM',
+     default='RV32I',
      show_default=True,
      required=False,
      type=click.Choice(['RV32I', 'RV64I', 'RV32IM', 'RV64IM', 'RV32IMF', 'RV64IMF'],case_sensitive=False)

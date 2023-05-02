@@ -6,6 +6,7 @@ from riscv_isac.log import *
 from riscv_isac.plugins.spike import *
 from riscv_application_profiler.plugins import instr_groups
 from riscv_application_profiler.plugins import branch_ops
+import riscv_config.isa_validator as isaval
 
 def print_stats(op_dict, counts):
     '''
@@ -55,12 +56,21 @@ def run(log, isa, output, verbose):
         'reg shifts',
         'jumps',
         'branches',
-        'mul'
+        #'mul'
     ]
+
+    (extension_list, err, err_list) = isaval.get_extension_list(isa)
+    #print (extension_list)
+    for e in err_list:
+        logger.error(e)
+    if err:
+        raise SystemExit(1)
+    
+    isa = isa.split('I')[0]
 
    # groups = list(ops_dict.keys())
 
-    op_dict1, counts1 = instr_groups.group_by_operation(groups, isa, master_inst_list)
+    op_dict1, counts1 = instr_groups.group_by_operation(groups, isa, extension_list, master_inst_list)
     print_stats(op_dict1, counts1)
 
     # Group by branch sizes
