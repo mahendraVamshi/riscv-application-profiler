@@ -24,32 +24,22 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
             keys and the number of instructions in each group as values.
     '''
     logger.info("Grouping instructions by operation.")
-
-    # isa=isa.lower()
-    # ISA=isa[:4]
-
-
-    # group = re.findall(isa_regex,isa)
-    # extensions_list=[i for i in group[0] if i!='']
-    # print(extension_list)
     
-    #listq=[]
     # Create a dictionary with the operations as keys
+
     op_dict = {f'{op}': [] for op in operations}
-    for op in operations:
-        #print(op)
-        for entry in master_inst_list:
-            if entry.instr_name is None:
-                continue
+    #print (op_dict)
+    for extension in extension_list:
+        
+        for op in operations:
+            #print(op)
             #if entry.instr_name in ops_dict[op][isa]:
+            for entry in master_inst_list:
 
-            for i in extension_list:
-
-                if entry.instr_name in ops_dict[isa][i][op]:
+                if entry.instr_name in ops_dict[isa][extension][op]:
                     op_dict[op].append(entry)
-                # else:
-                #     listq.append(entry.instr_name)
+              
+                  
     counts = {f'{op}': len(op_dict[op]) for op in operations}
     logger.info('Done.')
-    #print (listq)
     return (op_dict, counts)
