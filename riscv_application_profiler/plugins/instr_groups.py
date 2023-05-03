@@ -28,18 +28,14 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
     # Create a dictionary with the operations as keys
 
     op_dict = {f'{op}': [] for op in operations}
-    #print (op_dict)
+
     for extension in extension_list:
-        
         for op in operations:
-            #print(op)
-            #if entry.instr_name in ops_dict[op][isa]:
             for entry in master_inst_list:
 
                 if entry.instr_name in ops_dict[isa][extension][op]:
                     op_dict[op].append(entry)
               
-                  
     counts = {f'{op}': len(op_dict[op]) for op in operations}
     logger.info('Done.')
     return (op_dict, counts)
