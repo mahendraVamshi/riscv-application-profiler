@@ -65,11 +65,11 @@ def run(log, isa, output, verbose):
     if err:
         raise SystemExit(1)
     
-    isa = isa.split('I')[0]
+    ISA = isa.split('I')[0]
 
    # groups = list(ops_dict.keys())
 
-    op_dict1, counts1 = instr_groups.group_by_operation(groups, isa, extension_list, master_inst_list)
+    op_dict1, counts1 = instr_groups.group_by_operation(groups, ISA, extension_list, master_inst_list)
     print_stats(op_dict1, counts1)
 
     # Group by branch sizes

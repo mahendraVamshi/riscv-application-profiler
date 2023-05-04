@@ -52,7 +52,7 @@ def profile(log, isa, output, verbose):
     '''
     Generates the hardware description of the decoder
     '''
-
+    isa = isa.upper()
     log_file = str(Path(log).absolute())
     output_dir = str(Path(output).absolute())
     if not os.path.exists(output_dir):
@@ -69,7 +69,7 @@ def profile(log, isa, output, verbose):
     logger.info(f"RISC-V Application Profiler v{__version__}")
     logger.info("**********************************")
     
-    logger.info("ISA Extension used: {isa}")
+    logger.info("ISA Extension used: " + isa)
     logger.info(f"\nLog file: {log_file}")
     logger.info(f"Output directory: {output_dir}")
 
