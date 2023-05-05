@@ -3,6 +3,8 @@
 from riscv_isac.log import *
 import pytablewriter as ptw
 import os
+import riscv_application_profiler.consts as consts
+import pprint as pp
 
 class Utilities:
     def __init__(self, log, output) -> None:
@@ -60,3 +62,48 @@ class Utilities:
         # self.tables_file.write(tabulate(table, headers=['Operation', 'Count']))
         self.tables_file.write('\n\n')
         logger.debug("Done.")
+
+    def remove_dups(self, target: list) -> list:
+        '''
+        Removes duplicates from a list.
+
+        Args:
+            - target: The list to remove duplicates from.
+
+        Returns:
+            - A list with no duplicates.
+        '''
+        temp_list = []
+        for entry in target:
+            if entry not in temp_list:
+                temp_list.append(entry)
+        return temp_list
+
+    def compute_ops_dict(self, args_list: list, ext_list: list, isa_arg: str) -> dict:
+        '''
+        compute the current ops dict out of the master ops db
+        
+        Args:
+            - ext_list: A list of extensions to be supported.
+            - isa_arg: The ISA to be supported.
+        
+        Returns:
+            - A dictionary containing the supported operations.
+        '''
+
+        temp_ops_dict = {entry:[] for entry in args_list}
+        if isa_arg == 'RV32':
+            master_ops_dict = consts.ops_dict['RV32']
+        elif isa_arg == 'RV64':
+            master_ops_dict = consts.ops_dict['RV32']
+            for ext in ext_list:
+                for op_type in args_list:
+                    master_ops_dict[ext][op_type].extend(consts.ops_dict['RV64'][ext][op_type])
+        else:
+            logger.error(f'XLEN {isa_arg} not supported.')
+            exit(1)
+        for ext in ext_list:
+            for op_type in args_list:
+                temp_ops_dict[op_type] += master_ops_dict[ext][op_type]
+        result_dict = {entry:self.remove_dups(temp_ops_dict[entry]) for entry in temp_ops_dict}
+        return result_dict
