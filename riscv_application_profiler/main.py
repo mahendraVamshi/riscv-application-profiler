@@ -24,6 +24,17 @@ def cli():
 	help=
 	'This option expects the path to an execution log.',
 	required=True)
+# CLI option 'ISA'
+# Expects a ISA.
+@click.option(
+     '-i',
+     '--isa',
+     help='Set ISA extensions',
+     default='RV32I',
+     show_default=True,
+     required=False,
+     
+     )
 # CLI option 'output.
 # Expects a directory.
 @click.option(
@@ -32,15 +43,16 @@ def cli():
 	help="Path to the output file.",
 	default='./app.profile',
 	show_default=True,
-	required=False)
+	required=False,
+    )
 @click.option('--verbose', '-v', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
 # CLI function 'generate'
 @cli.command()
-def profile(log, output, verbose):
+def profile(log, isa, output, verbose):
     '''
     Generates the hardware description of the decoder
     '''
-
+    isa = isa.upper()
     log_file = str(Path(log).absolute())
     output_dir = str(Path(output).absolute())
     if not os.path.exists(output_dir):
@@ -56,12 +68,13 @@ def profile(log, output, verbose):
     logger.info("**********************************")
     logger.info(f"RISC-V Application Profiler v{__version__}")
     logger.info("**********************************")
-
+    
+    logger.info("ISA Extension used: " + isa)
     logger.info(f"\nLog file: {log_file}")
     logger.info(f"Output directory: {output_dir}")
 
     # Invoke the actual profiler
-    run(log_file, output_dir, verbose)
+    run(log_file, isa, output_dir, verbose)
 
     logger.info("Done profiling.")
     logger.info(f"Reports in {output_dir}/reports.")

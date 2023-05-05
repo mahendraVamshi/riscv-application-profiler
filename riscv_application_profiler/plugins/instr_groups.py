@@ -5,8 +5,12 @@
 
 from riscv_isac.log import *
 from riscv_application_profiler.consts import *
+import re
 
-def group_by_operation(operations: list, master_inst_list: list):
+def group_by_operation(operations: list, isa, extension_list, master_inst_list: list):
+    
+
+    #print (*master_inst_list[:6])
     '''
     Groups instructions based on the operation.
 
@@ -20,15 +24,21 @@ def group_by_operation(operations: list, master_inst_list: list):
             keys and the number of instructions in each group as values.
     '''
     logger.info("Grouping instructions by operation.")
-
+    
     # Create a dictionary with the operations as keys
+
     op_dict = {f'{op}': [] for op in operations}
-    for op in operations:
-        for entry in master_inst_list:
-            if entry.instr_name is None:
-                continue
-            if entry.instr_name in ops_dict[op]:
-                op_dict[op].append(entry)
+
+    for extension in extension_list:
+        for op in operations:
+            for entry in master_inst_list:
+                try:
+                    if entry.instr_name in ops_dict[isa][extension][op]:
+                        op_dict[op].append(entry)
+                except KeyError as e:
+                    logger.error(f'Extension {e} not supported.')
+                    exit(1)
+              
     counts = {f'{op}': len(op_dict[op]) for op in operations}
     logger.debug('Done.')
     return (op_dict, counts)
