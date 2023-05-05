@@ -1,9 +1,11 @@
 from riscv_application_profiler.consts import *
+import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
 from riscv_isac.plugins.spike import *
 from riscv_application_profiler.plugins import instr_groups
 from riscv_application_profiler.plugins import branch_ops
 import riscv_config.isa_validator as isaval
+from riscv_application_profiler.utils import Utilities
 
 def print_stats(op_dict, counts):
     '''
@@ -21,7 +23,7 @@ def print_stats(op_dict, counts):
     logger.info("Done.")
 
 def run(log, isa, output, verbose):
-    from build.rvopcodesdecoder import disassembler
+    from build.lib.rvopcodesdecoder import disassembler
     spike_parser = spike()
     spike_parser.setup(trace=str(log), arch='rv64')
     iter_commitlog = spike_parser.__iter__()
@@ -65,21 +67,27 @@ def run(log, isa, output, verbose):
     if err:
         raise SystemExit(1)
     
-    ISA = isa.split('I')[0]
+    isa_arg = isa.split('I')[0]
 
    # groups = list(ops_dict.keys())
 
-    op_dict1, counts1 = instr_groups.group_by_operation(groups, ISA, extension_list, master_inst_list)
-    print_stats(op_dict1, counts1)
+    op_dict1, counts1 = instr_groups.group_by_operation(groups, isa_arg, extension_list, master_inst_list)
+    #print_stats(op_dict1, counts1)
+
+    curr_ops_dict = utils.compute_ops_dict(args_list=groups, isa_arg=isa_arg, ext_list=extension_list)
 
     # Group by branch sizes
-    branch_threshold = branch_ops.compute_threshold(master_inst_list)
-    op_dict2, counts2 = branch_ops.group_by_branch_offset(master_inst_list, branch_threshold)
+    branch_threshold = branch_ops.compute_threshold(master_inst_list=master_inst_list, ops_dict=curr_ops_dict)
+    op_dict2, counts2 = branch_ops.group_by_branch_offset(master_inst_list=master_inst_list, ops_dict=curr_ops_dict, branch_threshold=branch_threshold)
     # print_stats(op_dict2, counts2)
 
     # Group by branch signs
-    op_dict3, counts3 = branch_ops.group_by_branch_sign(master_inst_list)
+    op_dict3, counts3 = branch_ops.group_by_branch_sign(master_inst_list=master_inst_list, ops_dict=curr_ops_dict)
     # print_stats(op_dict3, counts3)
+
+    if 'C' in extension_list:
+        logger.warning("riscv-isac does not decode immediate fields for compressed instructions. \
+Value based metrics on branch ops may be inaccurate.")
 
     utils.tabulate_stats(op_dict1, counts1, metric_name="Grouping Instructions by Type of Operation.")
     utils.tabulate_stats(op_dict2, counts2, metric_name="Grouping Branches by Offset Size.")
