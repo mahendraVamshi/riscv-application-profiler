@@ -6,9 +6,11 @@
 
 from riscv_isac.log import *
 from riscv_application_profiler.consts import *
+import riscv_application_profiler.consts as consts
 import statistics
+import pprint as pp
 
-def compute_threshold(master_inst_list: list) -> int:
+def compute_threshold(master_inst_list: list, ops_dict: dict) -> int:
     '''
     compute the mean plus two standard deviations as the threshold
     
@@ -17,7 +19,7 @@ def compute_threshold(master_inst_list: list) -> int:
     '''
 
     # compute the list of branch offsets from the master_inst_list where each entry has an imm field
-    branch_offsets = [entry.imm for entry in master_inst_list if entry.instr_name in ops_dict['branches']]
+    branch_offsets = [entry.imm for entry in master_inst_list if entry.instr_name in ops_dict['branches'] and entry.imm is not None]
 
     # compute the mean and standard deviation of the branch offsets
     mean = statistics.mean(branch_offsets)
@@ -28,7 +30,7 @@ def compute_threshold(master_inst_list: list) -> int:
 
     return int(threshold)
 
-def group_by_branch_offset(master_inst_list: list, branch_threshold: int = 0):
+def group_by_branch_offset(master_inst_list: list, ops_dict: dict, branch_threshold: int = 0):
     '''
     Groups instructions based on the branch offset.
 
@@ -47,6 +49,8 @@ def group_by_branch_offset(master_inst_list: list, branch_threshold: int = 0):
     
     for entry in master_inst_list:
         if entry.instr_name in ops_dict['branches']:
+            if entry.imm is None:
+                continue
             if entry.imm < branch_threshold:
                 op_dict['short'].append(entry)
             else:
@@ -56,7 +60,7 @@ def group_by_branch_offset(master_inst_list: list, branch_threshold: int = 0):
     logger.debug('Done.')
     return (op_dict, counts)
 
-def group_by_branch_sign(master_inst_list: list):
+def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
     '''
     Groups instructions based on the sign bit of the branch offset.
     
@@ -73,13 +77,13 @@ def group_by_branch_sign(master_inst_list: list):
     op_dict = {'positive': [], 'negative': []}
     for entry in master_inst_list:
         if entry.instr_name in ops_dict['branches']:
+            if entry.imm is None:
+                continue
             if entry.imm<0:
                 op_dict['negative'].append(entry)
             else:
                 op_dict['positive'].append(entry)
-    
-        
- 
+
     counts = {op: len(op_dict[op]) for op in op_dict.keys()}
     logger.debug('Done.')
     return (op_dict, counts)
