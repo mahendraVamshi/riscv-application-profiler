@@ -62,7 +62,7 @@ def profile(log, isa, output, verbose):
         os.makedirs(output_dir)
 
     # setup isac
-    isac_setup_routine(lib_dir=output_dir)
+    isac_setup_routine(lib_dir=f'{output_dir}/lib')
 
     logger.level(verbose)
     logger.info("**********************************")
@@ -75,3 +75,6 @@ def profile(log, isa, output, verbose):
 
     # Invoke the actual profiler
     run(log_file, isa, output_dir, verbose)
+
+    logger.info("Done profiling.")
+    logger.info(f"Reports in {output_dir}/reports.")

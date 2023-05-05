@@ -40,5 +40,5 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
                     exit(1)
               
     counts = {f'{op}': len(op_dict[op]) for op in operations}
-    logger.info('Done.')
+    logger.debug('Done.')
     return (op_dict, counts)

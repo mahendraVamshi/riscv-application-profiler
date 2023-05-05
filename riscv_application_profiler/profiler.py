@@ -1,7 +1,4 @@
-import re
 from riscv_application_profiler.consts import *
-import pprint as prettyprint
-import math
 from riscv_isac.log import *
 from riscv_isac.plugins.spike import *
 from riscv_application_profiler.plugins import instr_groups
@@ -46,6 +43,9 @@ def run(log, isa, output, verbose):
     logger.info("Done decoding instructions.")
     logger.info("Starting to profile...")
 
+    utils = Utilities(log, output)
+    utils.metadata()
+
     # Grouping by operations
     groups = [
         'loads',
@@ -73,8 +73,14 @@ def run(log, isa, output, verbose):
     print_stats(op_dict1, counts1)
 
     # Group by branch sizes
-    branch_threshold = 0
+    branch_threshold = branch_ops.compute_threshold(master_inst_list)
     op_dict2, counts2 = branch_ops.group_by_branch_offset(master_inst_list, branch_threshold)
+    # print_stats(op_dict2, counts2)
 
     # Group by branch signs
     op_dict3, counts3 = branch_ops.group_by_branch_sign(master_inst_list)
+    # print_stats(op_dict3, counts3)
+
+    utils.tabulate_stats(op_dict1, counts1, metric_name="Grouping Instructions by Type of Operation.")
+    utils.tabulate_stats(op_dict2, counts2, metric_name="Grouping Branches by Offset Size.")
+    utils.tabulate_stats(op_dict3, counts3, metric_name="Grouping Branches by Direction.")
