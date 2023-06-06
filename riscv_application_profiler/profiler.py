@@ -1,3 +1,4 @@
+from riscv_application_profiler.cache import cache_simulator_example
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
@@ -45,6 +46,7 @@ def run(log, isa, output, verbose):
     logger.info("Done decoding instructions.")
     logger.info("Starting to profile...")
 
+
     utils = Utilities(log, output)
     utils.metadata()
 
@@ -84,6 +86,11 @@ def run(log, isa, output, verbose):
     # Group by branch signs
     op_dict3, counts3 = branch_ops.group_by_branch_sign(master_inst_list=master_inst_list, ops_dict=curr_ops_dict)
     # print_stats(op_dict3, counts3)
+
+
+    #ananlyses of cache
+    cache_simulator_example(op_dict1['loads'], op_dict1['stores'])
+
 
     if 'C' in extension_list:
         logger.warning("riscv-isac does not decode immediate fields for compressed instructions. \

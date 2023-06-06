@@ -35,10 +35,11 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
                 try:
                     if entry.instr_name in ops_dict[isa][extension][op]:
                         op_dict[op].append(entry)
+                        #print (op_dict[op])
                 except KeyError as e:
                     logger.error(f'Extension {e} not supported.')
                     exit(1)
-              
+
     counts = {f'{op}': len(op_dict[op]) for op in operations}
     logger.debug('Done.')
     return (op_dict, counts)
