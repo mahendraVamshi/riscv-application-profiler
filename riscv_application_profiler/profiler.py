@@ -1,10 +1,11 @@
-from riscv_application_profiler.cache import cache_simulator_example
+from riscv_application_profiler.plugins.cache import cache_simulator_example
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
 from riscv_isac.plugins.spike import *
 from riscv_application_profiler.plugins import instr_groups
 from riscv_application_profiler.plugins import branch_ops
+from riscv_application_profiler.plugins import cache
 import riscv_config.isa_validator as isaval
 from riscv_application_profiler.utils import Utilities
 
@@ -89,7 +90,7 @@ def run(log, isa, output, verbose):
 
 
     #ananlyses of cache
-    cache_simulator_example(op_dict1['loads'], op_dict1['stores'])
+    cache.cache_simulator_example(master_inst_list, op_dict1['loads'], op_dict1['stores'])
 
 
     if 'C' in extension_list:

@@ -202,3 +202,5 @@ ops_dict = {
         },
     },
 }
+
+reg_file = {f'x{i}':'0' for i in range(32)}
