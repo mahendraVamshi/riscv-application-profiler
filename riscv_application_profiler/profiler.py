@@ -1,4 +1,4 @@
-from riscv_application_profiler.plugins.cache import cache_simulator_example
+
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *

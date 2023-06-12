@@ -1,5 +1,6 @@
 from cachesim import CacheSimulator, Cache, MainMemory
 import riscv_application_profiler.consts as consts
+from riscv_isac.log import *
 
 def cache_simulator_example(master_inst_list, load_list, store_list):
 
@@ -8,7 +9,8 @@ def cache_simulator_example(master_inst_list, load_list, store_list):
     mem.load_to(l1)
     mem.store_from(l1)
     cs = CacheSimulator(l1, mem)
-
+    for i in range(10):
+        logger.debug(print(load_list[i]))
     for i in master_inst_list:
         if (i.reg_commit is not None):
             consts.reg_file[f'x{i.reg_commit[1]}'] = i.reg_commit[2]
