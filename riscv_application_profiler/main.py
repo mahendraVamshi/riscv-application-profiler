@@ -41,7 +41,7 @@ def cli():
 	'-o',
 	'--output',
 	help="Path to the output file.",
-	default='./app.profile',
+	default='./build',
 	show_default=True,
 	required=False,
     )
