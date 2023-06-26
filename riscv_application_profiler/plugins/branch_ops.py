@@ -75,30 +75,31 @@ def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
     logger.info("Grouping instructions by branch offset sign.")
     # Create a dictionary with the operations as keys
     op_dict = {'positive': [], 'negative': []}
-    target_addr={}
+    loop_instr={}
     for entry in master_inst_list:
         if entry.instr_name in ops_dict['branches']:
             if entry.imm is None:
                 continue
             if entry.imm<0:
                 op_dict['negative'].append(entry)
-                # target address{ first target address: {'depth':value,'count':value}, second target address: {'depth':value,'count':value} }
+                instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])+','+str(entry.rs2[1])+str(entry.rs2[0])
+                # target address{ first_instr: {'target address':value,'depth':value,'count':value}, second_instr: {'target address':value,'depth':value,'count':value} }
                 ta=int(entry.instr_addr) + int(entry.imm)
-                if ta not in target_addr:
-                    target_addr[ta]={'depth':1,'count':1}
+                if instr not in loop_instr:
+                    loop_instr[instr]={'target address':ta,'depth':1,'count':1}
                     
                 else:
-                    target_addr[ta]['count']=target_addr[ta]['count']+1
+                    loop_instr[instr]['count']=loop_instr[instr]['count']+1
             else:
                 op_dict['positive'].append(entry)
     
-    number_of_loops=len(target_addr)
+    number_of_loops=len(loop_instr)
     if number_of_loops>1:
-        target_addr_list=list(target_addr.keys())
+        target_addr_list=list(loop_instr.keys())
         for i in range(number_of_loops-1):
             if (target_addr_list[i+1]<target_addr_list[i]):
-                target_addr[target_addr_list[i+1]]['depth']=target_addr[target_addr_list[i]]['depth']+1
-    print("target address",target_addr)
+                loop_instr[target_addr_list[i+1]]['depth']=loop_instr[target_addr_list[i]]['depth']+1
+    print(loop_instr)
     counts = {op: len(op_dict[op]) for op in op_dict.keys()}
     logger.debug('Done.')
     return (op_dict, counts)
