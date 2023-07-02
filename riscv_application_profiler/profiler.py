@@ -5,6 +5,7 @@ from riscv_isac.log import *
 from riscv_isac.plugins.spike import *
 from riscv_application_profiler.plugins import instr_groups
 from riscv_application_profiler.plugins import branch_ops
+from riscv_application_profiler.plugins import register_compute
 from riscv_application_profiler.plugins import cache
 import riscv_config.isa_validator as isaval
 from riscv_application_profiler.utils import Utilities
@@ -92,6 +93,9 @@ def run(log, isa, output, verbose):
     #ananlyses of cache
     cache.cache_simulator_example(master_inst_list, op_dict1['loads'], op_dict1['stores'])
 
+    op_list, count4 = branch_ops.loop_compute(master_inst_list=master_inst_list, ops_dict=curr_ops_dict)
+
+    op_list1, count5 = register_compute.register_compute(master_inst_list=master_inst_list)
 
     if 'C' in extension_list:
         logger.warning("riscv-isac does not decode immediate fields for compressed instructions. \
@@ -100,3 +104,5 @@ Value based metrics on branch ops may be inaccurate.")
     utils.tabulate_stats(op_dict1, counts1, metric_name="Grouping Instructions by Type of Operation.")
     utils.tabulate_stats(op_dict2, counts2, metric_name="Grouping Branches by Offset Size.")
     utils.tabulate_stats(op_dict3, counts3, metric_name="Grouping Branches by Direction.")
+    utils.tabulate_loop_stats(op_list, count4, metric_name="Nested loop Computation.")
+    utils.tabulate_loop_stats(op_list1, count5, metric_name="Register Computation.")

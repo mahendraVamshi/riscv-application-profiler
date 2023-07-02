@@ -107,3 +107,31 @@ class Utilities:
                 temp_ops_dict[op_type] += master_ops_dict[ext][op_type]
         result_dict = {entry:self.remove_dups(temp_ops_dict[entry]) for entry in temp_ops_dict}
         return result_dict
+    
+
+    def tabulate_loop_stats(self, op_list, counts, metric_name):
+        '''
+        Tabulates the statistics of the grouped instructions using the tabulate module.
+
+        Args:
+            - op_dict: A dictionary with the operations as keys and a list of InstructionEntry
+                objects as values.
+            - counts: A dictionary with the operations as keys and the number of instructions
+                in each group as values.
+        '''
+        logger.debug("Tabulating statistics.")
+        table = []
+        for op in op_list:
+            table.append([op, counts[op]])
+        self.tables_file.write(f'## {metric_name}\n')
+
+        # create an asciidoc table using pytablewriter from the the data in op_dict
+        writer = ptw.AsciiDocTableWriter()
+        writer.table_name = ""
+        writer.headers = ["Operation", "Count"]
+        writer.value_matrix = table
+        self.tables_file.write(writer.dumps())
+
+        # self.tables_file.write(tabulate(table, headers=['Operation', 'Count']))
+        self.tables_file.write('\n\n')
+        logger.debug("Done.")
