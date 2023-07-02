@@ -75,31 +75,44 @@ def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
     logger.info("Grouping instructions by branch offset sign.")
     # Create a dictionary with the operations as keys
     op_dict = {'positive': [], 'negative': []}
-    loop_instr={}
     for entry in master_inst_list:
         if entry.instr_name in ops_dict['branches']:
             if entry.imm is None:
                 continue
             if entry.imm<0:
                 op_dict['negative'].append(entry)
-                instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])+','+str(entry.rs2[1])+str(entry.rs2[0])
-                # target address{ first_instr: {'target address':value,'depth':value,'count':value}, second_instr: {'target address':value,'depth':value,'count':value} }
-                ta=int(entry.instr_addr) + int(entry.imm)
-                if instr not in loop_instr:
-                    loop_instr[instr]={'target address':ta,'depth':1,'count':1}
-                    
-                else:
-                    loop_instr[instr]['count']=loop_instr[instr]['count']+1
             else:
                 op_dict['positive'].append(entry)
-    
-    number_of_loops=len(loop_instr)
-    if number_of_loops>1:
-        target_addr_list=list(loop_instr.keys())
-        for i in range(number_of_loops-1):
-            if (target_addr_list[i+1]<target_addr_list[i]):
-                loop_instr[target_addr_list[i+1]]['depth']=loop_instr[target_addr_list[i]]['depth']+1
-    print(loop_instr)
     counts = {op: len(op_dict[op]) for op in op_dict.keys()}
     logger.debug('Done.')
     return (op_dict, counts)
+
+
+def loop_compute(master_inst_list: list, ops_dict: dict):
+    logger.info("Computing loops.")
+    # Create a dictionary with the operations as keys
+    loop_instr={}
+    for entry in master_inst_list:
+        if entry.instr_name in ops_dict['branches']:
+            if entry.imm is None:
+                continue
+            if entry.imm<0:
+                instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])+','+str(entry.rs2[1])+str(entry.rs2[0])
+                # loop_instr=>{ first_instr: {'target address':value,'depth':value,'count':value,'size':value}, second_instr: {'target address':value,'depth':value,'count':value,'size':value} }
+                ta=int(entry.instr_addr) + int(entry.imm)
+                if (instr not in loop_instr) or (hex(ta) not in loop_instr[instr]['target address']):
+                    #if (ta not in loop_instr[instr]['target address']):
+                    loop_instr[instr]={'target address':hex(ta),'depth':1,'count':1,'size':(int(entry.instr_addr)-ta)/4}
+                    
+                else:
+                    loop_instr[instr]['count']=loop_instr[instr]['count']+1
+    
+    number_of_loops=len(loop_instr)
+    if number_of_loops>1:
+        loop_list=list(loop_instr.keys())
+        for i in range(number_of_loops-1):
+            if (loop_list[i+1]<loop_list[i]):
+                loop_instr[loop_list[i+1]]['depth']=loop_instr[loop_list[i]]['depth']+1
+
+    return(loop_list,loop_instr)
+    
