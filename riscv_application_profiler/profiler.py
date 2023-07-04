@@ -63,6 +63,20 @@ def run(log, isa, output, verbose):
         'reg shifts',
         'jumps',
         'branches',
+        "bitwise",
+        "shifts",
+        "set/clear",
+        "count",
+        "extract/insert",
+        "permute",
+        "gather/scatter",
+        "funnel/merge",
+        "crc",
+        "compares",
+        "conversions",
+        "moves",
+        "classifies",
+        "csrs",
     ]
 
     (extension_list, err, err_list) = isaval.get_extension_list(isa)

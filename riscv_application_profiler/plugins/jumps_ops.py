@@ -63,7 +63,7 @@ def jump_size(master_inst_list: list, ops_dict: dict):
                     instr=str(entry.instr_name)+' '+str(entry.rd[1])+str(entry.rd[0])+','+str(entry.imm)
 
                 if (instr not in jump_instr) or (hex(ta) not in jump_instr[instr]['target address']):
-                    jump_instr[instr]={'target address':hex(ta),'count':1,'size':(int(entry.instr_addr)-ta)/4}    
+                    jump_instr[instr]={'target address':hex(ta),'count':1,'size':(int(entry.instr_addr)-ta)}    
                 else:
                     jump_instr[instr]['count']=jump_instr[instr]['count']+1
             else:

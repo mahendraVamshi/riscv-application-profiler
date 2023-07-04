@@ -78,6 +78,7 @@ def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
     for entry in master_inst_list:
         if entry.instr_name in ops_dict['branches']:
             if entry.imm is None:
+                print(entry)
                 continue
             if entry.imm<0:
                 op_dict['negative'].append(entry)
@@ -92,17 +93,21 @@ def loop_compute(master_inst_list: list, ops_dict: dict):
     logger.info("Computing loops.")
     # Create a dictionary with the operations as keys
     loop_instr={}
+    loop_list=[]
     for entry in master_inst_list:
         if entry.instr_name in ops_dict['branches']:
             if entry.imm is None:
                 continue
             if entry.imm<0:
-                instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])+','+str(entry.rs2[1])+str(entry.rs2[0])
+                if entry.rs2 is not None:
+                    instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])+','+str(entry.rs2[1])+str(entry.rs2[0])
+                else:
+                    instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])
                 # loop_instr=>{ first_instr: {'target address':value,'depth':value,'count':value,'size':value}, second_instr: {'target address':value,'depth':value,'count':value,'size':value} }
                 ta=int(entry.instr_addr) + int(entry.imm)
                 if (instr not in loop_instr) or (hex(ta) not in loop_instr[instr]['target address']):
                     #if (ta not in loop_instr[instr]['target address']):
-                    loop_instr[instr]={'target address':hex(ta),'depth':1,'count':1,'size':(int(entry.instr_addr)-ta)/4}
+                    loop_instr[instr]={'target address':hex(ta),'depth':1,'count':1,'size':(int(entry.instr_addr)-ta)}
                     
                 else:
                     loop_instr[instr]['count']=loop_instr[instr]['count']+1
