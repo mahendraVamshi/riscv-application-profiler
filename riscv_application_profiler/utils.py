@@ -121,14 +121,18 @@ class Utilities:
         '''
         logger.debug("Tabulating statistics.")
         table = []
+        name=list(counts[op_list[0]].keys())
         for op in op_list:
-            table.append([op, counts[op]])
+            table.append([op])
+            for i in name:
+                table[-1].append(counts[op][i])
+
         self.tables_file.write(f'## {metric_name}\n')
 
         # create an asciidoc table using pytablewriter from the the data in op_dict
         writer = ptw.AsciiDocTableWriter()
         writer.table_name = ""
-        writer.headers = ["Operation", "Count"]
+        writer.headers = ["Name"] + [f"{i}" for i in name]
         writer.value_matrix = table
         self.tables_file.write(writer.dumps())
 
