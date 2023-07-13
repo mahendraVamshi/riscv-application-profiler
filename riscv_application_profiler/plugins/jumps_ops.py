@@ -20,15 +20,23 @@ def jumps_comput(master_inst_list: list ,ops_dict: dict):
     for entry in master_inst_list:
         # issac doesnt give immidiate value for compressed instructions
         #logger.debug(print(entry))
+        if (entry.reg_commit is not None):
+            name = str(entry.reg_commit[0]) + str(entry.reg_commit[1])
+            consts.reg_file[name] = entry.reg_commit[2]
         if entry.instr_name in ops_dict['jumps']:
             if str(entry.instr_name) == 'jalr':
                 rs1 = str(entry.rs1[1]) + str(entry.rs1[0])
+                rd = str(entry.rd[1]) + str(entry.rd[0])
                 jump_value = entry.imm + int(consts.reg_file[rs1],16)
+                consts.reg_file[rd]=hex(int(entry.instr_addr)+4)
             else:
                 jump_value = entry.imm  
             if jump_value is None:
-                logger.debug(entry)
-                continue
+                if 'c.jr' in entry.instr_name or 'c.jalr' in entry.instr_name:
+                    rs1=str(entry.rs1[1])+str(entry.rs1[0])
+                    jump_value=int(entry.instr_addr) + int(consts.reg_file[rs1],16)
+                    if 'c.jalr' in entry.instr_name:
+                        consts.reg_file['x1']=hex(int(entry.instr_addr)+2)
             if jump_value<0:
                 op_dict['backward'].append(entry)
             else:
@@ -54,11 +62,19 @@ def jump_size(master_inst_list: list, ops_dict: dict):
     # jumps={instr:{'direction': fo, 'size': value} for instr in ops_dict['jumps']}
     jump_instr={}
     jump_list=[]
-    for entry in master_inst_list:
+    for entry in master_inst_list: 
+        
         if entry.instr_name in ops_dict['jumps']:
+            instr=''
             if entry.imm is not None:
-                instr=''
-                ta=int(entry.instr_addr) + int(entry.imm)
+                if str(entry.instr_name) == 'jalr':
+                    rs1 = str(entry.rs1[1]) + str(entry.rs1[0])
+                    rd = str(entry.rd[1]) + str(entry.rd[0])
+                    jump_value = int(consts.reg_file[rs1],16)
+                    consts.reg_file[rd]=hex(int(entry.instr_addr)+4)
+                else:
+                    jump_value = entry.imm 
+                ta=int(entry.instr_addr) + int(jump_value)
                 #issac doesnt give immidiate value for jalr
                 if (entry.rd is not None):
                     instr=str(entry.instr_name)+' '+str(entry.rd[1])+str(entry.rd[0])+','
@@ -80,12 +96,27 @@ def jump_size(master_inst_list: list, ops_dict: dict):
                     jump_instr[instr]={'target address':hex(ta),'count':1,'size(bytes)':abs(int(entry.instr_addr)-ta)}    
                 else:
                     jump_instr[instr]['count']=jump_instr[instr]['count']+1
+            elif (entry.instr_name=='c.jr') or (entry.instr_name=='c.jalr'):
+                rs1=str(entry.rs1[1])+str(entry.rs1[0])
+                ta=int(entry.instr_addr) + int(consts.reg_file[rs1],16)
+
+                if 'c.jalr' in entry.instr_name:
+                    consts.reg_file['x1']=hex(int(entry.instr_addr)+2)
+                size=abs(int(entry.instr_addr)-ta)
+                instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])
+                if (instr not in jump_instr) or ((hex(ta) not in jump_instr[instr]['target address']) and (str(size) not in jump_instr[instr]['size(bytes)'])):
+                    jump_instr[instr]={'target address':hex(ta),'count':1,'size(bytes)':str(size)}
+                else:
+                    jump_instr[instr]['count']=jump_instr[instr]['count']+1
             else:
-                if 'c.jr' in instr or 'c.jalr' in entry.instr_name:
-                    rs1=str(entry.rs1[1])+str(entry.rs1[0])
-                    ta=int(entry.instr_addr) + int(consts.reg_file[rs1],16)
-                    jump_instr[entry.instr_name]={'target address':None,'count':1,'size(bytes)':None}
                 logger.debug(print('immidiate value not found for :',entry))
+        
+
+        if (entry.reg_commit is not None):
+            name = str(entry.reg_commit[0]) + str(entry.reg_commit[1])
+            if (int(entry.reg_commit[2],16)>0):
+                consts.reg_file[name] = entry.reg_commit[2]
+                #print(name,consts.reg_file[name])
 
     number_of_loops=len(jump_instr)
     if number_of_loops>1:
