@@ -18,7 +18,10 @@ def cache_simulator_example(master_inst_list, load_list, store_list):
         if (i in load_list or i in store_list):
             # print(type(i.rs1))
             # print(i.__dict__)
-            base = int(consts.reg_file[f'x{i.rs1[0]}'],16)
+            if ('c.sp' in i.instr_name):
+                base = int(consts.reg_file['x2'],16)
+            else:
+                base = int(consts.reg_file[f'x{i.rs1[0]}'],16)
             if ('d' in i.instr_name):
                 byte_length = 8
             elif ('w' in i.instr_name):

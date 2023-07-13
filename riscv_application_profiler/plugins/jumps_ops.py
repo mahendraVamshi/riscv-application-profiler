@@ -21,11 +21,15 @@ def jumps_comput(master_inst_list: list ,ops_dict: dict):
         # issac doesnt give immidiate value for compressed instructions
         #logger.debug(print(entry))
         if entry.instr_name in ops_dict['jumps']:
-            # print(entry)
-            if entry.imm is None:
+            if str(entry.instr_name) == 'jalr':
+                rs1 = str(entry.rs1[1]) + str(entry.rs1[0])
+                jump_value = entry.imm + int(consts.reg_file[rs1],16)
+            else:
+                jump_value = entry.imm  
+            if jump_value is None:
                 logger.debug(entry)
                 continue
-            if entry.imm<0:
+            if jump_value<0:
                 op_dict['backward'].append(entry)
             else:
                 op_dict['forward'].append(entry)
@@ -53,21 +57,35 @@ def jump_size(master_inst_list: list, ops_dict: dict):
     for entry in master_inst_list:
         if entry.instr_name in ops_dict['jumps']:
             if entry.imm is not None:
+                instr=''
                 ta=int(entry.instr_addr) + int(entry.imm)
                 #issac doesnt give immidiate value for jalr
-                if (entry.rs1 is not None):
-                    instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])+','+str(entry.imm)
-                if (entry.rs2 is not None):
-                    instr=instr+','+str(entry.instr_name)+' '+str(entry.rs2[1])+str(entry.rs2[0])
                 if (entry.rd is not None):
-                    instr=str(entry.instr_name)+' '+str(entry.rd[1])+str(entry.rd[0])+','+str(entry.imm)
-
+                    instr=str(entry.instr_name)+' '+str(entry.rd[1])+str(entry.rd[0])+','
+                if (entry.rs1 is not None):
+                    if (instr==''):
+                        instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])+','
+                    else:
+                        instr=instr+' '+str(entry.rs1[1])+str(entry.rs1[0])+','
+                if (entry.rs2 is not None):
+                    if (instr==''):
+                        instr=str(entry.instr_name)+' '+str(entry.rs2[1])+str(entry.rs2[0])+','
+                    else:
+                        instr=instr+' '+str(entry.rs2[1])+str(entry.rs2[0])+','
+                if (entry.rs1 is None and entry.rs2 is None and entry.rd is None):
+                    instr=str(entry.instr_name)
+                instr=instr+' '+str(entry.imm)
+                    
                 if (instr not in jump_instr) or (hex(ta) not in jump_instr[instr]['target address']):
-                    jump_instr[instr]={'target address':hex(ta),'count':1,'size':(int(entry.instr_addr)-ta)}    
+                    jump_instr[instr]={'target address':hex(ta),'count':1,'size(bytes)':abs(int(entry.instr_addr)-ta)}    
                 else:
                     jump_instr[instr]['count']=jump_instr[instr]['count']+1
             else:
-                logger.debug('immidiate value not found for :',entry.instr_name)
+                if 'c.jr' in instr or 'c.jalr' in entry.instr_name:
+                    rs1=str(entry.rs1[1])+str(entry.rs1[0])
+                    ta=int(entry.instr_addr) + int(consts.reg_file[rs1],16)
+                    jump_instr[entry.instr_name]={'target address':None,'count':1,'size(bytes)':None}
+                logger.debug(print('immidiate value not found for :',entry))
 
     number_of_loops=len(jump_instr)
     if number_of_loops>1:

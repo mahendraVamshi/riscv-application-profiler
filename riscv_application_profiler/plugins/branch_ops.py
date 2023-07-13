@@ -107,7 +107,7 @@ def loop_compute(master_inst_list: list, ops_dict: dict):
                 ta=int(entry.instr_addr) + int(entry.imm)
                 if (instr not in loop_instr) or (hex(ta) not in loop_instr[instr]['target address']):
                     #if (ta not in loop_instr[instr]['target address']):
-                    loop_instr[instr]={'target address':hex(ta),'depth':1,'count':1,'size':(int(entry.instr_addr)-ta)}
+                    loop_instr[instr]={'target address':hex(ta),'depth':1,'count':1,'size(bytes)':(int(entry.instr_addr)-ta)}
                     
                 else:
                     loop_instr[instr]['count']=loop_instr[instr]['count']+1

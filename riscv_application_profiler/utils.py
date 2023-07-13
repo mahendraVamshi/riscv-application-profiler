@@ -121,7 +121,10 @@ class Utilities:
         '''
         logger.debug("Tabulating statistics.")
         table = []
-        name=list(counts[op_list[0]].keys())
+        if len(op_list) > 0:
+            name=list(counts[op_list[0]].keys())
+        else:
+            return 0
         for op in op_list:
             table.append([op])
             for i in name:
