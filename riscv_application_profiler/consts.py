@@ -31,7 +31,7 @@ ops_dict = {
             "conversions":[],
             "moves":[],
             "classifies":[],
-            "csrs":[],
+            "csrs":['csrrw','csrrs','csrrc','csrrwi','csrrsi','csrrci'],
             "set/clear": [],
             "count": [],
             "extract/insert": [],
@@ -372,7 +372,7 @@ ops_dict = {
             "conversions":[],
             "moves":[],
             "classifies":[],
-            "csrs":[],
+            "csrs":['csrrw','csrrs','csrrc','csrrwi','csrrsi','csrrci'],
             "set/clear": [],
             "count": [],
             "extract/insert": [],
@@ -686,8 +686,8 @@ ops_dict = {
 
 reg_file = {f'x{i}':'0' for i in range(32)}
 
-csr_registers = {#Unprivileged Floating-Point CSRs
-            '0x000': 'ustatus',
+csr_file = {'0x000': 'ustatus',
+            #Unprivileged Floating-Point CSRs
             '0x001': 'fflags',
             '0x002': 'frm',
             '0x003': 'fcsr',
