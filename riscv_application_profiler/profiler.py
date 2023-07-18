@@ -8,6 +8,7 @@ from riscv_application_profiler.plugins import branch_ops
 from riscv_application_profiler.plugins import register_compute
 from riscv_application_profiler.plugins import cache
 from riscv_application_profiler.plugins import jumps_ops
+from riscv_application_profiler.plugins import dependency
 import riscv_config.isa_validator as isaval
 from riscv_application_profiler.utils import Utilities
 
@@ -63,8 +64,6 @@ def run(log, isa, output, verbose):
         'reg shifts',
         'jumps',
         'branches',
-        "bitwise",
-        "shifts",
         "set/clear",
         "count",
         "extract/insert",
@@ -116,6 +115,8 @@ def run(log, isa, output, verbose):
 
     op_list2, count7 = jumps_ops.jump_size(master_inst_list=master_inst_list, ops_dict=curr_ops_dict)
 
+    op_list3, count8 = dependency.raw_compute(master_inst_list=master_inst_list)
+
     if 'C' in extension_list:
         logger.warning("riscv-isac does not decode immediate fields for compressed instructions. \
 Value based metrics on branch ops may be inaccurate.")
@@ -127,3 +128,4 @@ Value based metrics on branch ops may be inaccurate.")
     utils.tabulate_loop_stats(op_list1, count5, metric_name="Register Computation.")
     utils.tabulate_stats(op_dict4, count6, metric_name="Jumps Computation.")
     utils.tabulate_loop_stats(op_list2, count7, metric_name="Jumps Size.")
+    utils.tabulate_loop_stats(op_list3, count8, metric_name="Reads after Writes(RAW) Computation.")

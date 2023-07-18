@@ -33,6 +33,8 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
         for op in operations:
             for entry in master_inst_list:
                 try:
+                    if 'csr' in entry.instr_name:
+                        print (entry)
                     if entry.instr_name in ops_dict[isa][extension][op]:
                         op_dict[op].append(entry)
                         #print (op_dict[op])

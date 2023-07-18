@@ -18,7 +18,7 @@ def register_compute(master_inst_list: list):
     '''
     logger.info("computing register read writes.")
     reg_list=list(consts.reg_file.keys())
-    regs={i:{'write_count':0, 'read_count':0, 'value':0} for i in reg_list}
+    regs={i:{'write_count':0, 'read_count':0} for i in reg_list}
 
     for entry in master_inst_list:
         if (entry.rs1 is not None):
@@ -30,8 +30,4 @@ def register_compute(master_inst_list: list):
         if (entry.rd is not None):
             name = str(entry.rd[1]) + str(entry.rd[0])
             regs[name]['write_count'] += 1
-        # below values are already computed in cache plugins 
-        if (entry.reg_commit is not None):
-            name = str(entry.reg_commit[0]) + str(entry.reg_commit[1])
-            regs[name]['value'] = int(entry.reg_commit[2],16)
     return(reg_list, regs)
