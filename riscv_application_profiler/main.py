@@ -52,7 +52,7 @@ def profile(log, isa, output, verbose):
     '''
     Generates the hardware description of the decoder
     '''
-    isa = isa.upper()
+    #isa = isa.upper()
     log_file = str(Path(log).absolute())
     output_dir = str(Path(output).absolute())
     # if not os.path.exists(output_dir):
