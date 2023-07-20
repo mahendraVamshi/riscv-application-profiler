@@ -107,6 +107,8 @@ def run(log, isa, output, verbose):
 
     op_list1, count5 = register_compute.register_compute(master_inst_list=master_inst_list)
 
+    op_list5, count10 = register_compute.fregister_compute(master_inst_list=master_inst_list,extension_list=extension_list)
+
     op_dict4, count6 = jumps_ops.jumps_comput(master_inst_list=master_inst_list, ops_dict=curr_ops_dict)
 
     op_list2, count7 = jumps_ops.jump_size(master_inst_list=master_inst_list, ops_dict=curr_ops_dict)
@@ -125,6 +127,7 @@ Value based metrics on branch ops may be inaccurate.")
     utils.tabulate_stats(op_dict3, counts3, metric_name="Grouping Branches by Direction.")
     utils.tabulate_loop_stats(op_list, count4, metric_name="Nested loop Computation.")
     utils.tabulate_loop_stats(op_list1, count5, metric_name="Register Computation.")
+    utils.tabulate_loop_stats(op_list5, count10, metric_name="Floating Point Register Computation.")
     utils.tabulate_stats(op_dict4, count6, metric_name="Jumps Computation.")
     utils.tabulate_loop_stats(op_list2, count7, metric_name="Jumps Size.")
     utils.tabulate_loop_stats(op_list3, count8, metric_name="Reads after Writes(RAW) Computation.")

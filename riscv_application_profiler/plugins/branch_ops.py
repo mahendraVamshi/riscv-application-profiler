@@ -93,6 +93,7 @@ def loop_compute(master_inst_list: list, ops_dict: dict):
     logger.info("Computing loops.")
     # Create a dictionary with the operations as keys
     loop_instr={}
+    target_address={}
     loop_list=[]
     for entry in master_inst_list:
         if entry.instr_name in ops_dict['branches']:
@@ -105,9 +106,10 @@ def loop_compute(master_inst_list: list, ops_dict: dict):
                     instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])
                 # loop_instr=>{ first_instr: {'target address':value,'depth':value,'count':value,'size':value}, second_instr: {'target address':value,'depth':value,'count':value,'size':value} }
                 ta=int(entry.instr_addr) + int(entry.imm)
-                if (instr not in loop_instr) or (hex(ta) not in loop_instr[instr]['target address']):
+                if (instr not in loop_instr) or (hex(ta) not in target_address[instr]):
                     #if (ta not in loop_instr[instr]['target address']):
-                    loop_instr[instr]={'target address':hex(ta),'depth':1,'count':1,'size(bytes)':(int(entry.instr_addr)-ta)}
+                    loop_instr[instr]={'depth':1,'count':1,'size(bytes)':(int(entry.instr_addr)-ta)}
+                    target_address[instr]=hex(ta)
                     
                 else:
                     loop_instr[instr]['count']=loop_instr[instr]['count']+1

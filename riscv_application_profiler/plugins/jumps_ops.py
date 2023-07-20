@@ -62,6 +62,7 @@ def jump_size(master_inst_list: list, ops_dict: dict):
     # jumps={instr:{'direction': fo, 'size': value} for instr in ops_dict['jumps']}
     jump_instr={}
     jump_list=[]
+    target_address={}
     for entry in master_inst_list: 
         
         if entry.instr_name in ops_dict['jumps']:
@@ -92,8 +93,9 @@ def jump_size(master_inst_list: list, ops_dict: dict):
                     instr=str(entry.instr_name)
                 instr=instr+' '+str(entry.imm)
                     
-                if (instr not in jump_instr) or (hex(ta) not in jump_instr[instr]['target address']):
-                    jump_instr[instr]={'target address':hex(ta),'count':1,'size(bytes)':abs(int(entry.instr_addr)-ta)}    
+                if (instr not in jump_instr) or (hex(ta) not in target_address[instr]):
+                    jump_instr[instr]={'count':1,'size(bytes)':abs(int(entry.instr_addr)-ta)}
+                    target_address[instr]=[hex(ta)]    
                 else:
                     jump_instr[instr]['count']=jump_instr[instr]['count']+1
             elif (entry.instr_name=='c.jr') or (entry.instr_name=='c.jalr'):

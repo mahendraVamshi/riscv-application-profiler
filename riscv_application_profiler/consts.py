@@ -613,6 +613,7 @@ ops_dict = {
 }
 
 reg_file = {f'x{i}':'0' for i in range(32)}
+freg_file = {f'f{i}':'0' for i in range(32)}
 
 csr_file = {'0x000': 'ustatus',
             #Unprivileged Floating-Point CSRs

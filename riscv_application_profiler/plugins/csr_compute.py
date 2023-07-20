@@ -10,7 +10,6 @@ def csr_compute(master_inst_list: list, ops_dict: dict):
     for entry in master_inst_list: 
         
         if entry.instr_name in ops_dict['csrs']:
-            print(entry)
             if entry.csr is None:
                 if 'f' in entry.instr_name:
                     if 'frcsr' in entry.instr_name or 'fscsr' in entry.instr_name:
