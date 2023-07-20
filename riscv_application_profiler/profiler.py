@@ -86,6 +86,8 @@ def run(log, isa, output, verbose):
     op_dict1, counts1 = instr_groups.group_by_operation(groups, isa_arg, extension_list, master_inst_list)
     #print_stats(op_dict1, counts1)
 
+    op_dict, counts = instr_groups.privilege_modes(log)
+
     curr_ops_dict = utils.compute_ops_dict(args_list=groups, isa_arg=isa_arg, ext_list=extension_list)
 
     # Group by branch sizes
@@ -118,6 +120,7 @@ def run(log, isa, output, verbose):
 Value based metrics on branch ops may be inaccurate.")
 
     utils.tabulate_stats(op_dict1, counts1, metric_name="Grouping Instructions by Type of Operation.")
+    utils.tabulate_stats(op_dict, counts, metric_name="Grouping Instructions by Privilege Mode.")
     utils.tabulate_stats(op_dict2, counts2, metric_name="Grouping Branches by Offset Size.")
     utils.tabulate_stats(op_dict3, counts3, metric_name="Grouping Branches by Direction.")
     utils.tabulate_loop_stats(op_list, count4, metric_name="Nested loop Computation.")

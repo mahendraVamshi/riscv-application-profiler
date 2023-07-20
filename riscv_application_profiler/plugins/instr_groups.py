@@ -42,3 +42,31 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
     counts = {f'{op}': len(op_dict[op]) for op in operations}
     logger.debug('Done.')
     return (op_dict, counts)
+
+
+
+
+
+
+
+def privilege_modes(log):
+    logger.info("Computing privilege modes.")
+    mode_dict = {'user': [], 'supervised': [], 'reserved': [], 'machine': []}
+    privilege_mode_regex = r'^core\s+\d+:\s+(\d+)'
+    with open(log, 'r') as log_file:
+        for line in log_file:
+            match = re.match(privilege_mode_regex, line)
+            if match is not None:
+                x = int(match.group(1))
+                if x is not None:
+                    if x==0:
+                        mode_dict['user'].append(line)
+                    elif x==1:
+                        mode_dict['supervised'].append(line)
+                    elif x==2:
+                        mode_dict['reserved'].append(line)
+                    elif x==3:
+                        mode_dict['machine'].append(line)
+    #print(len(op_dict['3']))
+    counts = {op: len(mode_dict[op]) for op in mode_dict.keys()}
+    return (mode_dict, counts)
