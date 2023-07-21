@@ -10,6 +10,7 @@ from riscv_application_profiler.plugins import cache
 from riscv_application_profiler.plugins import jumps_ops
 from riscv_application_profiler.plugins import dependency
 from riscv_application_profiler.plugins import csr_compute
+from riscv_application_profiler.plugins import store_load_bypass
 import riscv_config.isa_validator as isaval
 from riscv_application_profiler.utils import Utilities
 
@@ -98,8 +99,6 @@ def run(log, isa, output, verbose):
     # Group by branch signs
     op_dict3, counts3 = branch_ops.group_by_branch_sign(master_inst_list=master_inst_list, ops_dict=curr_ops_dict)
     # print_stats(op_dict3, counts3)
-
-
     #ananlyses of cache
     cache.cache_simulator_example(master_inst_list, op_dict1['loads'], op_dict1['stores'])
 
@@ -117,6 +116,7 @@ def run(log, isa, output, verbose):
 
     op_list4, count9 = csr_compute.csr_compute(master_inst_list=master_inst_list, ops_dict=curr_ops_dict)
 
+    op_list6, count11 = store_load_bypass.store_load_bypass(master_inst_list, op_dict1['loads'], op_dict1['stores'])
     if 'C' in extension_list:
         logger.warning("riscv-isac does not decode immediate fields for compressed instructions. \
 Value based metrics on branch ops may be inaccurate.")
@@ -132,3 +132,4 @@ Value based metrics on branch ops may be inaccurate.")
     utils.tabulate_loop_stats(op_list2, count7, metric_name="Jumps Size.")
     utils.tabulate_loop_stats(op_list3, count8, metric_name="Reads after Writes(RAW) Computation.")
     utils.tabulate_loop_stats(op_list4, count9, metric_name="CSR Computation.")
+    utils.tabulate_loop_stats(op_list6, count11, metric_name="Store load bypass")

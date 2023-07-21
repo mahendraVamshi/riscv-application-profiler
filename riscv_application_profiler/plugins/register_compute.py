@@ -47,7 +47,6 @@ def fregister_compute(master_inst_list: list,extension_list: list):
     '''
     reg_list=[]
     regs={}
-    print(extension_list)
     if 'F' not in extension_list or 'D' not in extension_list:
         return(reg_list, regs)
     logger.info("computing register read writes.")
