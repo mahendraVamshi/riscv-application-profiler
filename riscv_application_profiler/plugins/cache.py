@@ -21,7 +21,11 @@ def cache_simulator_example(master_inst_list, load_list, store_list):
             if ('c.sp' in i.instr_name):
                 base = int(consts.reg_file['x2'],16)
             else:
-                base = int(consts.reg_file[f'x{i.rs1[0]}'],16)
+                rs1=str(i.rs1[1])+str(i.rs1[0])
+                if rs1 in consts.reg_file:
+                    base = int(consts.reg_file[rs1],16)
+                elif rs1 in consts.freg_file:
+                    base = int(consts.freg_file[rs1],16)
             if ('d' in i.instr_name):
                 byte_length = 8
             elif ('w' in i.instr_name):
