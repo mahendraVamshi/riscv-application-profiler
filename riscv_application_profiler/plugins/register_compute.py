@@ -45,22 +45,25 @@ def fregister_compute(master_inst_list: list,extension_list: list):
             InstructionEntry objects as values, and a dictionary with the operations as
             keys and the number of instructions in each group as values.
     '''
-    if 'f' not in extension_list or 'd' not in extension_list:
-        reg_list=[]
-        regs={}
+    reg_list=[]
+    regs={}
+    print(extension_list)
+    if 'F' not in extension_list or 'D' not in extension_list:
         return(reg_list, regs)
     logger.info("computing register read writes.")
     reg_list=list(consts.freg_file.keys())
     regs={i:{'write_count':0, 'read_count':0} for i in reg_list}
 
     for entry in master_inst_list:
-        if (entry.rs1 is not None):
-            name = str(entry.rs1[1]) + str(entry.rs1[0])
-            regs[name]['read_count'] += 1
-        if (entry.rs2 is not None):
-            name = str(entry.rs2[1]) + str(entry.rs2[0])
-            regs[name]['read_count'] += 1
-        if (entry.rd is not None):
-            name = str(entry.rd[1]) + str(entry.rd[0])
-            regs[name]['write_count'] += 1
+        inst_name=str(entry.instr_name)
+        if 'f' in inst_name:
+            if (entry.rs1 is not None and 'x' not in entry.rs1[1]):
+                name = str(entry.rs1[1]) + str(entry.rs1[0])
+                regs[name]['read_count'] += 1
+            if (entry.rs2 is not None and 'x' not in entry.rs2[1]):
+                name = str(entry.rs2[1]) + str(entry.rs2[0])
+                regs[name]['read_count'] += 1
+            if (entry.rd is not None and 'x' not in entry.rd[1]):
+                name = str(entry.rd[1]) + str(entry.rd[0])
+                regs[name]['write_count'] += 1
     return(reg_list, regs)
