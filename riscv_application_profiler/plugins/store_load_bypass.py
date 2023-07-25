@@ -31,9 +31,7 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
                 if (i.imm is None):
                     address = hex(base)
                 else:
-                    address = hex(base+abs(i.imm))
-                    if '-' in address:
-                        print(i)
+                    address = hex(base+i.imm)
             else:
                 base = int(consts.reg_file[f'x{i.rs1[0]}'],16)
                 if (i.imm is None):

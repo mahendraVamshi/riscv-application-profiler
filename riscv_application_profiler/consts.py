@@ -615,7 +615,9 @@ ops_dict = {
     },
 }
 
-reg_file = {f'x{i}':'0' for i in range(32)}
+reg_file = {f'x{i}':'0x00000000' for i in range(32)}
+reg_file['x2'] = '0x7ffffff0'
+reg_file['x3'] = '0x100000'
 freg_file = {f'f{i}':'0' for i in range(32)}
 
 csr_file = {'0x000': 'ustatus',
