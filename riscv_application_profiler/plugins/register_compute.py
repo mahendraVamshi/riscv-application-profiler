@@ -5,16 +5,12 @@ import statistics
 
 def register_compute(master_inst_list: list):
     '''
-    Groups instructions based on the branch offset.
-
+    Computes the number of reads and writes to each register.
     Args:
         - master_inst_list: A list of InstructionEntry objects.
-        - branch_threshold: The threshold for a branch to be considered 'long'.
 
     Returns:
-        - A tuple containing a dictionary with the operations as keys and a list of
-            InstructionEntry objects as values, and a dictionary with the operations as
-            keys and the number of instructions in each group as values.
+        - A list of registers and a dictionary with the registers as keys and the number of reads
     '''
     logger.info("computing register read writes.")
     reg_list=list(consts.reg_file.keys())
@@ -34,16 +30,15 @@ def register_compute(master_inst_list: list):
 
 def fregister_compute(master_inst_list: list,extension_list: list):
     '''
-    Groups instructions based on the branch offset.
+    Computes the number of reads and writes to each floating point register.
 
     Args:
         - master_inst_list: A list of InstructionEntry objects.
-        - branch_threshold: The threshold for a branch to be considered 'long'.
+        - extension_list: A list of extensions.
 
     Returns:
-        - A tuple containing a dictionary with the operations as keys and a list of
-            InstructionEntry objects as values, and a dictionary with the operations as
-            keys and the number of instructions in each group as values.
+        - A list of registers and a dictionary with the registers as keys and the number of reads
+        
     '''
     reg_list=[]
     regs={}

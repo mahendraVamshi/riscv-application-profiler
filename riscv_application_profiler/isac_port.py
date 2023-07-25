@@ -36,5 +36,5 @@ def isac_setup_routine(lib_dir):
     # # remove .git
     # shutil.rmtree(f'{lib_dir}/.git')
 
-    # add the library to the search path
+    # # add the library to the search path
     sys.path.append(lib_dir)

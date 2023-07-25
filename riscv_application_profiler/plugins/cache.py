@@ -3,10 +3,23 @@ import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
 
 def data_cache_simulator(master_inst_list, op_dict):
-    # print(len(load_list))
-    # print(len(store_list))
+    '''
+    Cache simulator for data cache.
+    Args:
+        - master_inst_list: A list of InstructionEntry objects.
+        - op_dict: A dictionary with the operations as keys and a list of
+            InstructionEntry objects as values.
+        
+        Returns:
+            - A list of cache names and a dictionary with the cache names as keys 
+              and a dictionary with the cache statistics as values.
+        '''
+    logger.info("Data Cache Statistics:")
     load_list=op_dict['loads']
     store_list=op_dict['stores']
+    cache_list=['Level 1']
+    cache_dict={l:{'utilization(%)':0} for l in cache_list}
+
     mem = MainMemory()
     no_of_sets=64
     no_of_ways=4
@@ -57,27 +70,41 @@ def data_cache_simulator(master_inst_list, op_dict):
             max_util=this_util
         if this_util<min_util:
             min_util=this_util
+    cs.print_stats()
     max_util=max_util*line_size
     min_util=min_util*line_size
 
     total_util=((max_util-min_util)/max_util)*100
-    print(f"total_cache_utilization: {total_util:.2f}%")
+    cache_dict['Level 1']['utilization(%)']=total_util
+    
+    # print(f"total_cache_utilization: {total_util:.2f}%")
     
     # total_lines= no_of_sets*no_of_ways
     # unutilized_lines=cs.count_invalid_entries()
     # cache_utilization=((total_lines-unutilized_lines)/total_lines)*100
     # print(f"cache_utilization: {cache_utilization:.2f}%")
-    cs.print_stats()
+    return(cache_list,cache_dict)
 
 
 def instruction_cache_simulator(master_inst_list):
-    # print(len(load_list))
-    # print(len(store_list))
+    '''
+    Cache simulator for instruction cache.
+    Args:
+        - master_inst_list: A list of InstructionEntry objects.
+        
+        Returns:
+            - A list of cache names and a dictionary with the cache names as keys
+              and a dictionary with the cache statistics as values.
+    
+    '''
+    logger.info("Instruction Cache Statistics:")
     mem = MainMemory()
+    cache_list=['Level 1']
+    cache_dict={l:{'utilization(%)':0} for l in cache_list}
     no_of_sets=64
     no_of_ways=4
     line_size=64
-    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, "RANDOM")  # 64 sets, 4-ways with cacheline size of 64 bytes, replacement policy=Random
+    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, "LRU")  # 64 sets, 4-ways with cacheline size of 64 bytes, replacement policy=Random
     #total cache size=16384 bytes
     mem.load_to(l1)
     mem.store_from(l1)
@@ -93,15 +120,19 @@ def instruction_cache_simulator(master_inst_list):
             max_util=this_util
         if this_util<min_util:
             min_util=this_util
+    cs.print_stats()
     max_util=max_util*line_size
     min_util=min_util*line_size
 
     total_util=((max_util-min_util)/max_util)*100
-    print(f"total_cache_utilization: {total_util:.2f}%")
+    cache_dict['Level 1']['utilization(%)']=total_util
+    
+    # print(f"total_cache_utilization: {total_util:.2f}%")
     
 
     # total_lines= no_of_sets*no_of_ways
     # unutilized_lines=cs.count_invalid_entries()
     # cache_utilization=((total_lines-unutilized_lines)/total_lines)*100
     # print(f"cache_utilization: {cache_utilization:.2f}%")
-    cs.print_stats()
+    return(cache_list,cache_dict)
+

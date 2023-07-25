@@ -3,13 +3,24 @@ from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 
 def csr_compute(master_inst_list: list, ops_dict: dict):
+    '''
+    Computes the number of reads and writes to each CSR.
+    
+    Args:
+        - master_inst_list: A list of InstructionEntry objects.
+        - ops_dict: A dictionary containing the operations as keys and a list of
+    
+    Returns:
+        - A list of CSRs and a dictionary with the CSRs as keys and the number of reads
+            and writes to each CSR as values.
+    '''
     
     csr={}
     csr_reg_list=[]
     logger.info("computing CSRs.")
     for entry in master_inst_list: 
         
-        if entry.instr_name in ops_dict['csrs']:
+        if entry in ops_dict['csrs']:
             if entry.csr is None:
                 if 'f' in entry.instr_name:
                     if 'frcsr' in entry.instr_name or 'fscsr' in entry.instr_name:
@@ -32,8 +43,8 @@ def csr_compute(master_inst_list: list, ops_dict: dict):
                         elif 'fs' in entry.instr_name:
                             csr[csr_reg]={'read':0,'write':1}
                             csr_reg_list.append(csr_reg)
-                else:
-                    print(entry)
+                # else:
+                #     print(entry)
                 
             else:
                 csr_hex=str(hex(entry.csr))

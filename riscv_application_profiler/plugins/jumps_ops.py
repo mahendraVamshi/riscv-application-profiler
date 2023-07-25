@@ -4,26 +4,25 @@ import riscv_application_profiler.consts as consts
 
 def jumps_comput(master_inst_list: list ,ops_dict: dict):
     '''
-    Groups instructions based on the branch offset.
+    Computes the number of jumps in the program.
 
     Args:
         - master_inst_list: A list of InstructionEntry objects.
-        - branch_threshold: The threshold for a branch to be considered 'long'.
+        - ops_dict: A dictionary containing the operations as keys and a list of
 
     Returns:
-        - A tuple containing a dictionary with the operations as keys and a list of
-            InstructionEntry objects as values, and a dictionary with the operations as
-            keys and the number of instructions in each group as values.
+        - A list of directions and a dictionary with the directions as keys and the number of jumps
     '''
     logger.info("computing jumps.")
     op_dict = {'forward': [], 'backward': []}
+    direc_list = ['forward', 'backward']
+    direc_dict = {'forward': {'count':0}, 'backward': {'count':0}}
     for entry in master_inst_list:
-        # issac doesnt give immidiate value for compressed instructions
-        #logger.debug(print(entry))
+
         if (entry.reg_commit is not None):
             name = str(entry.reg_commit[0]) + str(entry.reg_commit[1])
             consts.reg_file[name] = entry.reg_commit[2]
-        if entry.instr_name in ops_dict['jumps']:
+        if entry in ops_dict['jumps']:
             if str(entry.instr_name) == 'jalr':
                 rs1 = str(entry.rs1[1]) + str(entry.rs1[0])
                 rd = str(entry.rd[1]) + str(entry.rd[0])
@@ -39,24 +38,24 @@ def jumps_comput(master_inst_list: list ,ops_dict: dict):
                         consts.reg_file['x1']=hex(int(entry.instr_addr)+2)
             if jump_value<0:
                 op_dict['backward'].append(entry)
+                direc_dict['backward']['count'] += 1
             else:
                 op_dict['forward'].append(entry)
-    counts = {op: len(op_dict[op]) for op in op_dict.keys()}
+                direc_dict['forward']['count'] += 1
     logger.debug('Done.')
-    return (op_dict, counts)
+    return (direc_list, direc_dict)
 
 def jump_size(master_inst_list: list, ops_dict: dict):
     '''
-    Groups instructions based on the branch offset.
+    Computes the number of jumps in the program.
 
     Args:
         - master_inst_list: A list of InstructionEntry objects.
-        - branch_threshold: The threshold for a branch to be considered 'long'.
+        - ops_dict: A dictionary containing the operations as keys and a list of
 
     Returns:
-        - A tuple containing a dictionary with the operations as keys and a list of
-            InstructionEntry objects as values, and a dictionary with the operations as
-            keys and the number of instructions in each group as values.
+        - A list of jumps and a dictionary with the jumps as keys and the number of jumps and jump size.
+
     '''
     logger.info("computing jump size.")
     # jumps={instr:{'direction': fo, 'size': value} for instr in ops_dict['jumps']}
@@ -65,7 +64,7 @@ def jump_size(master_inst_list: list, ops_dict: dict):
     target_address={}
     for entry in master_inst_list: 
         
-        if entry.instr_name in ops_dict['jumps']:
+        if entry in ops_dict['jumps']:
             instr=''
             if entry.imm is not None:
                 if str(entry.instr_name) == 'jalr':
@@ -76,7 +75,7 @@ def jump_size(master_inst_list: list, ops_dict: dict):
                 else:
                     jump_value = entry.imm 
                 ta=int(entry.instr_addr) + int(jump_value)
-                #issac doesnt give immidiate value for jalr
+
                 if (entry.rd is not None):
                     instr=str(entry.instr_name)+' '+str(entry.rd[1])+str(entry.rd[0])+','
                 if (entry.rs1 is not None):
@@ -118,7 +117,6 @@ def jump_size(master_inst_list: list, ops_dict: dict):
             name = str(entry.reg_commit[0]) + str(entry.reg_commit[1])
             if (int(entry.reg_commit[2],16)>0):
                 consts.reg_file[name] = entry.reg_commit[2]
-                #print(name,consts.reg_file[name])
 
     number_of_loops=len(jump_instr)
     if number_of_loops>1:

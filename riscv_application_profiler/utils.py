@@ -109,7 +109,7 @@ class Utilities:
         return result_dict
     
 
-    def tabulate_loop_stats(self, op_list, counts, metric_name):
+    def tabulate_stats1(self, op_list, counts, header_name,metric_name):
         '''
         Tabulates the statistics of the grouped instructions using the tabulate module.
 
@@ -131,11 +131,12 @@ class Utilities:
                 table[-1].append(counts[op][i])
 
         self.tables_file.write(f'## {metric_name}\n')
-
+        if header_name is None:
+            header_name = "Name"
         # create an asciidoc table using pytablewriter from the the data in op_dict
         writer = ptw.AsciiDocTableWriter()
         writer.table_name = ""
-        writer.headers = ["Name"] + [f"{i}" for i in name]
+        writer.headers = [header_name] + [f"{i}" for i in name]
         writer.value_matrix = table
         self.tables_file.write(writer.dumps())
 

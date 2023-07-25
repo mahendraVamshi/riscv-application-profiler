@@ -9,7 +9,6 @@ def raw_compute(master_inst_list: list):
 
     Args:
         - master_inst_list: A list of InstructionEntry objects.
-        - branch_threshold: The threshold for a branch to be considered 'long'.
 
     Returns:
         - A tuple containing a dictionary with the operations as keys and a list of
@@ -31,7 +30,7 @@ def raw_compute(master_inst_list: list):
             instr = str(entry.instr_name)
             if name in prev_names:
                 instruction=prev_instr+'  '+instr
-                if instruction in raw:# and name in raw[instruction]['reg'] and regs[name]['depth']==raw[instruction]['depth']:
+                if instruction in raw:
                     if regs[name]['depth']==raw[instruction]['depth']:
                         raw[instruction]['count'] += 1
                         prev_names.remove(name)
@@ -49,7 +48,7 @@ def raw_compute(master_inst_list: list):
             instr = str(entry.instr_name)
             if name in prev_names:
                 instruction=prev_instr+'  '+instr
-                if instruction in raw: #and name in raw[instruction]['reg'] and regs[name]['depth']==raw[instruction]['depth']:
+                if instruction in raw:
                     if regs[name]['depth']==raw[instruction]['depth']:
                         raw[instruction]['count'] += 1
                         prev_names.remove(name)
