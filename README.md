@@ -47,17 +47,20 @@ riscv_application_profiler profile --log ./tests/hello.log --output ./build --is
 **Note**: The log file should be an execution log generated using spike as of today. Support for configuring log formats will be added in the future.
 
 ## Features
-* Grouping Instructions by Type of Operation.
-* Grouping Instructions by it's Privilege Level.
-* Grouping Branches by Offset Size.
-* Grouping Branches by Direction.
-* Nested loop Computation.
-* Register Usage.
-* Floating Point Register Usage.
-* Jump Direcion Analysis.
-* Jump size Analysis.
-* Data Cache Computation.
-* Instruction Cache Computation.
-* RAW Dependency Analysis.
-* CSRs Usage.
-* Store Load Bypassing.
+
+The profiler supports the following list of features as plugins:
+
+Grouping instructions by:
+- Type of operation performed.
+- Privilege mode used for execution.
+- Directions and Sizes (for jumps/branches).
+
+Lists:
+- Presence of Nested Loops.
+- Store-Load bypass.
+- Presence of RAW dependencies.
+
+Histogram for:
+- RegisterFile (XRF/FRF) usage.
+- CSR accesses.
+- D$/I$ Hits/Misses/Usage. 
