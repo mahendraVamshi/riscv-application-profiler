@@ -9,9 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Add register_compute plugins
 - Add store_load_bypass plugins
 - Add csr_compute plugins
-- Add dependency plugins
-- All feautures are now plugins and mentioned in readme file
-- use pycache for caching
+- Add data dependency plugins
 
 ## [0.1.0] - 2023-05-05
 - Add branch plugins
