@@ -41,7 +41,7 @@ def cli():
 	'-o',
 	'--output',
 	help="Path to the output file.",
-	default='./app.profile',
+	default='./build',
 	show_default=True,
 	required=False,
     )
@@ -52,14 +52,14 @@ def profile(log, isa, output, verbose):
     '''
     Generates the hardware description of the decoder
     '''
-    isa = isa.upper()
+    #isa = isa.upper()
     log_file = str(Path(log).absolute())
     output_dir = str(Path(output).absolute())
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    else:
-        shutil.rmtree(output_dir)
-        os.makedirs(output_dir)
+    # if not os.path.exists(output_dir):
+    #     os.makedirs(output_dir)
+    # else:
+    #     shutil.rmtree(output_dir)
+    #     os.makedirs(output_dir)
 
     # setup isac
     isac_setup_routine(lib_dir=f'{output_dir}/lib')
