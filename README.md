@@ -56,8 +56,8 @@ riscv_application_profiler profile --log ./tests/hello.log --output ./build --is
 * Floating Point Register Usage.
 * Jump Direcion Analysis.
 * Jump size Analysis.
-* Data Cache Coverage.
-* Instruction Cache Coverage.
+* Data Cache Computation.
+* Instruction Cache Computation.
 * RAW Dependency Analysis.
 * CSRs Usage.
 * Store Load Bypassing.
