@@ -33,6 +33,7 @@ ops_dict = {
             "moves":[],
             "classifies":[],
             "csrs":[],
+            "fence":["fence","fence.i"],
         },
         "M": {
             "loads": [],
@@ -57,6 +58,7 @@ ops_dict = {
             "moves":[],
             "classifies":[],
             "csrs":[],
+            "fence":[],
         },
         "F": {
             "loads": ["flw","flwsp","fld","fldsp"],
@@ -94,7 +96,7 @@ ops_dict = {
             "classifies":["fclass.s"],
             "branches": [],
             "csrs":["frcsr.s","fscsr.s","frrm","fsrm","fsrmi",],
-            "set/clear": [],
+            "fence":[],
         },
         "D": {
             "loads": ["fld","fldsp"],
@@ -128,10 +130,11 @@ ops_dict = {
                 "fsgnjn.d",
                 "fsgnjx.d",
             ],
-            "moves":[],
+            "moves":["fmv.x.d","fmv.d.x"],
             "classifies":["fclass.d"],
             "branches": [],
             "csrs":["frcsr","fscsr","frrm","fsrm","fsrmi",],
+            "fence":[],
             
         }, 
         "C": {
@@ -183,6 +186,7 @@ ops_dict = {
             "moves":[],
             "classifies":[],
             "csrs":[],
+            "fence":[],
             
         },  
         "B": {
@@ -220,6 +224,7 @@ ops_dict = {
             "classifies":[],
             "branches": [],
             "csrs":[],
+            "fence":[],
         },
         "P": {
             "loads": [
@@ -269,17 +274,12 @@ ops_dict = {
             ],
             "jumps": [],
             "branches": [],
-            "set/clear": [],
-            "count": [],
-            "extract/insert": [],
-            "permute": [],
-            "gather/scatter": [],
-            "funnel/merge": [],
             "compares":[],
             "conversions":[],
             "moves":[],
             "classifies":[],
             "csrs":[],
+            "fence":[],
         },
         "Zicsr": {
             "loads": [],
@@ -295,7 +295,7 @@ ops_dict = {
             "classifies": [],
             "branches": [],
             "csrs": ["csrrw","csrrs","csrrc","csrrwi","csrrsi","csrrci"],
-            "set/clear": [],
+            "fence":[],
             },
 
     },
@@ -334,6 +334,7 @@ ops_dict = {
             "moves":[],
             "classifies":[],
             "csrs":[],
+            "fence":["fence","fence.i"],
         },
         "M": {
             "loads": [],
@@ -358,6 +359,7 @@ ops_dict = {
             "moves":[],
             "classifies":[],
             "csrs":[],
+            "fence":[],
         },
         "F": {
             "loads": ["flw","flwsp","fld","fldsp"],
@@ -399,6 +401,7 @@ ops_dict = {
             "classifies":["fclass.s"],
             "branches": [],
             "csrs":["frcsr","fscsr","frrm","fsrm","fsrmi",],
+            "fence":[],
         },
         "D": {
             "loads": ["fld","fldsp"],
@@ -440,6 +443,7 @@ ops_dict = {
             "classifies":["fclass.d"],
             "branches": [],
             "csrs":["frcsr","fscsr","frrm","fsrm","fsrmi",],
+            "fence":[],
             
         },
         "C": {
@@ -497,6 +501,7 @@ ops_dict = {
             "moves":[],
             "classifies":[],
             "csrs":[],
+            "fence":[],
         },
 
         "B": {
@@ -534,6 +539,7 @@ ops_dict = {
             "classifies":[],
             "branches": [],
             "csrs":[],
+            "fence":[],
         },
         "P": {
             "loads": [
@@ -588,6 +594,7 @@ ops_dict = {
             "moves":[],
             "classifies":[],
             "csrs":[],
+            "fence":[],
         },
         "Zicsr": {
             "loads": [],
@@ -603,12 +610,7 @@ ops_dict = {
             "classifies": [],
             "branches": [],
             "csrs": ["csrrw","csrrs","csrrc","csrrwi","csrrsi","csrrci"], 
-            "set/clear": [],  
-            "count": [],
-            "extract/insert": [],
-            "permute": [],
-            "gather/scatter": [],
-            "funnel/merge": [],
+            "fence":[],
             },
     },
 }

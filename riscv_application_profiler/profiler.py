@@ -71,6 +71,7 @@ def run(log, isa, output, verbose):
         "moves",
         "classifies",
         "csrs",
+        "fence",
     ]
 
     (extension_list, err, err_list) = isaval.get_extension_list(isa)
