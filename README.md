@@ -41,7 +41,23 @@ Command line arguements:
 Example:
 
 ```shell
-riscv_application_profiler profile --log ./tests/hello.log --output ./build --isa RV32I
+riscv_application_profiler profile --log ./tests/hello.log --output ./build --isa RV64IMFDCZicsr
 ```
 
 **Note**: The log file should be an execution log generated using spike as of today. Support for configuring log formats will be added in the future.
+
+## Features
+* Grouping Instructions by Type of Operation.
+* Grouping Instructions by it's Privilege Level.
+* Grouping Branches by Offset Size.
+* Grouping Branches by Direction.
+* Nested loop Computation.
+* Register Usage.
+* Floating Point Register Usage.
+* Jump Direcion Analysis.
+* Jump size Analysis.
+* Data Cache Coverage.
+* Instruction Cache Coverage.
+* RAW Dependency Analysis.
+* CSRs Usage.
+* Store Load Bypassing.
