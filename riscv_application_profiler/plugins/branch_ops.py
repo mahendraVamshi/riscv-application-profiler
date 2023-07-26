@@ -87,7 +87,6 @@ def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
     for entry in master_inst_list:
         if entry in ops_dict['branches']:
             if entry.imm is None:
-                print(entry)
                 continue
             if entry.imm<0:
                 direc_dict['negative']['count'] += 1
