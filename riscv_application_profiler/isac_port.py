@@ -23,7 +23,7 @@ def isac_setup_routine(lib_dir):
     os.makedirs(lib_dir, exist_ok=True)
 
     # Clone the riscv-isac repository
-    isac_repo = repo_setup('https://github.com/iamKarthikBK/riscv-isac.git', lib_dir, '0.17.0')
+    isac_repo = repo_setup('https://github.com/iamKarthikBK/riscv-isac.git', lib_dir, 'master')
 
     constants_file = os.path.join(os.getcwd(),  f'{lib_dir}/riscv_isac/data/constants.py')
     plugin_file = os.path.join(os.getcwd(),  f'{lib_dir}/riscv_isac/data/rvopcodesdecoder.py')
