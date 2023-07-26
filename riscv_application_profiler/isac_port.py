@@ -19,7 +19,8 @@ def isac_setup_routine(lib_dir):
     '''
     Sets up the riscv-isac environment.
     '''
-    shutil.rmtree(f'{lib_dir}')
+    if os.path.exists(lib_dir):
+        shutil.rmtree(f'{lib_dir}')
     os.makedirs(lib_dir, exist_ok=True)
 
     # Clone the riscv-isac repository
