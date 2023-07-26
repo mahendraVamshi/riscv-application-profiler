@@ -87,7 +87,6 @@ def run(log, isa, output, verbose):
 
     op_lists,ops_count, extension_instruction_list, op_dict = instr_groups.group_by_operation(groups, isa_arg, extension_list, master_inst_list)
     if (len(extension_instruction_list)<=len(master_inst_list)):
-        # print(len(extension_instruction_list)-len(master_inst_list))
         # left_out=[]
         # for i in master_inst_list:
         #     if i not in extension_instruction_list:
