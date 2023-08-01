@@ -11,8 +11,10 @@ from riscv_application_profiler.plugins import jumps_ops
 from riscv_application_profiler.plugins import dependency
 from riscv_application_profiler.plugins import csr_compute
 from riscv_application_profiler.plugins import store_load_bypass
+from riscv_application_profiler.plugins import pattern
 import riscv_config.isa_validator as isaval
 from riscv_application_profiler.utils import Utilities
+import collections
 
 def print_stats(op_dict, counts):
     '''
@@ -38,8 +40,6 @@ def run(log, isa, output, verbose):
         # Read the log file
         lines = logfile.readlines()
         cl_matches_list = [iter_commitlog.__next__() for i in range(len(lines))]
-    logger.info(f'Parsed {len(cl_matches_list)} instructions.')
-    logger.info("Decoding...")
     isac_decoder = disassembler()
     isac_decoder.setup(arch='rv64')
     master_inst_list = []
@@ -48,10 +48,14 @@ def run(log, isa, output, verbose):
             continue
         temp_entry = isac_decoder.decode(entry)
         master_inst_list.append(temp_entry)
-
+    
+    logger.info(f'Parsed {len(master_inst_list)} instructions.')
+    logger.info("Decoding...")
     logger.info("Done decoding instructions.")
     logger.info("Starting to profile...")
 
+    in_dict=pattern.group_by_pattern(master_inst_list)
+    
 
     utils = Utilities(log, output)
     utils.metadata()
@@ -150,3 +154,4 @@ Value based metrics on branch ops may be inaccurate.")
     utils.tabulate_stats1(raw_instruction_list, raw_dict, header_name='Dependant Instructions',metric_name="Reads after Writes(RAW) Computation.")
     utils.tabulate_stats1(csr_reg_list, csr_dict, header_name='CSR Register(s)',metric_name="CSR Computation.")
     utils.tabulate_stats1(load_address_list,bypass_dict, header_name='Address',metric_name="Store load bypass")
+    utils.tabulate_stats_dict(in_dict, header_name="Pattern")
