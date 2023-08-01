@@ -143,3 +143,27 @@ class Utilities:
         # self.tables_file.write(tabulate(table, headers=['Operation', 'Count']))
         self.tables_file.write('\n\n')
         logger.debug("Done.")
+
+    def tabulate_stats_dict (self, in_dict, header_name):
+
+        logger.debug("Tabulating statistics.")
+        table = []
+        key_list = list(in_dict.keys())
+        length=len(in_dict[key_list[0]])
+        for i in range(len(in_dict[key_list[0]])):
+            table.append([in_dict[key_list[0]][i], in_dict[key_list[1]][i], in_dict[key_list[2]][i], in_dict[key_list[3]][i]])
+
+
+        self.tables_file.write(f'## {header_name}\n')
+        if header_name is None:
+            header_name = "Name"
+        # create an asciidoc table using pytablewriter from the the data in op_dict
+        writer = ptw.AsciiDocTableWriter()
+        writer.table_name = ""
+        writer.headers = key_list
+        writer.value_matrix = table
+        self.tables_file.write(writer.dumps())
+
+        # self.tables_file.write(tabulate(table, headers=['Operation', 'Count']))
+        self.tables_file.write('\n\n')
+        logger.debug("Done.")
