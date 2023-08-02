@@ -33,7 +33,7 @@ def data_cache_simulator(master_inst_list, op_dict):
     max_util=cs.count_invalid_entries()
     for i in master_inst_list:
         if (i.reg_commit is not None):
-            consts.reg_file[f'x{i.reg_commit[1]}'] = i.reg_commit[2]
+            consts.reg_file[f'x{i.rd[1]}'] = i.reg_commit[2]
         if (i in load_list or i in store_list):
             if ('sp' in i.instr_name):
                 base = int(consts.reg_file['x2'],16)
@@ -83,6 +83,10 @@ def data_cache_simulator(master_inst_list, op_dict):
     # unutilized_lines=cs.count_invalid_entries()
     # cache_utilization=((total_lines-unutilized_lines)/total_lines)*100
     # print(f"cache_utilization: {cache_utilization:.2f}%")
+
+    consts.reg_file = {f'x{i}':'0x00000000' for i in range(32)}
+    consts.reg_file['x2'] = '0x7ffffff0'
+    consts.reg_file['x3'] = '0x100000'
     return(cache_list,cache_dict)
 
 
@@ -134,5 +138,9 @@ def instruction_cache_simulator(master_inst_list):
     # unutilized_lines=cs.count_invalid_entries()
     # cache_utilization=((total_lines-unutilized_lines)/total_lines)*100
     # print(f"cache_utilization: {cache_utilization:.2f}%")
+
+    consts.reg_file = {f'x{i}':'0x00000000' for i in range(32)}
+    consts.reg_file['x2'] = '0x7ffffff0'
+    consts.reg_file['x3'] = '0x100000'
     return(cache_list,cache_dict)
 
