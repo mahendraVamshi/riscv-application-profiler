@@ -70,11 +70,15 @@ def jump_size(master_inst_list: list, ops_dict: dict):
                 if str(entry.instr_name) == 'jalr':
                     rs1 = str(entry.rs1[1]) + str(entry.rs1[0])
                     rd = str(entry.rd[1]) + str(entry.rd[0])
-                    jump_value = int(consts.reg_file[rs1],16)
+                    ta = int(consts.reg_file[rs1],16)
                     consts.reg_file[rd]=hex(int(entry.instr_addr)+4)
                 else:
                     jump_value = entry.imm 
-                ta=int(entry.instr_addr) + int(jump_value)
+                    ta=int(entry.instr_addr) + int(jump_value)
+                    if (entry.instr_name == 'c.jal'):
+                        consts.reg_file['x1']=hex(int(entry.instr_addr)+2)
+                    elif (entry.instr_name == 'jal'):
+                        consts.reg_file['x1']=hex(int(entry.instr_addr)+4)
 
                 if (entry.rd is not None):
                     instr=str(entry.instr_name)+' '+str(entry.rd[1])+str(entry.rd[0])+','
@@ -99,7 +103,7 @@ def jump_size(master_inst_list: list, ops_dict: dict):
                     jump_instr[instr]['count']=jump_instr[instr]['count']+1
             elif (entry.instr_name=='c.jr') or (entry.instr_name=='c.jalr'):
                 rs1=str(entry.rs1[1])+str(entry.rs1[0])
-                ta=int(entry.instr_addr) + int(consts.reg_file[rs1],16)
+                ta=int(consts.reg_file[rs1],16)
 
                 if 'c.jalr' in entry.instr_name:
                     consts.reg_file['x1']=hex(int(entry.instr_addr)+2)
@@ -114,13 +118,17 @@ def jump_size(master_inst_list: list, ops_dict: dict):
         
 
         if (entry.reg_commit is not None):
-            name = str(entry.reg_commit[0]) + str(entry.reg_commit[1])
-            if (int(entry.reg_commit[2],16)>0):
-                consts.reg_file[name] = entry.reg_commit[2]
+            name = str(entry.rd[1]) + str(entry.rd[0])
+            # if (int(entry.reg_commit[2],16)>0):
+            consts.reg_file[name] = entry.reg_commit[2]
 
     number_of_loops=len(jump_instr)
     if number_of_loops>1:
         jump_list=list(jump_instr.keys())
+    
+    consts.reg_file = {f'x{i}':'0x00000000' for i in range(32)}
+    consts.reg_file['x2'] = '0x7ffffff0'
+    consts.reg_file['x3'] = '0x100000'
     return(jump_list,jump_instr)
 
                 
