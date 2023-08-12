@@ -1,6 +1,14 @@
 from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
+import os
+import yaml
+
+script_directory = os.path.dirname(os.path.abspath(__file__))
+script_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(script_dir, '..', 'config.yaml')
+with open(config_path, 'r') as config_file:
+    config = yaml.safe_load(config_file)
 
 def jumps_comput(master_inst_list: list ,ops_dict: dict):
     '''
@@ -13,7 +21,11 @@ def jumps_comput(master_inst_list: list ,ops_dict: dict):
     Returns:
         - A list of directions and a dictionary with the directions as keys and the number of jumps
     '''
-    logger.info("computing jumps.")
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'jumps_ops' in metrics:
+            logger.info("Computing jumps.")
+    
     op_dict = {'forward': [], 'backward': []}
     direc_list = ['forward', 'backward']
     direc_dict = {'forward': {'count':0}, 'backward': {'count':0}}
@@ -57,7 +69,11 @@ def jump_size(master_inst_list: list, ops_dict: dict):
         - A list of jumps and a dictionary with the jumps as keys and the number of jumps and jump size.
 
     '''
-    logger.info("computing jump size.")
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'jumps_ops' in metrics:
+            logger.info("computing jump size.")
+    
     # jumps={instr:{'direction': fo, 'size': value} for instr in ops_dict['jumps']}
     jump_instr={}
     jump_list=[]

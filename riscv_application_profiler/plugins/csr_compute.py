@@ -1,6 +1,14 @@
 from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
+import os
+import yaml
+
+script_directory = os.path.dirname(os.path.abspath(__file__))
+script_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(script_dir, '..', 'config.yaml')
+with open(config_path, 'r') as config_file:
+    config = yaml.safe_load(config_file)
 
 def csr_compute(master_inst_list: list, ops_dict: dict):
     '''
@@ -14,10 +22,13 @@ def csr_compute(master_inst_list: list, ops_dict: dict):
         - A list of CSRs and a dictionary with the CSRs as keys and the number of reads
             and writes to each CSR as values.
     '''
-    
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'csr_compute' in metrics:
+            logger.info("Computing CSRs.")
     csr={}
     csr_reg_list=[]
-    logger.info("computing CSRs.")
+    
     for entry in master_inst_list: 
         
         if entry in ops_dict['csrs']:

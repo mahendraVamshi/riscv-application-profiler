@@ -2,6 +2,14 @@ from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 import statistics
+import os
+import yaml
+
+script_directory = os.path.dirname(os.path.abspath(__file__))
+script_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(script_dir, '..', 'config.yaml')
+with open(config_path, 'r') as config_file:
+    config = yaml.safe_load(config_file)
 
 def register_compute(master_inst_list: list):
     '''
@@ -12,7 +20,11 @@ def register_compute(master_inst_list: list):
     Returns:
         - A list of registers and a dictionary with the registers as keys and the number of reads
     '''
-    logger.info("computing register read writes.")
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'register_compute' in metrics:
+            logger.info("Computing register read writes.")
+    
     reg_list=list(consts.reg_file.keys())
     regs={i:{'write_count':0, 'read_count':0} for i in reg_list}
 
@@ -44,7 +56,11 @@ def fregister_compute(master_inst_list: list,extension_list: list):
     regs={}
     if 'F' not in extension_list or 'D' not in extension_list:
         return(reg_list, regs)
-    logger.info("computing register read writes.")
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'register_compute' in metrics:
+            logger.info("Computing register read writes.")
+    
     reg_list=list(consts.freg_file.keys())
     regs={i:{'write_count':0, 'read_count':0} for i in reg_list}
 

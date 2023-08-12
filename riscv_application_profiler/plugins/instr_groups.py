@@ -6,6 +6,16 @@
 from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import re
+import os
+import yaml
+
+script_directory = os.path.dirname(os.path.abspath(__file__))
+script_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(script_dir, '..', 'config.yaml')
+with open(config_path, 'r') as config_file:
+    config = yaml.safe_load(config_file)
+
+
 
 def group_by_operation(operations: list, isa, extension_list, master_inst_list: list):
     
@@ -24,7 +34,10 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
         - A dictionary with the operations as keys and a list of InstructionEntry objects as values.
 
     '''
-    logger.info("Grouping instructions by operation.")
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'instr_groups' in metrics:
+            logger.info("Grouping instructions by operation.")
     
     # Create a dictionary with the operations as keys
 
@@ -60,7 +73,11 @@ def privilege_modes(log):
         - A list of privilege modes.
         - A dictionary with the privilege modes as keys and the number of instructions in each group as values.
     '''
-    logger.info("Computing privilege modes.")
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'instr_groups' in metrics:
+            logger.info("Computing privilege modes.")
+    
     mode_list = ['user', 'supervised', 'machine']
     mode_dict = {'user': {'count':0}, 'supervised': {'count':0}, 'machine': {'count':0}}
     user_list = []

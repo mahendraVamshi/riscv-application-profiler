@@ -1,6 +1,15 @@
 from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
+import os
+import yaml
+
+script_directory = os.path.dirname(os.path.abspath(__file__))
+script_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(script_dir, '..', 'config.yaml')
+with open(config_path, 'r') as config_file:
+    config = yaml.safe_load(config_file)
+
 
 def store_load_bypass (master_inst_list: list, ops_dict: dict):
     '''
@@ -15,8 +24,11 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
         - A list of addresses and a dictionary with the addresses as keys and the number of instances of store load bypass as values.
         
     '''
-
-    logger.info("Computing store load bypass.")
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'store_load_bypass' in metrics:
+            logger.info("Computing store load bypass.")
+    
     load_list=ops_dict['loads']
     store_list=ops_dict['stores']
     store_address_list=[]

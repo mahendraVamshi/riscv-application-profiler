@@ -1,6 +1,14 @@
 from cachesim import CacheSimulator, Cache, MainMemory
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
+import os
+import yaml
+
+script_directory = os.path.dirname(os.path.abspath(__file__))
+script_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(script_dir, '..', 'config.yaml')
+with open(config_path, 'r') as config_file:
+    config = yaml.safe_load(config_file)
 
 def data_cache_simulator(master_inst_list, op_dict):
     '''
@@ -14,7 +22,11 @@ def data_cache_simulator(master_inst_list, op_dict):
             - A list of cache names and a dictionary with the cache names as keys 
               and a dictionary with the cache statistics as values.
         '''
-    logger.info("Data Cache Statistics:")
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'cache' in metrics:
+            logger.info("Data Cache Statistics:")
+    
     load_list=op_dict['loads']
     store_list=op_dict['stores']
     cache_list=['Level 1']
@@ -70,7 +82,8 @@ def data_cache_simulator(master_inst_list, op_dict):
             max_util=this_util
         if this_util<min_util:
             min_util=this_util
-    cs.print_stats()
+    if 'cache' in metrics:
+        cs.print_stats()
     max_util=max_util*line_size
     min_util=min_util*line_size
 
@@ -97,7 +110,11 @@ def instruction_cache_simulator(master_inst_list):
               and a dictionary with the cache statistics as values.
     
     '''
-    logger.info("Instruction Cache Statistics:")
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'cache' in metrics:
+            logger.info("Instruction Cache Statistics:")
+    
     mem = MainMemory()
     cache_list=['Level 1']
     cache_dict={l:{'utilization(%)':0} for l in cache_list}
@@ -120,7 +137,10 @@ def instruction_cache_simulator(master_inst_list):
             max_util=this_util
         if this_util<min_util:
             min_util=this_util
-    cs.print_stats()
+    if 'cache' in metrics:
+        cs.print_stats()
+
+    
     max_util=max_util*line_size
     min_util=min_util*line_size
 

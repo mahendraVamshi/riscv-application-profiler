@@ -13,6 +13,26 @@ from riscv_application_profiler.plugins import csr_compute
 from riscv_application_profiler.plugins import store_load_bypass
 import riscv_config.isa_validator as isaval
 from riscv_application_profiler.utils import Utilities
+import os
+import yaml
+
+#script_directory = os.path.dirname(os.path.abspath(__file__))
+#main_py_path = os.path.join(script_directory, 'main.py')
+#print("Path of main.py:")
+
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(script_dir, 'config.yaml')
+with open(config_path, 'r') as config_file:
+   
+    config = yaml.safe_load(config_file)
+
+#print(config)
+
+
+
+
+
 
 def print_stats(op_dict, counts):
     '''
@@ -103,32 +123,32 @@ def run(log, isa, output, verbose):
     # Group by branch signs
     b_direc_list, b_direc_dict = branch_ops.group_by_branch_sign(master_inst_list=extension_instruction_list, ops_dict=op_dict)
 
-    #ananlyses of cache
+    #analysis of cache
     data_cache_list, data_cache_dict=cache.data_cache_simulator(extension_instruction_list, op_dict)
     instruction_cache_list,instruction_cache_dict=cache.instruction_cache_simulator(master_inst_list)
 
-    #ananlyses of loops
+    #analysis of loops
     loop_list, loop_instr_dict = branch_ops.loop_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict)
 
-    #ananlyses of registers
+    #analysis of registers
     reg_list, regs_dict = register_compute.register_compute(master_inst_list=extension_instruction_list)
 
-    #ananlyses of floating point registers
+    #analysis of floating point registers
     F_reg_list, F_regs_dict = register_compute.fregister_compute(master_inst_list=extension_instruction_list,extension_list=extension_list)
 
-    #ananlyses of jumps
+    #analysis of jumps
     j_direc_list, j_direc_dict = jumps_ops.jumps_comput(master_inst_list=extension_instruction_list, ops_dict=op_dict)
 
-    #ananlyses of jumps size
+    #analysis of jumps size
     jump_list,jump_instr_dict = jumps_ops.jump_size(master_inst_list=extension_instruction_list, ops_dict=op_dict)
 
-    #ananlyses of dependancy(raw)
+    #analysis of dependancy(raw)
     raw_instruction_list, raw_dict = dependency.raw_compute(master_inst_list=extension_instruction_list)
 
-    #ananlyses of csr
+    #analysis of csr
     csr_reg_list, csr_dict = csr_compute.csr_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict)
 
-    #ananlyses of store load bypass
+    #analysis of store load bypass
     load_address_list,bypass_dict = store_load_bypass.store_load_bypass(extension_instruction_list, op_dict)
     
     
@@ -136,17 +156,34 @@ def run(log, isa, output, verbose):
         logger.warning("riscv-isac does not decode immediate fields for compressed instructions. \
 Value based metrics on branch ops may be inaccurate.")
 
-    utils.tabulate_stats1(op_lists,ops_count, header_name="Operation", metric_name="Grouping Instructions by Type of Operation.")
-    utils.tabulate_stats1(mode_list, mode_dict, header_name="Privilaged modes", metric_name="Grouping Instructions by Privilege Mode.")
-    utils.tabulate_stats1(size_list, size_dict, header_name='Size',metric_name="Grouping Branches by Offset Size.")
-    utils.tabulate_stats1(b_direc_list, b_direc_dict, header_name='Direction',metric_name="Grouping Branches by Direction.")
-    utils.tabulate_stats1(loop_list, loop_instr_dict, header_name='Instruction Name',metric_name="Nested loop Computation.")
-    utils.tabulate_stats1(reg_list, regs_dict, header_name='Register Name',metric_name="Register Computation.")
-    utils.tabulate_stats1(F_reg_list, F_regs_dict, header_name='fRegister Name',metric_name="Floating Point Register Computation.")
-    utils.tabulate_stats1(j_direc_list, j_direc_dict, header_name='Direction',metric_name="Jump Direction.")
-    utils.tabulate_stats1(jump_list,jump_instr_dict, header_name='Name',metric_name="Jumps Size.")
-    utils.tabulate_stats1(data_cache_list, data_cache_dict, header_name='Data Cache',metric_name="Data Cache Utilization.")
-    utils.tabulate_stats1(instruction_cache_list, instruction_cache_dict, header_name='Instruction Cache',metric_name="Instruction Cache Utilization.")
-    utils.tabulate_stats1(raw_instruction_list, raw_dict, header_name='Dependant Instructions',metric_name="Reads after Writes(RAW) Computation.")
-    utils.tabulate_stats1(csr_reg_list, csr_dict, header_name='CSR Register(s)',metric_name="CSR Computation.")
-    utils.tabulate_stats1(load_address_list,bypass_dict, header_name='Address',metric_name="Store load bypass")
+
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'instr_groups' in metrics:
+            utils.tabulate_stats1(op_lists,ops_count, header_name="Operation", metric_name="Grouping Instructions by Type of Operation.")
+            utils.tabulate_stats1(mode_list, mode_dict, header_name="Privilaged modes", metric_name="Grouping Instructions by Privilege Mode.")
+        if 'branch_ops' in metrics:
+             utils.tabulate_stats1(size_list, size_dict, header_name='Size',metric_name="Grouping Branches by Offset Size.")
+             utils.tabulate_stats1(b_direc_list, b_direc_dict, header_name='Direction',metric_name="Grouping Branches by Direction.")
+             utils.tabulate_stats1(loop_list, loop_instr_dict, header_name='Instruction Name',metric_name="Nested loop Computation.")
+        if 'register_compute' in metrics:
+            utils.tabulate_stats1(reg_list, regs_dict, header_name='Register Name',metric_name="Register Computation.")
+            utils.tabulate_stats1(F_reg_list, F_regs_dict, header_name='fRegister Name',metric_name="Floating Point Register Computation.")
+        if 'jumps_ops' in metrics:
+            utils.tabulate_stats1(j_direc_list, j_direc_dict, header_name='Direction',metric_name="Jump Direction.")
+            utils.tabulate_stats1(jump_list,jump_instr_dict, header_name='Name',metric_name="Jumps Size.")
+        if 'cache' in metrics:
+            utils.tabulate_stats1(data_cache_list, data_cache_dict, header_name='Data Cache',metric_name="Data Cache Utilization.")
+            utils.tabulate_stats1(instruction_cache_list, instruction_cache_dict, header_name='Instruction Cache',metric_name="Instruction Cache Utilization.")
+        if 'dependency' in metrics:
+            utils.tabulate_stats1(raw_instruction_list, raw_dict, header_name='Dependant Instructions',metric_name="Reads after Writes(RAW) Computation.")
+        if 'csr_compute' in metrics:
+            utils.tabulate_stats1(csr_reg_list, csr_dict, header_name='CSR Register(s)',metric_name="CSR Computation.")
+        if 'store_load_bypass' in metrics:
+            utils.tabulate_stats1(load_address_list,bypass_dict, header_name='Address',metric_name="Store load bypass")
+
+    
+
+    
+    
+    

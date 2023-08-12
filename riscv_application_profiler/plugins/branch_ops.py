@@ -9,6 +9,14 @@ from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 import statistics
 import pprint as pp
+import os
+import yaml
+
+script_directory = os.path.dirname(os.path.abspath(__file__))
+script_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(script_dir, '..', 'config.yaml')
+with open(config_path, 'r') as config_file:
+    config = yaml.safe_load(config_file)
 
 def compute_threshold(master_inst_list: list, ops_dict: dict) -> int:
     '''
@@ -43,7 +51,11 @@ def group_by_branch_offset(master_inst_list: list, ops_dict: dict, branch_thresh
             InstructionEntry objects as values, and a dictionary with the operations as
             keys and the number of instructions in each group as values.
     '''
-    logger.info("Grouping instructions by branch offset.")
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'branch_ops' in metrics:
+            logger.info("Grouping instructions by branch offset.")
+    
     # Create a dictionary with the operations as keys
     op_dict = {'long': [], 'short': []}
     size_list = ['long', 'short']
@@ -78,7 +90,11 @@ def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
         'count' of instructions with positive and negative branch offsets.
 
     '''
-    logger.info("Grouping instructions by branch offset sign.")
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'branch_ops' in metrics:
+            logger.info("Grouping instructions by branch offset sign.")
+    
     # Create a dictionary with the operations as keys
     op_dict = {'positive': [], 'negative': []}
     direc_list = ['positive', 'negative']
@@ -113,7 +129,12 @@ def loop_compute(master_inst_list: list, ops_dict: dict):
         The keys are the branch instructions, and the values are dictionaries containing the
         'target address', 'depth', 'count' and 'size' of the loop.
             '''
-    logger.info("Computing loops.")
+
+    if 'cfg1' in config['profiles']:
+        metrics = config['profiles']['cfg1']['metrics']
+        if 'branch_ops' in metrics:
+            logger.info("Computing loops.")
+    
     # Create a dictionary with the operations as keys
     loop_instr={}
     target_address={}
