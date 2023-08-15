@@ -25,6 +25,14 @@ def register_compute(master_inst_list: list):
             regs[name]['read_count'] += 1
         if (entry.rd is not None):
             name = str(entry.rd[1]) + str(entry.rd[0])
+            # if (entry.reg_commit is not None):         
+            #     name1 = str(entry.reg_commit[0]) + str(entry.reg_commit[1])
+            #     if (name != name1):
+            #         print(entry)
+            if (entry.reg_commit is None):
+                if 'fence' in entry.instr_name:
+                    continue
+                print(entry)
             regs[name]['write_count'] += 1
     return(reg_list, regs)
 

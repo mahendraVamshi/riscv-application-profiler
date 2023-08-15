@@ -22,6 +22,7 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
     store_address_list=[]
     load_address_list=[]
     bypass_dict={}
+    ad_dict={}
     for i in master_inst_list:
         if (i.reg_commit is not None):
             consts.reg_file[f'x{i.reg_commit[1]}'] = i.reg_commit[2]
@@ -46,7 +47,17 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
                     bypass_dict[address]['counts']+=1
                 else:
                     load_address_list.append(address)
+                    # if (address < '0x80000000'):
+                    #     print(i)
                     bypass_dict[address]={'counts':0}
+
+        if (i.reg_commit is not None):
+            consts.reg_file[f'x{i.reg_commit[1]}'] = i.reg_commit[2]
+
+    consts.reg_file = {f'x{i}':'0x00000000' for i in range(32)}
+    consts.reg_file['x2'] = '0x7ffffff0'
+    consts.reg_file['x3'] = '0x100000'
+    # print(ad_dict)
     return(load_address_list,bypass_dict)
 
                 
