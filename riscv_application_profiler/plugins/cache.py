@@ -33,7 +33,8 @@ def data_cache_simulator(master_inst_list, op_dict):
     max_util=cs.count_invalid_entries()
     for i in master_inst_list:
         if (i.reg_commit is not None):
-            consts.reg_file[f'x{i.rd[1]}'] = i.reg_commit[2]
+            if (i.reg_commit[1] != '0'):
+                consts.reg_file[f'x{i.rd[1]}'] = i.reg_commit[2]
         if (i in load_list or i in store_list):
             if ('sp' in i.instr_name):
                 base = int(consts.reg_file['x2'],16)

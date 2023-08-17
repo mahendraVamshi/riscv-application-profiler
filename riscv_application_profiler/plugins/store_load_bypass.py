@@ -25,7 +25,8 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
     ad_dict={}
     for i in master_inst_list:
         if (i.reg_commit is not None):
-            consts.reg_file[f'x{i.reg_commit[1]}'] = i.reg_commit[2]
+            if (i.reg_commit[1] != '0'):
+                consts.reg_file[f'x{i.reg_commit[1]}'] = i.reg_commit[2]
         if (i in load_list or i in store_list):
             if ('sp' in i.instr_name):
                 base = int(consts.reg_file['x2'],16)
@@ -52,7 +53,8 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
                     bypass_dict[address]={'counts':0}
 
         if (i.reg_commit is not None):
-            consts.reg_file[f'x{i.reg_commit[1]}'] = i.reg_commit[2]
+            if (i.reg_commit[1] != '0'):
+                consts.reg_file[f'x{i.reg_commit[1]}'] = i.reg_commit[2]
 
     consts.reg_file = {f'x{i}':'0x00000000' for i in range(32)}
     consts.reg_file['x2'] = '0x7ffffff0'

@@ -21,7 +21,8 @@ def jumps_comput(master_inst_list: list ,ops_dict: dict):
 
         if (entry.reg_commit is not None):
             name = str(entry.reg_commit[0]) + str(entry.reg_commit[1])
-            consts.reg_file[name] = entry.reg_commit[2]
+            if (name != 'x0'):
+                consts.reg_file[name] = entry.reg_commit[2]
         if entry in ops_dict['jumps']:
             if str(entry.instr_name) == 'jalr':
                 rs1 = str(entry.rs1[1]) + str(entry.rs1[0])
@@ -120,7 +121,8 @@ def jump_size(master_inst_list: list, ops_dict: dict):
         if (entry.reg_commit is not None):
             name = str(entry.rd[1]) + str(entry.rd[0])
             # if (int(entry.reg_commit[2],16)>0):
-            consts.reg_file[name] = entry.reg_commit[2]
+            if (name != 'x0'):
+                consts.reg_file[name] = entry.reg_commit[2]
 
     number_of_loops=len(jump_instr)
     if number_of_loops>1:

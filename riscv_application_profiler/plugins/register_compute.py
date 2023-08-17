@@ -29,11 +29,11 @@ def register_compute(master_inst_list: list):
             #     name1 = str(entry.reg_commit[0]) + str(entry.reg_commit[1])
             #     if (name != name1):
             #         print(entry)
+            regs[name]['write_count'] += 1
             if (entry.reg_commit is None):
-                if 'fence' in entry.instr_name:
+                if 'fence' in entry.instr_name or 'j' in entry.instr_name:
                     continue
                 print(entry)
-            regs[name]['write_count'] += 1
     return(reg_list, regs)
 
 def fregister_compute(master_inst_list: list,extension_list: list):
