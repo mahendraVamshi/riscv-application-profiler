@@ -7,7 +7,7 @@ profiles:
       - branch_ops
       - cache
       - dependency
-      - jump_ops
+      - jumps_ops
       - register_compute
       - csr_compute
       - store_load_bypass
