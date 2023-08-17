@@ -1,18 +1,19 @@
-apps: 
-  name: RV32
-  cfg: 
-    log: /home/sample/logs
-    regex: "^instretire:\s+(\d+)\s+([a-fA-F0-9]+)\s+([a-fA-F0-9]+)"
-    plugins: 
-      - instr_group
+profiles:
+  isa: RV64IMFDCZicsr
+  cfg1:
+    log: ./tests/hello.log
+    metrics:
+      - instr_groups
       - branch_ops
       - cache
-  name: RV64
-  cfg1: 
-    log1: /home/sample1/logs1
-    regex: "^core\s+\d+:\s+(\d*)\s+(0x[0-9a-fA-F]+)\s+\((0x[0-9a-fA-F]+)\)\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?"
-    plugins: 
-      - instr_group
-      - branch_ops
-      - cache
-  
+      - dependency
+      - jump_ops
+      - register_compute
+      - csr_compute
+      - store_load_bypass
+      - pattern
+    commitlog_regex : "^core\\s+\\d+:\\s+(\\d*)\\s+(0x[0-9a-fA-F]+)\\s+\\((0x[0-9a-fA-F]+)\\)\\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\\s*(0x[0-9a-fA-F]*)?\\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\\s*(0x[0-9a-fA-F]*)?\\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\\s*(0x[0-9a-fA-F]*)?"
+    disass_regex : "^\\s*([0-9a-f]+):\\s+([0-9a-f]+)\\s+([a-z][a-z\\.0-9]*)"
+    privilege_mode_regex : '^core\\s+\\d+:\\s+(\\d+)'
+    output : ./build
+    verbose: info

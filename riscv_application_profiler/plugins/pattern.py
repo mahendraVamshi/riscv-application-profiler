@@ -66,5 +66,3 @@ def group_by_pattern(master_inst_list: list):
     return(s_dict)
     # print(address_name_dict,sep='\n')
     # print(sort_count_list)
-
-

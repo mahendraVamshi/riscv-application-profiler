@@ -33,7 +33,7 @@ def register_compute(master_inst_list: list):
             if (entry.reg_commit is None):
                 if 'fence' in entry.instr_name or 'j' in entry.instr_name:
                     continue
-                print(entry)
+                # print(entry)
     return(reg_list, regs)
 
 def fregister_compute(master_inst_list: list,extension_list: list):
