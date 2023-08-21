@@ -43,28 +43,34 @@ def group_by_branch_offset(master_inst_list: list, ops_dict: dict, branch_thresh
             InstructionEntry objects as values, and a dictionary with the operations as
             keys and the number of instructions in each group as values.
     '''
+    # Logging the grouping process
     logger.info("Grouping instructions by branch offset.")
-    # Create a dictionary with the operations as keys
-    op_dict = {'long': [], 'short': []}
+
+    # Initializing dictionaries and lists
     size_list = ['long', 'short']
-    size_dict = {'long': {'count':0}, 'short': {'count':0}}
+    size_dict = {size: {'count': 0} for size in size_list}
     ret_dict = {'Offset Size': size_list, 'Count': []}
-    
+
+    # Loop through master instruction list
     for entry in master_inst_list:
+        # Check if the entry is a branch instruction
         if entry in ops_dict['branches']:
             if entry.imm is None:
                 continue
-            if entry.imm < branch_threshold:
-                # op_dict['short'].append(entry)
-                size_dict['short']['count'] += 1
-            else:
-                # op_dict['long'].append(entry)
-                size_dict['long']['count'] += 1
-    
+            # Determine whether the branch is long or short based on the threshold
+            size = 'short' if entry.imm < branch_threshold else 'long'
+            size_dict[size]['count'] += 1
+
+    # Logging completion of the grouping process
     logger.debug('Done.')
+
+    # Appending the counts to the result dictionary
     ret_dict['Count'].append(size_dict['long']['count'])
     ret_dict['Count'].append(size_dict['short']['count'])
-    return (ret_dict)
+
+    # Return the final results
+    return ret_dict
+
 
 def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
     '''
@@ -81,27 +87,34 @@ def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
         'count' of instructions with positive and negative branch offsets.
 
     '''
+    # Logging the grouping process
     logger.info("Grouping instructions by branch offset sign.")
-    # Create a dictionary with the operations as keys
-    op_dict = {'positive': [], 'negative': []}
+
+    # Initializing dictionaries and lists
     direc_list = ['positive', 'negative']
-    direc_dict = {'positive': {'count':0}, 'negative': {'count':0}}
+    direc_dict = {direc: {'count': 0} for direc in direc_list}
     ret_dict = {'Direction': direc_list, 'Count': []}
 
+    # Loop through master instruction list
     for entry in master_inst_list:
+        # Check if the entry is a branch instruction
         if entry in ops_dict['branches']:
             if entry.imm is None:
                 continue
-            if entry.imm<0:
-                direc_dict['negative']['count'] += 1
-                # op_dict['negative'].append(entry)
-            else:
-                direc_dict['positive']['count'] += 1
-                # op_dict['positive'].append(entry)
+            # Determine whether the branch offset is positive or negative
+            direction = 'positive' if entry.imm >= 0 else 'negative'
+            direc_dict[direction]['count'] += 1
+
+    # Logging completion of the grouping process
     logger.debug('Done.')
+
+    # Appending the counts to the result dictionary
     ret_dict['Count'].append(direc_dict['positive']['count'])
     ret_dict['Count'].append(direc_dict['negative']['count'])
-    return (ret_dict)
+
+    # Return the final results
+    return ret_dict
+
 
 
 def loop_compute(master_inst_list: list, ops_dict: dict):
@@ -118,44 +131,55 @@ def loop_compute(master_inst_list: list, ops_dict: dict):
         The keys are the branch instructions, and the values are dictionaries containing the
         'target address', 'depth', 'count' and 'size' of the loop.
             '''
+    # Logging the loop computation process
     logger.info("Computing loops.")
-    # Create a dictionary with the operations as keys
-    loop_instr={}
-    target_address={}
-    loop_list=[]
+
+    # Initializing dictionaries, lists, and result dictionary
+    loop_instr = {}
+    target_address = {}
+    loop_list = []
     ret_dict = {'Branch Instruction': loop_list, 'Depth': [], 'Count': [], 'Size(bytes)': []}
+
+    # Loop through master instruction list
     for entry in master_inst_list:
+        # Check if the entry is a branch instruction
         if entry in ops_dict['branches']:
             if entry.imm is None:
                 continue
-            if entry.imm<0:
-                if entry.rs2 is not None:
-                    instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])+','+str(entry.rs2[1])+str(entry.rs2[0])
-                else:
-                    instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])
-                # loop_instr=>{ first_instr: {'target address':value,'depth':value,'count':value,'size':value}, second_instr: {'target address':value,'depth':value,'count':value,'size':value} }
-                ta=int(entry.instr_addr) + int(entry.imm)
-                if (instr not in loop_instr) or (hex(ta) not in target_address[instr]):
+            # Determine the instruction and its target address
+            if entry.rs2 is not None:
+                instr = f"{entry.instr_name} {entry.rs1[1]}{entry.rs1[0]},{entry.rs2[1]}{entry.rs2[0]}"
+            else:
+                instr = f"{entry.instr_name} {entry.rs1[1]}{entry.rs1[0]}"
+            ta = int(entry.instr_addr) + int(entry.imm)
+            
+            # Update loop information in the dictionaries
+            if instr not in loop_instr or hex(ta) not in target_address.get(instr, []):
+                loop_instr[instr] = {'depth': 1, 'count': 1, 'size(bytes)': (int(entry.instr_addr) - ta)}
+                target_address.setdefault(instr, []).append(hex(ta))
+            else:
+                loop_instr[instr]['count'] = loop_instr[instr]['count'] + 1
 
-                    loop_instr[instr]={'depth':1,'count':1,'size(bytes)':(int(entry.instr_addr)-ta)}
-                    target_address[instr]=hex(ta)
-                    
-                else:
-                    loop_instr[instr]['count']=loop_instr[instr]['count']+1
-    
-    number_of_loops=len(loop_instr)
-    if number_of_loops>1:
-        loop_list=list(loop_instr.keys())
-        for i in range(number_of_loops-1):
-            if (loop_list[i+1]<loop_list[i]):
-                loop_instr[loop_list[i+1]]['depth']=loop_instr[loop_list[i]]['depth']+1
+    # Calculate the number of loops
+    number_of_loops = len(loop_instr)
 
+    # Initialize loop_list based on conditions
+    loop_list = list(loop_instr.keys())
+    for i in range(number_of_loops - 1):
+        if loop_list[i + 1] < loop_list[i]:
+            loop_instr[loop_list[i + 1]]['depth'] = loop_instr[loop_list[i]]['depth'] + 1
+
+    # Populate the ret_dict with loop information
     for i in range(number_of_loops):
         ret_dict['Branch Instruction'].append(loop_list[i])
         ret_dict['Depth'].append(loop_instr[loop_list[i]]['depth'])
         ret_dict['Count'].append(loop_instr[loop_list[i]]['count'])
         ret_dict['Size(bytes)'].append(loop_instr[loop_list[i]]['size(bytes)'])
+
+    # Logging completion of the loop computation process
     logger.debug('Done.')
 
-    return(ret_dict)
+    # Return the final results
+    return ret_dict
+
     
