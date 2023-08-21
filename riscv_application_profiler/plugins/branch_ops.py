@@ -155,7 +155,7 @@ def loop_compute(master_inst_list: list, ops_dict: dict):
             
             # Update loop information in the dictionaries
             if instr not in loop_instr or hex(ta) not in target_address.get(instr, []):
-                loop_instr[instr] = {'depth': 1, 'count': 1, 'size(bytes)': (int(entry.instr_addr) - ta)}
+                loop_instr[instr] = {'depth': 1, 'count': 1, 'size(bytes)': abs(int(entry.instr_addr) - ta)}
                 target_address.setdefault(instr, []).append(hex(ta))
             else:
                 loop_instr[instr]['count'] = loop_instr[instr]['count'] + 1
