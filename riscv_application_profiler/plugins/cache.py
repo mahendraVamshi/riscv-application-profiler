@@ -47,23 +47,29 @@ def data_cache_simulator(master_inst_list, op_dict):
 
     # Loop through instructions
     for i in master_inst_list:
-        # Handle register commits
-        if i.reg_commit and i.reg_commit[1] != '0':
-            consts.reg_file[f'x{i.rd[1]}'] = i.reg_commit[2]
         
         # Handle load/store instructions
         if i in load_list or i in store_list:
             # Determine the address based on instruction type
             if 'sp' in i.instr_name:
-                address = int(consts.reg_file['x2'], 16) + (i.imm or 0)
+                base = int(consts.reg_file['x2'], 16)
             else:
                 rs = str(i.rs1[1]) + str(i.rs1[0])
                 base = int(consts.reg_file.get(rs, consts.freg_file.get(rs, '0x0')), 16)
-                address = base + (i.imm or 0)
+            if i.imm is None:
+                address = base
+            else:
+                address = base + i.imm
             
             # Determine the byte length for the operation
-            byte_lengths = {'d': 8, 'w': 4, 'h': 2, 'b': 1}
-            byte_length = byte_lengths.get(i.instr_name[-1], 0)
+            if ('d' in i.instr_name):
+                byte_length = 8
+            elif ('w' in i.instr_name):
+                byte_length = 4
+            elif ('h' in i.instr_name):
+                byte_length = 2
+            elif ('b' in i.instr_name):
+                byte_length = 1
             
             # Handle load and store operations
             if i in load_list:
@@ -75,6 +81,11 @@ def data_cache_simulator(master_inst_list, op_dict):
             this_util = cs.count_invalid_entries()
             max_util = max(max_util, this_util)
             min_util = min(min_util, this_util)
+
+        
+        # Handle register commits
+        if i.reg_commit and i.reg_commit[1] != '0':
+            consts.reg_file[f'x{i.rd[0]}'] = i.reg_commit[2]
 
     # Print cache statistics
     cs.print_stats()
