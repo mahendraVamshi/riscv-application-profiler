@@ -123,7 +123,7 @@ def loop_compute(master_inst_list: list, ops_dict: dict):
     loop_instr={}
     target_address={}
     loop_list=[]
-    ret_dict = {'Branch Instruction': loop_list, 'Target Address': [], 'Depth': [], 'Count': [], 'Size(bytes)': []}
+    ret_dict = {'Branch Instruction': loop_list, 'Depth': [], 'Count': [], 'Size(bytes)': []}
     for entry in master_inst_list:
         if entry in ops_dict['branches']:
             if entry.imm is None:
@@ -152,7 +152,6 @@ def loop_compute(master_inst_list: list, ops_dict: dict):
 
     for i in range(number_of_loops):
         ret_dict['Branch Instruction'].append(loop_list[i])
-        ret_dict['Target Address'].append(target_address[loop_list[i]])
         ret_dict['Depth'].append(loop_instr[loop_list[i]]['depth'])
         ret_dict['Count'].append(loop_instr[loop_list[i]]['count'])
         ret_dict['Size(bytes)'].append(loop_instr[loop_list[i]]['size(bytes)'])

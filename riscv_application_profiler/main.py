@@ -24,21 +24,21 @@ def profile(config):
     with open(config, 'r') as config_file:
         config_data = yaml.safe_load(config_file)
 
-    log_file = str(Path(config_data['profiles']['cfg1']['log']).absolute())
-    output_dir = os.path.abspath(Path(config_data['profiles']['cfg1']['output']).resolve())
+    log_file = str(Path(config_data['profiles']['cfg']['log']).absolute())
+    output_dir = os.path.abspath(Path(config_data['profiles']['cfg']['output']).resolve())
 
     isac_setup_routine(lib_dir=f'{output_dir}/lib')
 
-    logger.level(config_data['profiles']['cfg1']['verbose'])
+    logger.level(config_data['profiles']['cfg']['verbose'])
     logger.info("**********************************")
     logger.info(f"RISC-V Application Profiler v{__version__}")
     logger.info("**********************************")
     
-    logger.info("ISA Extension used: " + config_data['profiles']['cfg1']['isa'])
+    logger.info("ISA Extension used: " + config_data['profiles']['cfg']['isa'])
     logger.info(f"\nLog file: {log_file}")
     logger.info(f"Output directory: {output_dir}")
 
-    run(log_file, config_data['profiles']['cfg1']['isa'], output_dir, config_data['profiles']['cfg1']['verbose'])
+    run(log_file, config_data['profiles']['cfg']['isa'], output_dir, config_data['profiles']['cfg']['verbose'])
 
     logger.info("Done profiling.")
     logger.info(f"Reports in {output_dir}/reports.")

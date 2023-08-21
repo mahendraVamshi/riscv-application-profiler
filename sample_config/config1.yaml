@@ -1,0 +1,18 @@
+profiles:
+  cfg:
+    isa: RV32I
+    log: ./tests/casamp.log
+    metrics:
+      - instr_groups
+      - branch_ops
+      - cache
+      - dependency
+      - jumps_ops
+      - register_compute
+      - csr_compute
+      - store_load_bypass
+      - pattern
+    commitlog_regex : '^instretire:\s+(\d+)\s+([a-fA-F0-9]+)\s+([a-fA-F0-9]+)'
+    privilege_mode_regex : '^core\\s+\\d+:\\s+(\\d+)'
+    output : ./build
+    verbose: info

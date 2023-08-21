@@ -6,9 +6,8 @@ config_path='./sample_config/config.yaml'
 with open(config_path, 'r') as config_file:
     config = yaml.safe_load(config_file)
 
-    commitlog_regex = config['profiles']['cfg1'].get('commitlog_regex', default_commitlog_regex)
-    disass_regex = config['profiles']['cfg1'].get('disass_regex', default_disass_regex)
-    privilege_mode_regex = config['profiles']['cfg1'].get('privilege_mode_regex', default_privilege_mode_regex)
+    commitlog_regex = config['profiles']['cfg'].get('commitlog_regex', default_commitlog_regex)
+    privilege_mode_regex = config['profiles']['cfg'].get('privilege_mode_regex', default_privilege_mode_regex)
 
 ops_dict = {
     "RV32": {

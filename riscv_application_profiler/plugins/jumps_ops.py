@@ -63,77 +63,77 @@ def jump_size(master_inst_list: list, ops_dict: dict):
     '''
     logger.info("computing jump size.")
     # jumps={instr:{'direction': fo, 'size': value} for instr in ops_dict['jumps']}
-    jump_instr={}
-    jump_list=[]
-    target_address={}
-    for entry in master_inst_list: 
-        
-        if entry in ops_dict['jumps']:
-            instr=''
-            if entry.imm is not None:
-                if str(entry.instr_name) == 'jalr':
-                    rs1 = str(entry.rs1[1]) + str(entry.rs1[0])
-                    rd = str(entry.rd[1]) + str(entry.rd[0])
-                    ta = int(consts.reg_file[rs1],16)
-                    consts.reg_file[rd]=hex(int(entry.instr_addr)+4)
-                else:
-                    jump_value = entry.imm 
-                    ta=int(entry.instr_addr) + int(jump_value)
-                    if (entry.instr_name == 'c.jal'):
-                        consts.reg_file['x1']=hex(int(entry.instr_addr)+2)
-                    elif (entry.instr_name == 'jal'):
-                        consts.reg_file['x1']=hex(int(entry.instr_addr)+4)
+    jump_instr = {}
+    jump_list = []
+    target_address = {}
 
-                if (entry.rd is not None):
-                    instr=str(entry.instr_name)+' '+str(entry.rd[1])+str(entry.rd[0])+','
-                if (entry.rs1 is not None):
-                    if (instr==''):
-                        instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])+','
-                    else:
-                        instr=instr+' '+str(entry.rs1[1])+str(entry.rs1[0])+','
-                if (entry.rs2 is not None):
-                    if (instr==''):
-                        instr=str(entry.instr_name)+' '+str(entry.rs2[1])+str(entry.rs2[0])+','
-                    else:
-                        instr=instr+' '+str(entry.rs2[1])+str(entry.rs2[0])+','
-                if (entry.rs1 is None and entry.rs2 is None and entry.rd is None):
-                    instr=str(entry.instr_name)
-                instr=instr+' '+str(entry.imm)
-                    
-                if (instr not in jump_instr) or (hex(ta) not in target_address[instr]):
-                    jump_instr[instr]={'count':1,'size(bytes)':abs(int(entry.instr_addr)-ta)}
-                    target_address[instr]=[hex(ta)]    
+    for entry in master_inst_list:
+        if entry in ops_dict['jumps']:
+            instr = ''
+            if entry.imm is not None:
+                if entry.instr_name == 'jalr':
+                    rs1 = f"{entry.rs1[1]}{entry.rs1[0]}"
+                    rd = f"{entry.rd[1]}{entry.rd[0]}"
+                    ta = int(consts.reg_file[rs1], 16)
+                    consts.reg_file[rd] = hex(int(entry.instr_addr) + 4)
                 else:
-                    jump_instr[instr]['count']=jump_instr[instr]['count']+1
-            elif (entry.instr_name=='c.jr') or (entry.instr_name=='c.jalr'):
-                rs1=str(entry.rs1[1])+str(entry.rs1[0])
-                ta=int(consts.reg_file[rs1],16)
+                    jump_value = entry.imm
+                    ta = int(entry.instr_addr) + int(jump_value)
+                    if entry.instr_name == 'c.jal':
+                        consts.reg_file['x1'] = hex(int(entry.instr_addr) + 2)
+                    elif entry.instr_name == 'jal':
+                        consts.reg_file['x1'] = hex(int(entry.instr_addr) + 4)
+                    
+                instr_parts = []
+                if entry.rd is not None:
+                    instr_parts.append(f"{entry.rd[1]}{entry.rd[0]}")
+                if entry.rs1 is not None:
+                    instr_parts.append(f"{entry.rs1[1]}{entry.rs1[0]}")
+                if entry.rs2 is not None:
+                    instr_parts.append(f"{entry.rs2[1]}{entry.rs2[0]}")
+                if not instr_parts:
+                    instr = entry.instr_name
+                else:
+                    instr = f"{entry.instr_name} {' '.join(instr_parts)}"
+                instr += f" {entry.imm}"
+                
+                if instr not in jump_instr or hex(ta) not in target_address.get(instr, []):
+                    jump_instr[instr] = {'count': 1, 'size(bytes)': abs(int(entry.instr_addr) - ta)}
+                    target_address.setdefault(instr, []).append(hex(ta))
+                else:
+                    jump_instr[instr]['count'] += 1
+            
+            elif entry.instr_name in {'c.jr', 'c.jalr'}:
+                rs1 = f"{entry.rs1[1]}{entry.rs1[0]}"
+                ta = int(consts.reg_file[rs1], 16)
 
                 if 'c.jalr' in entry.instr_name:
-                    consts.reg_file['x1']=hex(int(entry.instr_addr)+2)
-                size=abs(int(entry.instr_addr)-ta)
-                instr=str(entry.instr_name)+' '+str(entry.rs1[1])+str(entry.rs1[0])
-                if (instr not in jump_instr) or ((hex(ta) not in jump_instr[instr]['target address']) and (str(size) not in jump_instr[instr]['size(bytes)'])):
-                    jump_instr[instr]={'target address':hex(ta),'count':1,'size(bytes)':str(size)}
+                    consts.reg_file['x1'] = hex(int(entry.instr_addr) + 2)
+                
+                size = abs(int(entry.instr_addr) - ta)
+                instr = f"{entry.instr_name} {rs1}"
+                if instr not in jump_instr or (hex(ta) not in jump_instr[instr]['target address'] and str(size) not in jump_instr[instr]['size(bytes)']):
+                    jump_instr[instr] = {'target address': hex(ta), 'count': 1, 'size(bytes)': str(size)}
                 else:
-                    jump_instr[instr]['count']=jump_instr[instr]['count']+1
+                    jump_instr[instr]['count'] += 1
+            
             else:
-                logger.debug(print('immidiate value not found for :',entry))
-        
-
-        if (entry.reg_commit is not None):
-            name = str(entry.rd[1]) + str(entry.rd[0])
-            # if (int(entry.reg_commit[2],16)>0):
-            if (name != 'x0'):
+                logger.debug(f"Immediate value not found for: {entry}")
+            
+        if entry.reg_commit is not None and entry.rd is not None:
+            name = f"{entry.rd[1]}{entry.rd[0]}"
+            if name != 'x0':
                 consts.reg_file[name] = entry.reg_commit[2]
 
-    number_of_loops=len(jump_instr)
-    if number_of_loops>1:
-        jump_list=list(jump_instr.keys())
-    
-    consts.reg_file = {f'x{i}':'0x00000000' for i in range(32)}
+    number_of_loops = len(jump_instr)
+    if number_of_loops > 1:
+        jump_list = list(jump_instr.keys())
+
+    consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
     consts.reg_file['x2'] = '0x7ffffff0'
     consts.reg_file['x3'] = '0x100000'
-    return(jump_list,jump_instr)
+
+    return jump_list, jump_instr
+
 
                 

@@ -110,8 +110,8 @@ def run(log, isa, output, verbose):
 Value based metrics on branch ops may be inaccurate.")
 
 
-    if 'cfg1' in config['profiles']:
-        metrics = config['profiles']['cfg1']['metrics']
+    if 'cfg' in config['profiles']:
+        metrics = config['profiles']['cfg']['metrics']
         if 'instr_groups' in metrics:
             utils.tabulate_stats_dict(ret_dict, header_name="Grouping Instructions by Type of Operation.")
 
