@@ -15,6 +15,7 @@ def register_compute(master_inst_list: list):
     logger.info("computing register read writes.")
     reg_list=list(consts.reg_file.keys())
     regs={i:{'write_count':0, 'read_count':0} for i in reg_list}
+    ret_dict = {'Register': [], 'Reads': [], 'Writes': []}
 
     for entry in master_inst_list:
         if (entry.rs1 is not None):
@@ -34,7 +35,12 @@ def register_compute(master_inst_list: list):
                 if 'fence' in entry.instr_name or 'j' in entry.instr_name:
                     continue
                 # print(entry)
-    return(reg_list, regs)
+    
+    for reg in reg_list:
+        ret_dict['Register'].append(reg)
+        ret_dict['Reads'].append(regs[reg]['read_count'])
+        ret_dict['Writes'].append(regs[reg]['write_count'])
+    return(ret_dict)
 
 def fregister_compute(master_inst_list: list,extension_list: list):
     '''
@@ -55,6 +61,7 @@ def fregister_compute(master_inst_list: list,extension_list: list):
     logger.info("computing register read writes.")
     reg_list=list(consts.freg_file.keys())
     regs={i:{'write_count':0, 'read_count':0} for i in reg_list}
+    ret_dict = {'F_Register': [], 'Reads': [], 'Writes': []}
 
     for entry in master_inst_list:
         inst_name=str(entry.instr_name)
@@ -68,4 +75,9 @@ def fregister_compute(master_inst_list: list,extension_list: list):
             if (entry.rd is not None and 'x' not in entry.rd[1]):
                 name = str(entry.rd[1]) + str(entry.rd[0])
                 regs[name]['write_count'] += 1
-    return(reg_list, regs)
+
+    for reg in reg_list:
+        ret_dict['F_Register'].append(reg)
+        ret_dict['Reads'].append(regs[reg]['read_count'])
+        ret_dict['Writes'].append(regs[reg]['write_count'])
+    return(ret_dict)

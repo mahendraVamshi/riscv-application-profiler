@@ -17,6 +17,7 @@ def jumps_comput(master_inst_list: list ,ops_dict: dict):
     op_dict = {'forward': [], 'backward': []}
     direc_list = ['forward', 'backward']
     direc_dict = {'forward': {'count':0}, 'backward': {'count':0}}
+    ret_dict = {'Direction': direc_list, 'Count': []}
     for entry in master_inst_list:
 
         if (entry.reg_commit is not None):
@@ -44,7 +45,9 @@ def jumps_comput(master_inst_list: list ,ops_dict: dict):
                 op_dict['forward'].append(entry)
                 direc_dict['forward']['count'] += 1
     logger.debug('Done.')
-    return (direc_list, direc_dict)
+    ret_dict['Count'].append(direc_dict['forward']['count'])
+    ret_dict['Count'].append(direc_dict['backward']['count'])
+    return (ret_dict)
 
 def jump_size(master_inst_list: list, ops_dict: dict):
     '''

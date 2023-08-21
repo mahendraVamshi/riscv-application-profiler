@@ -149,9 +149,12 @@ class Utilities:
         logger.debug("Tabulating statistics.")
         table = []
         key_list = list(in_dict.keys())
-        length=len(in_dict[key_list[0]])
+        length=len(key_list)
         for i in range(len(in_dict[key_list[0]])):
-            table.append([in_dict[key_list[0]][i], in_dict[key_list[1]][i], in_dict[key_list[2]][i], in_dict[key_list[3]][i]])
+            l1=[]
+            for j in range(length):
+                l1.append(in_dict[key_list[j]][i])
+            table.append(l1)
 
 
         self.tables_file.write(f'## {header_name}\n')

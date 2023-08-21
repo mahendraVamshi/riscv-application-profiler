@@ -48,6 +48,7 @@ def group_by_branch_offset(master_inst_list: list, ops_dict: dict, branch_thresh
     op_dict = {'long': [], 'short': []}
     size_list = ['long', 'short']
     size_dict = {'long': {'count':0}, 'short': {'count':0}}
+    ret_dict = {'Offset Size': size_list, 'Count': []}
     
     for entry in master_inst_list:
         if entry in ops_dict['branches']:
@@ -61,7 +62,9 @@ def group_by_branch_offset(master_inst_list: list, ops_dict: dict, branch_thresh
                 size_dict['long']['count'] += 1
     
     logger.debug('Done.')
-    return (size_list, size_dict)
+    ret_dict['Count'].append(size_dict['long']['count'])
+    ret_dict['Count'].append(size_dict['short']['count'])
+    return (ret_dict)
 
 def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
     '''
@@ -83,6 +86,7 @@ def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
     op_dict = {'positive': [], 'negative': []}
     direc_list = ['positive', 'negative']
     direc_dict = {'positive': {'count':0}, 'negative': {'count':0}}
+    ret_dict = {'Direction': direc_list, 'Count': []}
 
     for entry in master_inst_list:
         if entry in ops_dict['branches']:
@@ -95,7 +99,9 @@ def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
                 direc_dict['positive']['count'] += 1
                 # op_dict['positive'].append(entry)
     logger.debug('Done.')
-    return (direc_list, direc_dict)
+    ret_dict['Count'].append(direc_dict['positive']['count'])
+    ret_dict['Count'].append(direc_dict['negative']['count'])
+    return (ret_dict)
 
 
 def loop_compute(master_inst_list: list, ops_dict: dict):
@@ -117,6 +123,7 @@ def loop_compute(master_inst_list: list, ops_dict: dict):
     loop_instr={}
     target_address={}
     loop_list=[]
+    ret_dict = {'Branch Instruction': loop_list, 'Target Address': [], 'Depth': [], 'Count': [], 'Size(bytes)': []}
     for entry in master_inst_list:
         if entry in ops_dict['branches']:
             if entry.imm is None:
@@ -143,5 +150,13 @@ def loop_compute(master_inst_list: list, ops_dict: dict):
             if (loop_list[i+1]<loop_list[i]):
                 loop_instr[loop_list[i+1]]['depth']=loop_instr[loop_list[i]]['depth']+1
 
-    return(loop_list,loop_instr)
+    for i in range(number_of_loops):
+        ret_dict['Branch Instruction'].append(loop_list[i])
+        ret_dict['Target Address'].append(target_address[loop_list[i]])
+        ret_dict['Depth'].append(loop_instr[loop_list[i]]['depth'])
+        ret_dict['Count'].append(loop_instr[loop_list[i]]['count'])
+        ret_dict['Size(bytes)'].append(loop_instr[loop_list[i]]['size(bytes)'])
+    logger.debug('Done.')
+
+    return(ret_dict)
     

@@ -18,6 +18,7 @@ def raw_compute(master_inst_list: list):
     logger.info("Computing register reads after writes.")
     reg_list=list(consts.reg_file.keys())
     regs = {i : {'depth': 1} for i in reg_list}
+    ret_dict = {'Instructions': [], 'Depth': [], 'Count': []}
     raw={}
     instruction_list=[]
     depth=[]
@@ -70,5 +71,8 @@ def raw_compute(master_inst_list: list):
                 regs[name]['depth'] = 1
     
     
-
-    return instruction_list, raw
+    for entry in raw:
+        ret_dict['Instructions'].append(entry)
+        ret_dict['Count'].append(raw[entry]['count'])
+        ret_dict['Depth'].append(raw[entry]['depth'])
+    return (ret_dict)

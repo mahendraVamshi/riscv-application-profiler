@@ -30,7 +30,7 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
 
     op_dict = {f'{op}': [] for op in operations}
     ops_count={f'{op}': {'counts':0} for op in operations}
-    op_list = [f'{op}' for op in operations]
+    ret_dict = {'Operation': [f'{op}' for op in operations], 'Counts': []}
     extension_instruction_list = []
 
     for entry in master_inst_list:
@@ -44,9 +44,9 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
                 except KeyError as e:
                     logger.error(f'Extension {e} not supported.')
                     exit(1)
-    counts = {f'{op}': len(op_dict[op]) for op in operations}
+    ret_dict['Counts'] = [len(op_dict[op]) for op in operations]  
     logger.debug('Done.')
-    return (op_list,ops_count,extension_instruction_list,op_dict)
+    return (ret_dict,extension_instruction_list,op_dict)
 
 
 def privilege_modes(log):
@@ -63,10 +63,7 @@ def privilege_modes(log):
     logger.info("Computing privilege modes.")
     mode_list = ['user', 'supervised', 'machine']
     mode_dict = {'user': {'count':0}, 'supervised': {'count':0}, 'machine': {'count':0}}
-    user_list = []
-    supervised_list = []
-    reserved_list = []
-    machine_list = []
+    ret_dict = {'Privilege Mode': mode_list, 'Counts': []}
     with open(log, 'r') as log_file:
         for line in log_file:
             match = re.match(privilege_mode_regex, line)
@@ -75,12 +72,10 @@ def privilege_modes(log):
                 if x is not None:
                     if x==0:
                         mode_dict['user']['count']+=1
-                        user_list.append(line)
                     elif x==1:
                         mode_dict['supervised']['count']+=1
-                        supervised_list.append(line)
                     elif x==3:
                         mode_dict['machine']['count']+=1
-                        machine_list.append(line)
+    ret_dict['Counts'] = [mode_dict[mode]['count'] for mode in mode_list]
 
-    return (mode_list,mode_dict)
+    return (ret_dict)

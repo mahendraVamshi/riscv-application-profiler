@@ -17,6 +17,7 @@ def csr_compute(master_inst_list: list, ops_dict: dict):
     
     csr={}
     csr_reg_list=[]
+    ret_dict = {'CSR': [], 'Reads': [], 'Writes': []}
     logger.info("computing CSRs.")
     for entry in master_inst_list: 
         
@@ -82,5 +83,9 @@ def csr_compute(master_inst_list: list, ops_dict: dict):
                         else:
                             csr[csr_reg]={'read':1, 'write':1}
                             csr_reg_list.append(csr_reg)
-    return(csr_reg_list, csr)
+    for entry in csr_reg_list:
+        ret_dict['CSR'].append(entry)
+        ret_dict['Reads'].append(csr[entry]['read'])
+        ret_dict['Writes'].append(csr[entry]['write'])
+    return(ret_dict)
 

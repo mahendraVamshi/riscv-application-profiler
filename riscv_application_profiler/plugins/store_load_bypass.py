@@ -19,6 +19,7 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
     logger.info("Computing store load bypass.")
     load_list=ops_dict['loads']
     store_list=ops_dict['stores']
+    ret_dict = {'Address': [], 'Counts': []}
     store_address_list=[]
     load_address_list=[]
     bypass_dict={}
@@ -60,6 +61,9 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
     consts.reg_file['x2'] = '0x7ffffff0'
     consts.reg_file['x3'] = '0x100000'
     # print(ad_dict)
-    return(load_address_list,bypass_dict)
+    for address in load_address_list:
+        ret_dict['Address'].append(address)
+        ret_dict['Counts'].append(bypass_dict[address]['counts'])
+    return(ret_dict)
 
                 

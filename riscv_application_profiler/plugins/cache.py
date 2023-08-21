@@ -19,6 +19,7 @@ def data_cache_simulator(master_inst_list, op_dict):
     store_list=op_dict['stores']
     cache_list=['Level 1']
     cache_dict={l:{'utilization(%)':0} for l in cache_list}
+    ret_dict = {'Data Cache': [f'{op}' for op in cache_list], 'Utilization(%)': []}
 
     mem = MainMemory()
     no_of_sets=64
@@ -77,6 +78,7 @@ def data_cache_simulator(master_inst_list, op_dict):
 
     total_util=((max_util-min_util)/max_util)*100
     cache_dict['Level 1']['utilization(%)']=total_util
+    ret_dict['Utilization(%)'] = [cache_dict[cache]['utilization(%)'] for cache in cache_list]
     
     # print(f"total_cache_utilization: {total_util:.2f}%")
     
@@ -88,7 +90,7 @@ def data_cache_simulator(master_inst_list, op_dict):
     consts.reg_file = {f'x{i}':'0x00000000' for i in range(32)}
     consts.reg_file['x2'] = '0x7ffffff0'
     consts.reg_file['x3'] = '0x100000'
-    return(cache_list,cache_dict)
+    return(ret_dict)
 
 
 def instruction_cache_simulator(master_inst_list):
@@ -106,6 +108,7 @@ def instruction_cache_simulator(master_inst_list):
     mem = MainMemory()
     cache_list=['Level 1']
     cache_dict={l:{'utilization(%)':0} for l in cache_list}
+    ret_dict = {'Instruction Cache': [f'{op}' for op in cache_list], 'Utilization(%)': []}
     no_of_sets=64
     no_of_ways=4
     line_size=64
@@ -131,6 +134,7 @@ def instruction_cache_simulator(master_inst_list):
 
     total_util=((max_util-min_util)/max_util)*100
     cache_dict['Level 1']['utilization(%)']=total_util
+    ret_dict['Utilization(%)'] = [cache_dict[cache]['utilization(%)'] for cache in cache_list]
     
     # print(f"total_cache_utilization: {total_util:.2f}%")
     
@@ -143,5 +147,5 @@ def instruction_cache_simulator(master_inst_list):
     consts.reg_file = {f'x{i}':'0x00000000' for i in range(32)}
     consts.reg_file['x2'] = '0x7ffffff0'
     consts.reg_file['x3'] = '0x100000'
-    return(cache_list,cache_dict)
+    return(ret_dict)
 
