@@ -12,40 +12,52 @@ def group_by_pattern(master_inst_list: list):
     Returns:
         - A 
     '''
+    # Log the start of the process for getting the pattern.
     logger.info("Getting Pattern.")
 
-    
+    # Initialize dictionaries to hold address counts, patterns, names, and cycle information.
     count_dict = {}
     pattern_dict = {}
     address_name_dict = {}
     address_cycle_dict = {}
     prev = None
+
+    # Loop through each entry in the master_inst_list.
     for entry in master_inst_list:
+        # Check if the instruction address is not in the count_dict.
         if hex(entry.instr_addr) not in count_dict:
             count_dict[hex(entry.instr_addr)] = 0
             address_name_dict[hex(entry.instr_addr)] = entry.instr_name
             address_cycle_dict[hex(entry.instr_addr)] = 1
         count_dict[hex(entry.instr_addr)] += 1
-    
+
+    # Group instructions based on their occurrence count.
     for entry in count_dict:
         if count_dict[entry] not in pattern_dict:
             pattern_dict[count_dict[entry]] = list()
         pattern_dict[count_dict[entry]].append(entry)
 
-    sort_count_list= sorted(pattern_dict.items(), key=lambda x: x[0], reverse=True)
-    for entry in sort_count_list:
-        if len(entry[1]) == 1 or entry[0] == 1:
-            sort_count_list.remove(entry)
-    s_dict={'count':[],'instr':[],'cycles':[],'cycles_reduced':[]}
+    # Sort the patterns by occurrence count in descending order.
+    sort_count_list = sorted(pattern_dict.items(), key=lambda x: x[0], reverse=True)
+
+    # Remove single instructions or patterns with count 1.
+    sort_count_list = [entry for entry in sort_count_list if len(entry[1]) > 1 and entry[0] != 1]
+
+    # Initialize a dictionary to store sorted pattern information.
+    s_dict = {'count': [], 'instr': [], 'cycles': [], 'cycles_reduced': []}
+
+    # Process sorted patterns.
     for entry in sort_count_list:
         adj_inst = [address_name_dict[entry[1][0]]]
         adj_cycles = [address_cycle_dict[entry[1][0]]]
         prev = entry[1][0]
         for i in entry[1][1:]:
-            if (int(i,16)-int(prev,16)) == 4 or (int(i,16)-int(prev,16)) == 2:
+            # Check if the difference between addresses is 4 or 2.
+            if (int(i, 16) - int(prev, 16)) == 4 or (int(i, 16) - int(prev, 16)) == 2:
                 adj_inst.append(address_name_dict[i])
                 adj_cycles.append(address_cycle_dict[i])
             else:
+                # Store the current pattern information.
                 s_dict['instr'].append(adj_inst)
                 s_dict['cycles'].append(adj_cycles)
                 s_dict['count'].append(entry[0])
@@ -57,12 +69,16 @@ def group_by_pattern(master_inst_list: list):
             s_dict['cycles'].append(adj_cycles)
             s_dict['instr'].append(adj_inst)
 
+    # Calculate improved performance for each pattern.
     for i in range(len(s_dict['count'])):
-        # total_cycles = s_dict['count'][i]*sum(s_dict['cycles'][i])
-        # imp_performance = total_cycles - s_dict['count'][i]
-        imp_performance = s_dict['count'][i]*(sum(s_dict['cycles'][i])-1)
+        imp_performance = s_dict['count'][i] * (sum(s_dict['cycles'][i]) - 1)
         s_dict['cycles_reduced'].append(imp_performance)
 
-    return(s_dict)
+    # Log the completion of pattern computation.
+    logger.info("Pattern computed.")
+
+    # Return the computed pattern information.
+    return s_dict
+
     # print(address_name_dict,sep='\n')
     # print(sort_count_list)
