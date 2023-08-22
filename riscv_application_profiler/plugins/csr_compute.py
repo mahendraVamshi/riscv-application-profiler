@@ -29,16 +29,7 @@ def csr_compute(master_inst_list: list, ops_dict: dict):
             # If no CSR value is specified
             if entry.csr is None:
                 if 'f' in entry.instr_name:
-                    # Map instructions to their corresponding CSR registers
-                    csr_mapping = {
-                        'frcsr': 'fcsr',
-                        'fscsr': 'fcsr',
-                        'frrm': 'frm',
-                        'fsrm': 'frm',
-                        'frflags': 'fflags',
-                        'fsflags': 'fflags'
-                    }
-                    csr_reg = csr_mapping.get(entry.instr_name)
+                    csr_reg = entry.instr_name[0] + entry.instr_name[2:]
                     
                     if csr_reg not in csr_reg_list:
                         # Create a new entry for the CSR
