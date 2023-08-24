@@ -13,41 +13,59 @@ def jumps_comput(master_inst_list: list ,ops_dict: dict):
     Returns:
         - A list of directions and a dictionary with the directions as keys and the number of jumps
     '''
-    logger.info("computing jumps.")
+    # Log the start of the process for computing jumps.
+    logger.info("Computing jumps.")
+
+    # Initialize dictionaries to hold jump data and direction information.
     op_dict = {'forward': [], 'backward': []}
     direc_list = ['forward', 'backward']
-    direc_dict = {'forward': {'count':0}, 'backward': {'count':0}}
-    ret_dict = {'Direction': direc_list, 'Count': []}
-    for entry in master_inst_list:
+    direc_dict = {'forward': {'count': 0}, 'backward': {'count': 0}}
 
+    # Initialize a dictionary to hold the resulting direction and count data.
+    ret_dict = {'Direction': direc_list, 'Count': []}
+
+    # Iterate through each instruction in master_inst_list.
+    for entry in master_inst_list:
+        # Update register values based on commit information.
         if (entry.reg_commit is not None):
             name = str(entry.reg_commit[0]) + str(entry.reg_commit[1])
             if (name != 'x0'):
                 consts.reg_file[name] = entry.reg_commit[2]
+        
+        # Check if the instruction is a jump operation.
         if entry in ops_dict['jumps']:
             if str(entry.instr_name) == 'jalr':
                 rs1 = str(entry.rs1[1]) + str(entry.rs1[0])
                 rd = str(entry.rd[1]) + str(entry.rd[0])
-                jump_value = entry.imm + int(consts.reg_file[rs1],16)
-                consts.reg_file[rd]=hex(int(entry.instr_addr)+4)
+                jump_value = entry.imm + int(consts.reg_file[rs1], 16)
+                consts.reg_file[rd] = hex(int(entry.instr_addr) + 4)
             else:
-                jump_value = entry.imm  
+                jump_value = entry.imm
+            
+            # Handle the case where jump_value is None or negative.
             if jump_value is None:
                 if 'c.jr' in entry.instr_name or 'c.jalr' in entry.instr_name:
-                    rs1=str(entry.rs1[1])+str(entry.rs1[0])
-                    jump_value=int(entry.instr_addr) + int(consts.reg_file[rs1],16)
+                    rs1 = str(entry.rs1[1]) + str(entry.rs1[0])
+                    jump_value = int(entry.instr_addr) + int(consts.reg_file[rs1], 16)
                     if 'c.jalr' in entry.instr_name:
-                        consts.reg_file['x1']=hex(int(entry.instr_addr)+2)
-            if jump_value<0:
+                        consts.reg_file['x1'] = hex(int(entry.instr_addr) + 2)
+            if jump_value < 0:
                 op_dict['backward'].append(entry)
                 direc_dict['backward']['count'] += 1
             else:
                 op_dict['forward'].append(entry)
                 direc_dict['forward']['count'] += 1
+
+    # Log the completion of jump computation.
     logger.debug('Done.')
+
+    # Populate the result dictionary with direction and count information.
     ret_dict['Count'].append(direc_dict['forward']['count'])
     ret_dict['Count'].append(direc_dict['backward']['count'])
-    return (ret_dict)
+
+    # Return the resulting dictionary containing jump direction and count data.
+    return ret_dict
+
 
 def jump_size(master_inst_list: list, ops_dict: dict):
     '''
@@ -61,79 +79,84 @@ def jump_size(master_inst_list: list, ops_dict: dict):
         - A list of jumps and a dictionary with the jumps as keys and the number of jumps and jump size.
 
     '''
-    logger.info("computing jump size.")
-    # jumps={instr:{'direction': fo, 'size': value} for instr in ops_dict['jumps']}
-    jump_instr = {}
-    jump_list = []
-    target_address = {}
+    # Log the start of the process for computing jump size.
+    logger.info("Computing jump size.")
 
+    # Initialize dictionaries and lists to hold jump instruction data.
+    jump_instr = {}     # Dictionary to store information about jump instructions.
+    jump_list = []      # List to store jump instruction names.
+    target_address = [] # List to store target addresses for jumps.
+
+    # Iterate through each instruction in master_inst_list.
     for entry in master_inst_list:
+        # Check if the instruction is a jump operation.
         if entry in ops_dict['jumps']:
-            instr = ''
+            instr = ''  # Initialize instruction string.
+            size = 0    # Initialize size of the jump.
+
+            # Calculate the target address for the jump.
             if entry.imm is not None:
                 if entry.instr_name == 'jalr':
                     rs1 = f"{entry.rs1[1]}{entry.rs1[0]}"
                     rd = f"{entry.rd[1]}{entry.rd[0]}"
-                    ta = int(consts.reg_file[rs1], 16)
+                    ta = int(consts.reg_file[rs1], 16) + int(entry.imm)
+                    instr = f"{entry.instr_name} {rd}, {entry.imm}({rs1})"
                     consts.reg_file[rd] = hex(int(entry.instr_addr) + 4)
                 else:
                     jump_value = entry.imm
                     ta = int(entry.instr_addr) + int(jump_value)
                     if entry.instr_name == 'c.jal':
+                        instr = f"{entry.instr_name} {entry.imm}"
                         consts.reg_file['x1'] = hex(int(entry.instr_addr) + 2)
+                    elif entry.instr_name == 'c.j':
+                        instr = f"{entry.instr_name} {entry.imm}"
                     elif entry.instr_name == 'jal':
+                        rd = f"{entry.rd[1]}{entry.rd[0]}"
+                        instr = f"{entry.instr_name} {rd}, {entry.imm}"
                         consts.reg_file['x1'] = hex(int(entry.instr_addr) + 4)
-                    
-                instr_parts = []
-                if entry.rd is not None:
-                    instr_parts.append(f"{entry.rd[1]}{entry.rd[0]}")
-                if entry.rs1 is not None:
-                    instr_parts.append(f"{entry.rs1[1]}{entry.rs1[0]}")
-                if entry.rs2 is not None:
-                    instr_parts.append(f"{entry.rs2[1]}{entry.rs2[0]}")
-                if not instr_parts:
-                    instr = entry.instr_name
-                else:
-                    instr = f"{entry.instr_name} {' '.join(instr_parts)}"
-                instr += f" {entry.imm}"
-                
-                if instr not in jump_instr or hex(ta) not in target_address.get(instr, []):
-                    jump_instr[instr] = {'count': 1, 'size(bytes)': abs(int(entry.instr_addr) - ta)}
-                    target_address.setdefault(instr, []).append(hex(ta))
-                else:
-                    jump_instr[instr]['count'] += 1
-            
             elif entry.instr_name in {'c.jr', 'c.jalr'}:
                 rs1 = f"{entry.rs1[1]}{entry.rs1[0]}"
                 ta = int(consts.reg_file[rs1], 16)
-
                 if 'c.jalr' in entry.instr_name:
                     consts.reg_file['x1'] = hex(int(entry.instr_addr) + 2)
-                
-                size = abs(int(entry.instr_addr) - ta)
                 instr = f"{entry.instr_name} {rs1}"
-                if instr not in jump_instr or (hex(ta) not in jump_instr[instr]['target address'] and str(size) not in jump_instr[instr]['size(bytes)']):
-                    jump_instr[instr] = {'target address': hex(ta), 'count': 1, 'size(bytes)': str(size)}
-                else:
-                    jump_instr[instr]['count'] += 1
-            
             else:
                 logger.debug(f"Immediate value not found for: {entry}")
-            
+
+            # Calculate the size of the jump instruction.
+            size = abs(int(entry.instr_addr) - ta)
+
+            # Update jump_instr dictionary with jump information.
+            if instr not in jump_instr or (hex(ta) not in target_address and str(size) not in jump_instr[instr]['size(bytes)']):
+                jump_instr[instr] = {'count': 1, 'size(bytes)': str(size)}
+                target_address.append(hex(ta))
+            else:
+                jump_instr[instr]['count'] += 1
+
+        # Update register values based on commit information.
         if entry.reg_commit is not None and entry.rd is not None:
             name = f"{entry.rd[1]}{entry.rd[0]}"
             if name != 'x0':
                 consts.reg_file[name] = entry.reg_commit[2]
 
+    # Calculate the number of distinct loops.
     number_of_loops = len(jump_instr)
+
+    # If there are multiple loops, populate the jump_list.
     if number_of_loops > 1:
         jump_list = list(jump_instr.keys())
 
+    # Reset register values.
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
     consts.reg_file['x2'] = '0x7ffffff0'
     consts.reg_file['x3'] = '0x100000'
 
+    # Log the completion of jump size computation.
+    logger.info('Done.')
+
+    # Return the list of jump instructions and the jump_instr dictionary.
     return jump_list, jump_instr
+
 
 
                 
