@@ -109,41 +109,6 @@ class Utilities:
         return result_dict
     
 
-    def tabulate_stats1(self, op_list, counts, header_name,metric_name):
-        '''
-        Tabulates the statistics of the grouped instructions using the tabulate module.
-
-        Args:
-            - op_dict: A dictionary with the operations as keys and a list of InstructionEntry
-                objects as values.
-            - counts: A dictionary with the operations as keys and the number of instructions
-                in each group as values.
-        '''
-        logger.debug("Tabulating statistics.")
-        table = []
-        if len(op_list) > 0:
-            name=list(counts[op_list[0]].keys())
-        else:
-            return 0
-        for op in op_list:
-            table.append([op])
-            for i in name:
-                table[-1].append(counts[op][i])
-
-        self.tables_file.write(f'## {metric_name}\n')
-        if header_name is None:
-            header_name = "Name"
-        # create an asciidoc table using pytablewriter from the the data in op_dict
-        writer = ptw.AsciiDocTableWriter()
-        writer.table_name = ""
-        writer.headers = [header_name] + [f"{i}" for i in name]
-        writer.value_matrix = table
-        self.tables_file.write(writer.dumps())
-
-        # self.tables_file.write(tabulate(table, headers=['Operation', 'Count']))
-        self.tables_file.write('\n\n')
-        logger.debug("Done.")
-
     def tabulate_stats_dict (self, in_dict, header_name):
 
         logger.debug("Tabulating statistics.")
@@ -160,13 +125,11 @@ class Utilities:
         self.tables_file.write(f'## {header_name}\n')
         if header_name is None:
             header_name = "Name"
-        # create an asciidoc table using pytablewriter from the the data in op_dict
         writer = ptw.AsciiDocTableWriter()
         writer.table_name = ""
         writer.headers = key_list
         writer.value_matrix = table
         self.tables_file.write(writer.dumps())
 
-        # self.tables_file.write(tabulate(table, headers=['Operation', 'Count']))
         self.tables_file.write('\n\n')
         logger.debug("Done.")

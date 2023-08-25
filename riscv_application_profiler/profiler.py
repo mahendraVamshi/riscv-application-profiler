@@ -169,6 +169,7 @@ Value based metrics on branch ops may be inaccurate.")
             ret_dict1 = store_load_bypass.store_load_bypass(extension_instruction_list, op_dict)
             utils.tabulate_stats_dict(ret_dict1, header_name="Store load bypass")
         if 'pattern' in metrics:
+            #analysis of pattern
             ret_dict1=pattern.group_by_pattern(master_inst_list)
             utils.tabulate_stats_dict(ret_dict1, header_name="Pattern")
 

@@ -33,13 +33,10 @@ def profile(config):
     logger.info("**********************************")
     logger.info(f"RISC-V Application Profiler v{__version__}")
     logger.info("**********************************")
-    
     logger.info("ISA Extension used: " + config_data['profiles']['cfg']['isa'])
     logger.info(f"\nLog file: {log_file}")
     logger.info(f"Output directory: {output_dir}")
-
     run(log_file, config_data['profiles']['cfg']['isa'], output_dir, config_data['profiles']['cfg']['verbose'])
-
     logger.info("Done profiling.")
     logger.info(f"Reports in {output_dir}/reports.")
 
