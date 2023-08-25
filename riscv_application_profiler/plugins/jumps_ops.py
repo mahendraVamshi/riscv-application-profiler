@@ -144,6 +144,7 @@ def jump_size(master_inst_list: list, ops_dict: dict):
     consts.reg_file['x2'] = '0x7ffffff0'
     consts.reg_file['x3'] = '0x100000'
 
+    # Populate the return dictionary with jump instruction data.   
     ret_dict['Instruction name'] = list(jump_instr.keys())
     ret_dict['count'] = [jump_instr[key]['count'] for key in jump_instr.keys()]
     ret_dict['size'] = [jump_instr[key]['size(bytes)'] for key in jump_instr.keys()]
