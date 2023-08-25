@@ -144,9 +144,9 @@ Value based metrics on branch ops may be inaccurate.")
             ret_dict1 = jumps_ops.jumps_comput(master_inst_list=extension_instruction_list, ops_dict=op_dict)
 
             #analysis of jumps size
-            jump_list,jump_instr_dict = jumps_ops.jump_size(master_inst_list=extension_instruction_list, ops_dict=op_dict)
+            ret_dict2 = jumps_ops.jump_size(master_inst_list=extension_instruction_list, ops_dict=op_dict)
             utils.tabulate_stats_dict(ret_dict1, header_name="Jump Direction.")
-            utils.tabulate_stats1(jump_list,jump_instr_dict, header_name='Name',metric_name="Jumps Size.")
+            utils.tabulate_stats_dict(ret_dict2, header_name="Jumps Size.")
         if 'cache' in metrics:
             #analysis of cache
             ret_dict1=cache.data_cache_simulator(extension_instruction_list, op_dict)

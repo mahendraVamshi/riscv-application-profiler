@@ -84,8 +84,8 @@ def jump_size(master_inst_list: list, ops_dict: dict):
 
     # Initialize dictionaries and lists to hold jump instruction data.
     jump_instr = {}     # Dictionary to store information about jump instructions.
-    jump_list = []      # List to store jump instruction names.
     target_address = [] # List to store target addresses for jumps.
+    ret_dict = {'Instruction name':[],'count':[],'size':[]} # Dictionary to store return data.
 
     # Iterate through each instruction in master_inst_list.
     for entry in master_inst_list:
@@ -139,23 +139,20 @@ def jump_size(master_inst_list: list, ops_dict: dict):
             if name != 'x0':
                 consts.reg_file[name] = entry.reg_commit[2]
 
-    # Calculate the number of distinct loops.
-    number_of_loops = len(jump_instr)
-
-    # If there are multiple loops, populate the jump_list.
-    if number_of_loops > 1:
-        jump_list = list(jump_instr.keys())
-
     # Reset register values.
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
     consts.reg_file['x2'] = '0x7ffffff0'
     consts.reg_file['x3'] = '0x100000'
 
+    ret_dict['Instruction name'] = list(jump_instr.keys())
+    ret_dict['count'] = [jump_instr[key]['count'] for key in jump_instr.keys()]
+    ret_dict['size'] = [jump_instr[key]['size(bytes)'] for key in jump_instr.keys()]
+
     # Log the completion of jump size computation.
     logger.info('Done.')
 
-    # Return the list of jump instructions and the jump_instr dictionary.
-    return jump_list, jump_instr
+    # Return the dictionary.
+    return ret_dict
 
 
 

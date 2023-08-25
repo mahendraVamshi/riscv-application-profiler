@@ -41,26 +41,29 @@ def cli():
 
 @click.option('--verbose', '-v', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
 @click.option('-c', '--config', help="Path to the YAML configuration file.", required=True)
-def profile(config):
+def profile(config, log, output, verbose):
     '''
     Generates the hardware description of the decoder
     '''
     with open(config, 'r') as config_file:
         config_data = yaml.safe_load(config_file)
 
-    log_file = str(Path(config_data['profiles']['cfg']['log']).absolute())
-    output_dir = os.path.abspath(Path(config_data['profiles']['cfg']['output']).resolve())
-
+    isa = config_data['profiles']['cfg']['isa']
+    log_file = str(Path(log).absolute())
+    output_dir = str(Path(output).absolute())
     isac_setup_routine(lib_dir=f'{output_dir}/lib')
 
-    logger.level(config_data['profiles']['cfg']['verbose'])
+    logger.level(verbose)
     logger.info("**********************************")
     logger.info(f"RISC-V Application Profiler v{__version__}")
     logger.info("**********************************")
-    logger.info("ISA Extension used: " + config_data['profiles']['cfg']['isa'])
+    logger.info("ISA Extension used: " + isa)
+    
     logger.info(f"\nLog file: {log_file}")
     logger.info(f"Output directory: {output_dir}")
-    run(log_file, config_data['profiles']['cfg']['isa'], output_dir, config_data['profiles']['cfg']['verbose'])
+
+    # Invoke the actual profiler
+    run(log_file, isa, output_dir, verbose)
     logger.info("Done profiling.")
     logger.info(f"Reports in {output_dir}/reports.")
 
