@@ -16,6 +16,30 @@ def cli():
     '''Command Line Interface for riscv_application_profiler'''
 
 @cli.command()
+# CLI option 'log'.
+# Expects an ISA string.
+@click.option(
+	'-l',
+	'--log',
+	help=
+	'This option expects the path to an execution log.',
+	required=True)
+
+# CLI option 'output.
+# Expects a directory.
+@click.option(
+	'-o',
+	'--output',
+	help="Path to the output file.",
+	default='./build',
+	show_default=True,
+	required=False,
+    )
+
+# CLI option 'config'.
+# Expects a YAML file.
+
+@click.option('--verbose', '-v', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
 @click.option('-c', '--config', help="Path to the YAML configuration file.", required=True)
 def profile(config):
     '''
