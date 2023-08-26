@@ -36,30 +36,28 @@ class Utilities:
             logger.info(f'{op}: {counts[op]}')
         logger.debug("Done.")
 
-    def tabulate_stats(self, op_dict, counts, metric_name):
-        '''
-        Tabulates the statistics of the grouped instructions using the tabulate module.
+    def tabulate_stats (self, in_dict, header_name):
 
-        Args:
-            - op_dict: A dictionary with the operations as keys and a list of InstructionEntry
-                objects as values.
-            - counts: A dictionary with the operations as keys and the number of instructions
-                in each group as values.
-        '''
         logger.debug("Tabulating statistics.")
         table = []
-        for op in op_dict.keys():
-            table.append([op, counts[op]])
-        self.tables_file.write(f'## {metric_name}\n')
+        key_list = list(in_dict.keys())
+        length=len(key_list)
+        for i in range(len(in_dict[key_list[0]])):
+            l1=[]
+            for j in range(length):
+                l1.append(in_dict[key_list[j]][i])
+            table.append(l1)
 
-        # create an asciidoc table using pytablewriter from the the data in op_dict
+
+        self.tables_file.write(f'## {header_name}\n')
+        if header_name is None:
+            header_name = "Name"
         writer = ptw.AsciiDocTableWriter()
         writer.table_name = ""
-        writer.headers = ["Operation", "Count"]
+        writer.headers = key_list
         writer.value_matrix = table
         self.tables_file.write(writer.dumps())
 
-        # self.tables_file.write(tabulate(table, headers=['Operation', 'Count']))
         self.tables_file.write('\n\n')
         logger.debug("Done.")
 
@@ -109,27 +107,4 @@ class Utilities:
         return result_dict
     
 
-    def tabulate_stats_dict (self, in_dict, header_name):
-
-        logger.debug("Tabulating statistics.")
-        table = []
-        key_list = list(in_dict.keys())
-        length=len(key_list)
-        for i in range(len(in_dict[key_list[0]])):
-            l1=[]
-            for j in range(length):
-                l1.append(in_dict[key_list[j]][i])
-            table.append(l1)
-
-
-        self.tables_file.write(f'## {header_name}\n')
-        if header_name is None:
-            header_name = "Name"
-        writer = ptw.AsciiDocTableWriter()
-        writer.table_name = ""
-        writer.headers = key_list
-        writer.value_matrix = table
-        self.tables_file.write(writer.dumps())
-
-        self.tables_file.write('\n\n')
-        logger.debug("Done.")
+    
