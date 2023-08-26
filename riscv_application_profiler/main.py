@@ -38,9 +38,12 @@ def cli():
 
 # CLI option 'config'.
 # Expects a YAML file.
-
-@click.option('--verbose', '-v', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
 @click.option('-c', '--config', help="Path to the YAML configuration file.", required=True)
+
+# CLI option 'verbose'.
+# Expects a string.
+@click.option('--verbose', '-v', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
+
 def profile(config, log, output, verbose):
     '''
     Generates the hardware description of the decoder
