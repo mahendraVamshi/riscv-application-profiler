@@ -1,6 +1,7 @@
 from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
+from pprint import pprint
 
 def store_load_bypass (master_inst_list: list, ops_dict: dict):
     '''
@@ -19,67 +20,99 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
     # Log the start of the process for computing store-load bypass.
     logger.info("Computing store load bypass.")
 
-    # Get the list of load and store operations.
     load_list = ops_dict['loads']
     store_list = ops_dict['stores']
 
-    # Initialize a dictionary to store the resulting data.
-    ret_dict = {'Address': [], 'Counts': []}
-
-    # Initialize lists to store store and load addresses, and a dictionary for bypass information.
-    store_address_list = []
-    load_address_list = []
+    # make a bypass dict
     bypass_dict = {}
+    tracking = {}
+    eff_addr = []
+    ret_dict = {'Address': [], 'Counts': [], 'Depth': []}
 
-    # Iterate through each instruction in master_inst_list.
-    for i in master_inst_list:
-        # Update register values based on commit information.
-        if (i.reg_commit is not None):
-            if (i.reg_commit[1] != '0'):
-                consts.reg_file[f'x{i.reg_commit[1]}'] = i.reg_commit[2]
+    # iterate through master inst list
+    # if a store is encountered, make a set of bytes touched and look out for loads from these bytes else continue
+    # upon encountering a load that touches these bytes, freeze the depth and reset counts/depths
 
-        # Check if the instruction is a load or a store operation.
-        if (i in load_list or i in store_list):
+    for entry in master_inst_list:
+        if entry in store_list: # this is a store
             # Determine the base address for the memory access.
-            if ('sp' in i.instr_name):
-                base = int(consts.reg_file['x2'], 16)
-                if (i.imm is None):
-                    address = hex(base)
-                else:
-                    address = hex(base + i.imm)
-            else:
-                base = int(consts.reg_file[f'x{i.rs1[0]}'], 16)
-                if (i.imm is None):
-                    address = hex(base)
-                else:
-                    address = hex(base + i.imm)
-
-            # Check if the instruction is a store operation.
-            if (i in store_list):
-                store_address_list.append(address)
-            # Check if the instruction is a load operation.
-            elif (i in load_list):
-                if address in store_address_list:
-                    if address in load_address_list:
-                        bypass_dict[address]['counts'] += 1
+            reg_name = 'x2' if 'sp' in entry.instr_name else f'x{entry.rs1[0]}'
+            base = int(consts.reg_file[reg_name], 16)
+            address = hex(base + entry.imm) if entry.imm is not None else hex(base)
+            access_sz = 8 if 'd' in entry.instr_name \
+                        else 4 if 'w' in entry.instr_name \
+                        else 2 if 'h' in entry.instr_name \
+                        else 1 if 'b' in entry.instr_name \
+                        else None
+            
+            # sanity check
+            if access_sz is None:
+                raise Exception(f'Invalid access size encountered: {entry.instr_name}')
+            # make a set of all bytes touched by this store
+            bytes_touched = {hex(int(address, 16) + i) for i in range(0, access_sz, 1)}
+            for _entry in bytes_touched:
+                tracking[_entry] = {'depth': None}
+                tracking[_entry]['depth'] = 0
+        
+        # look for loads
+        if entry in load_list:
+            # Determine the base address for the memory access.
+            reg_name = 'x2' if 'sp' in entry.instr_name else f'x{entry.rs1[0]}'
+            base = int(consts.reg_file[reg_name], 16)
+            address = hex(base + entry.imm) if entry.imm is not None else hex(base)
+            eff_addr.append(address)
+            access_sz = 8 if 'd' in entry.instr_name \
+                        else 4 if 'w' in entry.instr_name \
+                        else 2 if 'h' in entry.instr_name \
+                        else 1 if 'b' in entry.instr_name \
+                        else None
+            if access_sz is None:
+                raise Exception(f'Invalid access size encountered: {entry.instr_name}')
+            
+            bytes_touched = {hex(int(address, 16) + i) for i in range(0, access_sz, 1)}
+            for _entry in bytes_touched:
+                if _entry in tracking:
+                    if _entry in bypass_dict:
+                        if bypass_dict[_entry]['depth'] == tracking[_entry]['depth']:
+                            bypass_dict[_entry]['counts'] += 1
+                        
                     else:
-                        load_address_list.append(address)
-                        bypass_dict[address] = {'counts': 0}
+                        bypass_dict[_entry] = {'counts': 1, 'depth': tracking[_entry]['depth']}   
+                    tracking.pop(_entry)
+        
+        if entry.instr_name not in ops_dict['loads']: # this is a regular instruction which causes a deeper bypass
+            for _entry in tracking:
+                tracking[_entry]['depth'] += 1
 
         # Update register values based on commit information.
-        if (i.reg_commit is not None):
-            if (i.reg_commit[1] != '0'):
-                consts.reg_file[f'x{i.reg_commit[1]}'] = i.reg_commit[2]
+        if (entry.reg_commit is not None):
+            if (entry.reg_commit[1] != '0'):
+                consts.reg_file[f'x{entry.reg_commit[1]}'] = entry.reg_commit[2]
+
+    keys_to_remove = []
+
+    # Iterate over the dictionary and identify keys to remove.
+    for entry in bypass_dict:
+        if entry not in eff_addr:
+            keys_to_remove.append(entry)
+
+    # Remove the identified keys from the dictionary.
+    for key in keys_to_remove:
+        bypass_dict.pop(key)
+
+        
+
 
     # Reset register values.
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = '0x7ffffff0'
-    consts.reg_file['x3'] = '0x100000'
+    consts.reg_file['x2'] = '0x800030d0'
+    consts.reg_file['x3'] = '0x800030d0'
 
     # Populate the result dictionary with store-load bypass information.
-    for address in load_address_list:
+    for address in bypass_dict:
         ret_dict['Address'].append(address)
         ret_dict['Counts'].append(bypass_dict[address]['counts'])
+        ret_dict['Depth'].append(bypass_dict[address]['depth'])
 
     # Log the completion of the store-load bypass computation.
     logger.debug('Done.')

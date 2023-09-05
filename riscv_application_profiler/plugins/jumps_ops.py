@@ -141,8 +141,8 @@ def jump_size(master_inst_list: list, ops_dict: dict):
 
     # Reset register values.
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = '0x7ffffff0'
-    consts.reg_file['x3'] = '0x100000'
+    consts.reg_file['x2'] = '0x800030d0'
+    consts.reg_file['x3'] = '0x800030d0'
 
     # Populate the return dictionary with jump instruction data.   
     ret_dict['Instruction name'] = list(jump_instr.keys())

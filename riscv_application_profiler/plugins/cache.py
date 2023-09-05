@@ -101,8 +101,8 @@ def data_cache_simulator(master_inst_list, op_dict):
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = '0x7ffffff0'
-    consts.reg_file['x3'] = '0x100000'
+    consts.reg_file['x2'] = '0x800030d0'
+    consts.reg_file['x3'] = '0x800030d0'
 
     # Return the final results
     return ret_dict
@@ -172,8 +172,8 @@ def instruction_cache_simulator(master_inst_list):
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = '0x7ffffff0'
-    consts.reg_file['x3'] = '0x100000'
+    consts.reg_file['x2'] = '0x800030d0'
+    consts.reg_file['x3'] = '0x800030d0'
 
     # Return the final results
     return ret_dict
