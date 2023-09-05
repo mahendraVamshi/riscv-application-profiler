@@ -27,7 +27,7 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
     bypass_dict = {}
     tracking = {}
     eff_addr = []
-    ret_dict = {'Address': [], 'Counts': [], 'Depth': []}
+    ret_dict = {'Address': [], 'Counts': [], 'Depth': [], 'Bypass Width': []}
 
     # iterate through master inst list
     # if a store is encountered, make a set of bytes touched and look out for loads from these bytes else continue
@@ -51,8 +51,9 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
             # make a set of all bytes touched by this store
             bytes_touched = {hex(int(address, 16) + i) for i in range(0, access_sz, 1)}
             for _entry in bytes_touched:
-                tracking[_entry] = {'depth': None}
+                tracking[_entry] = {}
                 tracking[_entry]['depth'] = 0
+                tracking[_entry]['s_access_sz'] = access_sz
         
         # look for loads
         if entry in load_list:
@@ -68,16 +69,17 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
                         else None
             if access_sz is None:
                 raise Exception(f'Invalid access size encountered: {entry.instr_name}')
-            
+            count = 0
             bytes_touched = {hex(int(address, 16) + i) for i in range(0, access_sz, 1)}
             for _entry in bytes_touched:
                 if _entry in tracking:
+                    count += 1
                     if _entry in bypass_dict:
                         if bypass_dict[_entry]['depth'] == tracking[_entry]['depth']:
                             bypass_dict[_entry]['counts'] += 1
                         
                     else:
-                        bypass_dict[_entry] = {'counts': 1, 'depth': tracking[_entry]['depth']}   
+                        bypass_dict[_entry] = {'counts': 1, 'depth': tracking[_entry]['depth'], 'bypass_width': min(tracking[_entry]['s_access_sz'],access_sz)}   
                     tracking.pop(_entry)
         
         if entry.instr_name not in ops_dict['loads']: # this is a regular instruction which causes a deeper bypass
@@ -113,6 +115,7 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
         ret_dict['Address'].append(address)
         ret_dict['Counts'].append(bypass_dict[address]['counts'])
         ret_dict['Depth'].append(bypass_dict[address]['depth'])
+        ret_dict['Bypass Width'].append(bypass_dict[address]['bypass_width'])
 
     # Log the completion of the store-load bypass computation.
     logger.debug('Done.')
