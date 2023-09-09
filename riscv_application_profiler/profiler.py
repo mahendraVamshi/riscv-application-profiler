@@ -172,4 +172,3 @@ Value based metrics on branch ops may be inaccurate.")
             #analysis of pattern
             ret_dict1=pattern.group_by_pattern(master_inst_list)
             utils.tabulate_stats(ret_dict1, header_name="Pattern")
-

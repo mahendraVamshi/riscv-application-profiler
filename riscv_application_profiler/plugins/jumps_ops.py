@@ -57,7 +57,7 @@ def jumps_comput(master_inst_list: list ,ops_dict: dict):
                 direc_dict['forward']['count'] += 1
 
     # Log the completion of jump computation.
-    logger.debug('Done.')
+    logger.info('Done.')
 
     # Populate the result dictionary with direction and count information.
     ret_dict['Count'].append(direc_dict['forward']['count'])

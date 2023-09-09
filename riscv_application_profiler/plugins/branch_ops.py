@@ -62,7 +62,7 @@ def group_by_branch_offset(master_inst_list: list, ops_dict: dict, branch_thresh
             size_dict[size]['count'] += 1
 
     # Logging completion of the grouping process
-    logger.debug('Done.')
+    logger.info('Done.')
 
     # Appending the counts to the result dictionary
     ret_dict['Count'].append(size_dict['long']['count'])
@@ -106,7 +106,7 @@ def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
             direc_dict[direction]['count'] += 1
 
     # Logging completion of the grouping process
-    logger.debug('Done.')
+    logger.info('Done.')
 
     # Appending the counts to the result dictionary
     ret_dict['Count'].append(direc_dict['positive']['count'])
@@ -177,7 +177,7 @@ def loop_compute(master_inst_list: list, ops_dict: dict):
         ret_dict['Size(bytes)'].append(loop_instr[loop_list[i]]['size(bytes)'])
 
     # Logging completion of the loop computation process
-    logger.debug('Done.')
+    logger.info('Done.')
 
     # Return the final results
     return ret_dict

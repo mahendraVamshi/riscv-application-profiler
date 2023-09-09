@@ -2,8 +2,24 @@ profiles:
   cfg:
     isa: RV32I
     metrics:
-      - instr_groups
-      - branch_ops
+      # - instr_groups
+      - branch_ops:
+        offsets:
+          inputs:
+            - inst_list
+            - threshold
+          outputs:
+            - 
+            -
+        sign:
+          inputs:
+            - inst_list
+            - threshold
+          outputs:
+            - 
+            -
+      - cache:
+
       - cache
       - dependency
       - jumps_ops

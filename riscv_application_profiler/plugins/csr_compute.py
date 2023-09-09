@@ -77,4 +77,3 @@ def csr_compute(master_inst_list: list, ops_dict: dict):
     # Return the final results
     return ret_dict
 
-

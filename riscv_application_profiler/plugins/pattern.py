@@ -58,6 +58,8 @@ def group_by_pattern(master_inst_list: list):
                 adj_cycles.append(address_cycle_dict[i])
             else:
                 # Store the current pattern information.
+                # if adj_cycles in s_dict['cycles']:
+                #     continue
                 s_dict['instr'].append(adj_inst)
                 s_dict['cycles'].append(adj_cycles)
                 s_dict['count'].append(entry[0])
@@ -76,6 +78,5 @@ def group_by_pattern(master_inst_list: list):
 
     # Log the completion of pattern computation.
     logger.info("Pattern computed.")
-
     # Return the computed pattern information.
     return s_dict

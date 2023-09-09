@@ -78,9 +78,12 @@ def fregister_compute(master_inst_list: list,extension_list: list):
     reg_list = []
     regs = {}
 
+    # Initialize dictionaries to hold the resulting data.
+    ret_dict = {'F_Register': [], 'Reads': [], 'Writes': []}
+
     # Check if 'F' and 'D' extensions are present, if not, return empty lists and dictionary.
     if 'F' not in extension_list or 'D' not in extension_list:
-        return (reg_list, regs)
+        return (ret_dict)
 
     # Log that the process of computing register read and write counts is starting.
     logger.info("Computing register read writes.")

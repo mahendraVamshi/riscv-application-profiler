@@ -301,7 +301,7 @@ ops_dict = {
             "moves": [],
             "classifies": [],
             "branches": [],
-            "csrs": ["csrrw","csrrs","csrrc","csrrwi","csrrsi","csrrci"],
+            "csrs": ["csrrw","csrrs","csrrc","csrrwi","csrrsi","csrrci","rdtimeh","rdtime"],
             "fence":[],
             },
 
@@ -616,7 +616,7 @@ ops_dict = {
             "moves": [],
             "classifies": [],
             "branches": [],
-            "csrs": ["csrrw","csrrs","csrrc","csrrwi","csrrsi","csrrci"], 
+            "csrs": ["csrrw","csrrs","csrrc","csrrwi","csrrsi","csrrci","rdtimeh","rdtime"], 
             "fence":[],
             },
     },

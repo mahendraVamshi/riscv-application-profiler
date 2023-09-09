@@ -178,4 +178,3 @@ def instruction_cache_simulator(master_inst_list):
     # Return the final results
     return ret_dict
 
-

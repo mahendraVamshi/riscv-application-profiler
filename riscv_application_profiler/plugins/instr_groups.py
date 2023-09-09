@@ -28,7 +28,7 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
     logger.info("Grouping instructions by operation.")
 
     # Create a dictionary to hold instructions grouped by operation.
-    op_dict = {f'{op}': [] for op in operations}
+    op_dict = {f'{op}': {} for op in operations}
 
     # Create a dictionary to keep track of instruction counts per operation.
     ops_count = {f'{op}': {'counts': 0} for op in operations}
@@ -47,7 +47,7 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
                     # Check if the current instruction belongs to the specified operation.
                     if entry.instr_name in ops_dict[isa][extension][op]:
                         # Append the instruction to the corresponding operation group.
-                        op_dict[op].append(entry)
+                        op_dict[op][entry]=1
                         
                         # Increment the instruction count for the operation.
                         ops_count[op]['counts'] += 1
@@ -115,7 +115,7 @@ def privilege_modes(log):
     ret_dict['Counts'] = [mode_dict[mode]['count'] for mode in mode_list]
 
     # Log the completion of the privilege mode computation.
-    logger.debug('Done.')
+    logger.info('Done.')
 
     # Return the resulting dictionary containing privilege mode counts.
     return ret_dict
