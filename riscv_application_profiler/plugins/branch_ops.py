@@ -19,7 +19,7 @@ def compute_threshold(master_inst_list: list, ops_dict: dict) -> int:
     '''
 
     # compute the list of branch offsets from the master_inst_list where each entry has an imm field
-    branch_offsets = [entry.imm for entry in master_inst_list if entry in ops_dict['branches'] and entry.imm is not None]
+    branch_offsets = [entry.imm for entry in ops_dict['branches'] if entry.imm is not None]
 
     # compute the mean and standard deviation of the branch offsets
     mean = statistics.mean(branch_offsets)
@@ -51,15 +51,13 @@ def group_by_branch_offset(master_inst_list: list, ops_dict: dict, branch_thresh
     size_dict = {size: {'count': 0} for size in size_list}
     ret_dict = {'Offset Size': size_list, 'Count': []}
 
-    # Loop through master instruction list
-    for entry in master_inst_list:
-        # Check if the entry is a branch instruction
-        if entry in ops_dict['branches']:
-            if entry.imm is None:
-                continue
-            # Determine whether the branch is long or short based on the threshold
-            size = 'short' if entry.imm < branch_threshold else 'long'
-            size_dict[size]['count'] += 1
+    # loop though the branch instructions
+    for entry in ops_dict['branches']:
+        if entry.imm is None:
+            continue
+        # Determine whether the branch is long or short based on the threshold
+        size = 'short' if entry.imm < branch_threshold else 'long'
+        size_dict[size]['count'] += 1
 
     # Logging completion of the grouping process
     logger.info('Done.')
@@ -95,15 +93,13 @@ def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
     direc_dict = {direc: {'count': 0} for direc in direc_list}
     ret_dict = {'Direction': direc_list, 'Count': []}
 
-    # Loop through master instruction list
-    for entry in master_inst_list:
-        # Check if the entry is a branch instruction
-        if entry in ops_dict['branches']:
-            if entry.imm is None:
-                continue
-            # Determine whether the branch offset is positive or negative
-            direction = 'positive' if entry.imm >= 0 else 'negative'
-            direc_dict[direction]['count'] += 1
+    # Loop through branch instructions 
+    for entry in ops_dict['branches']:
+        if entry.imm is None:
+            continue
+        # Determine whether the branch offset is positive or negative
+        direction = 'positive' if entry.imm >= 0 else 'negative'
+        direc_dict[direction]['count'] += 1
 
     # Logging completion of the grouping process
     logger.info('Done.')
@@ -140,25 +136,23 @@ def loop_compute(master_inst_list: list, ops_dict: dict):
     loop_list = []
     ret_dict = {'Branch Instruction': loop_list, 'Depth': [], 'Count': [], 'Size(bytes)': []}
 
-    # Loop through master instruction list
-    for entry in master_inst_list:
-        # Check if the entry is a branch instruction
-        if entry in ops_dict['branches']:
-            if entry.imm is None:
-                continue
-            # Determine the instruction and its target address
-            if entry.rs2 is not None:
-                instr = f"{entry.instr_name} {entry.rs1[1]}{entry.rs1[0]},{entry.rs2[1]}{entry.rs2[0]}"
-            else:
-                instr = f"{entry.instr_name} {entry.rs1[1]}{entry.rs1[0]}"
-            ta = int(entry.instr_addr) + int(entry.imm)
-            
-            # Update loop information in the dictionaries
-            if instr not in loop_instr or hex(ta) not in target_address.get(instr, []):
-                loop_instr[instr] = {'depth': 1, 'count': 1, 'size(bytes)': abs(int(entry.instr_addr) - ta)}
-                target_address.setdefault(instr, []).append(hex(ta))
-            else:
-                loop_instr[instr]['count'] = loop_instr[instr]['count'] + 1
+    # Loop through branch instructions
+    for entry in ops_dict['branches']:
+        if entry.imm is None:
+            continue
+        # Determine the instruction and its target address
+        if entry.rs2 is not None:
+            instr = f"{entry.instr_name} {entry.rs1[1]}{entry.rs1[0]},{entry.rs2[1]}{entry.rs2[0]}"
+        else:
+            instr = f"{entry.instr_name} {entry.rs1[1]}{entry.rs1[0]}"
+        ta = int(entry.instr_addr) + int(entry.imm)
+        
+        # Update loop information in the dictionaries
+        if instr not in loop_instr or hex(ta) not in target_address.get(instr, []):
+            loop_instr[instr] = {'depth': 1, 'count': 1, 'size(bytes)': abs(int(entry.instr_addr) - ta)}
+            target_address.setdefault(instr, []).append(hex(ta))
+        else:
+            loop_instr[instr]['count'] = loop_instr[instr]['count'] + 1
 
     # Calculate the number of loops
     number_of_loops = len(loop_instr)
