@@ -26,11 +26,6 @@ def jumps_comput(master_inst_list: list ,ops_dict: dict):
 
     # Iterate through each instruction in master_inst_list.
     for entry in master_inst_list:
-        # Update register values based on commit information.
-        if (entry.reg_commit is not None):
-            name = str(entry.reg_commit[0]) + str(entry.reg_commit[1])
-            if (name != 'x0'):
-                consts.reg_file[name] = entry.reg_commit[2]
         
         # Check if the instruction is a jump operation.
         if entry in ops_dict['jumps']:
@@ -56,6 +51,18 @@ def jumps_comput(master_inst_list: list ,ops_dict: dict):
                 op_dict['forward'].append(entry)
                 direc_dict['forward']['count'] += 1
 
+
+        # Update register values based on commit information.
+        if (entry.reg_commit is not None):
+            name = str(entry.reg_commit[0]) + str(entry.reg_commit[1])
+            if (name != 'x0'):
+                consts.reg_file[name] = entry.reg_commit[2]
+
+    # Reset register values.
+    consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
+    consts.reg_file['x2'] = '0x800030d0'
+    consts.reg_file['x3'] = '0x800030d0'
+    
     # Log the completion of jump computation.
     logger.info('Done.')
 
