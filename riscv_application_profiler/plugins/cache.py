@@ -2,7 +2,7 @@ from cachesim import CacheSimulator, Cache, MainMemory
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
 
-def data_cache_simulator(master_inst_list, op_dict):
+def data_cache_simulator(master_inst_list, ops_dict):
     '''
     Cache simulator for data cache.
     Args:
@@ -16,10 +16,6 @@ def data_cache_simulator(master_inst_list, op_dict):
         '''
     # Logging cache statistics
     logger.info("Data Cache Statistics:")
-
-    # Lists of load and store operations
-    load_list = op_dict['loads']
-    store_list = op_dict['stores']
 
     # List of cache levels
     cache_list = ['Level 1']
@@ -49,7 +45,7 @@ def data_cache_simulator(master_inst_list, op_dict):
     for i in master_inst_list:
         
         # Handle load/store instructions
-        if i in load_list or i in store_list:
+        if i in ops_dict['loads'] or i in ops_dict['stores']:
             # Determine the address based on instruction type
             if 'sp' in i.instr_name:
                 base = int(consts.reg_file['x2'], 16)
@@ -72,9 +68,9 @@ def data_cache_simulator(master_inst_list, op_dict):
                 byte_length = 1
             
             # Handle load and store operations
-            if i in load_list:
+            if i in ops_dict['loads']:
                 cs.load(address, byte_length)
-            elif i in store_list:
+            elif i in ops_dict['stores']:
                 cs.store(address, byte_length)
 
             # Update current utilization and track min/max values
