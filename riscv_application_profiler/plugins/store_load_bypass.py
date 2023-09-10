@@ -20,9 +20,6 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
     # Log the start of the process for computing store-load bypass.
     logger.info("Computing store load bypass.")
 
-    load_list = ops_dict['loads']
-    store_list = ops_dict['stores']
-
     # make a bypass dict
     bypass_dict = {}
     tracking = {}
@@ -34,7 +31,7 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
     # upon encountering a load that touches these bytes, freeze the depth and reset counts/depths
 
     for entry in master_inst_list:
-        if entry in store_list: # this is a store
+        if entry in ops_dict['stores']: # this is a store
             # Determine the base address for the memory access.
             reg_name = 'x2' if 'sp' in entry.instr_name else f'x{entry.rs1[0]}'
             base = int(consts.reg_file[reg_name], 16)
@@ -56,7 +53,7 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
                 tracking[_entry]['s_access_sz'] = access_sz
         
         # look for loads
-        if entry in load_list:
+        if entry in ops_dict['loads']:
             # Determine the base address for the memory access.
             reg_name = 'x2' if 'sp' in entry.instr_name else f'x{entry.rs1[0]}'
             base = int(consts.reg_file[reg_name], 16)
@@ -71,15 +68,18 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
                 raise Exception(f'Invalid access size encountered: {entry.instr_name}')
             count = 0
             bytes_touched = {hex(int(address, 16) + i) for i in range(0, access_sz, 1)}
+            for entry in bytes_touched:
+                if entry in tracking:
+                    count += 1
             for _entry in bytes_touched:
                 if _entry in tracking:
-                    count += 1
+                    # count += 1
                     if _entry in bypass_dict:
                         if bypass_dict[_entry]['depth'] == tracking[_entry]['depth']:
                             bypass_dict[_entry]['counts'] += 1
                         
                     else:
-                        bypass_dict[_entry] = {'counts': 1, 'depth': tracking[_entry]['depth'], 'bypass_width': min(tracking[_entry]['s_access_sz'],access_sz)}   
+                        bypass_dict[_entry] = {'counts': 1, 'depth': tracking[_entry]['depth'], 'bypass_width': count}   
                     tracking.pop(_entry)
         
         if entry.instr_name not in ops_dict['loads']: # this is a regular instruction which causes a deeper bypass
