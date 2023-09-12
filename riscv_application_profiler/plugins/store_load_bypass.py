@@ -68,12 +68,11 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict):
                 raise Exception(f'Invalid access size encountered: {entry.instr_name}')
             count = 0
             bytes_touched = {hex(int(address, 16) + i) for i in range(0, access_sz, 1)}
-            for entry in bytes_touched:
-                if entry in tracking:
+            for byte_entry in bytes_touched:
+                if byte_entry in tracking:
                     count += 1
             for _entry in bytes_touched:
                 if _entry in tracking:
-                    # count += 1
                     if _entry in bypass_dict:
                         if bypass_dict[_entry]['depth'] == tracking[_entry]['depth']:
                             bypass_dict[_entry]['counts'] += 1

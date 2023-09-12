@@ -1,0 +1,26 @@
+cycles:
+  instructions_cycle time:
+    add: 4
+    sub: 1
+    mul: 2
+    div: 4
+  pipeline_depth: 5
+  mem_latency:
+    load:
+      store: 1
+      load: 1
+    store:
+      store: 1
+      load: 1
+  bypass_latency: 1
+  cache_latency:
+    data_cache:
+      l1:
+        hit: 1
+        miss: 10
+    instruction_cache:
+      l1:
+        hit: 1
+        miss: 10
+  
+
