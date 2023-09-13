@@ -1,5 +1,3 @@
-<<#reftext: instr_groups>>
-
 Grouping Instructions
 =====================
 
