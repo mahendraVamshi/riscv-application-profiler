@@ -10,6 +10,10 @@ Welcome to RISC-V Application Profiler's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   intro
+   preview
+   adding_plugins
+
 
 
 Indices and tables
