@@ -2,6 +2,14 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2023-09-13
+- Support including a config file
+- Changed store_load_bypass to track bytes
+- Improved build times
+- Added docs
+- Added a nsichneu from embench-iot to tests
+- Added macro op plugin
+
 ## [0.2.0] - 2023-07-25
 - Add cache plugins
 - Add register_compute plugins
