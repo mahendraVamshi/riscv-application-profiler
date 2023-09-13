@@ -30,7 +30,7 @@ def compute_threshold(master_inst_list: list, ops_dict: dict) -> int:
 
     return int(threshold)
 
-def group_by_branch_offset(master_inst_list: list, ops_dict: dict, branch_threshold: int = 0):
+def group_by_branch_offset(master_inst_list: list, ops_dict: dict, extension_used: list):
     '''
     Groups instructions based on the branch offset.
 
@@ -45,6 +45,8 @@ def group_by_branch_offset(master_inst_list: list, ops_dict: dict, branch_thresh
     '''
     # Logging the grouping process
     logger.info("Grouping instructions by branch offset.")
+
+    branch_threshold = compute_threshold(master_inst_list, ops_dict)
 
     # Initializing dictionaries and lists
     size_list = ['long', 'short']
@@ -70,7 +72,7 @@ def group_by_branch_offset(master_inst_list: list, ops_dict: dict, branch_thresh
     return ret_dict
 
 
-def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
+def group_by_branch_sign(master_inst_list: list, ops_dict: dict, extension_used: list):
     '''
     Groups instructions based on the sign bit of the branch offset.
     
@@ -113,7 +115,7 @@ def group_by_branch_sign(master_inst_list: list, ops_dict: dict):
 
 
 
-def loop_compute(master_inst_list: list, ops_dict: dict):
+def loop_compute(master_inst_list: list, ops_dict: dict, extension_used: list):
     '''
     Groups instructions based on the branch offset.
     

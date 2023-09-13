@@ -3,7 +3,7 @@ from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 import statistics
 
-def raw_compute(master_inst_list: list):
+def raw_compute(master_inst_list: list, ops_dict: dict, extension_used: list):
     '''
     Groups instructions based on the branch offset.
 

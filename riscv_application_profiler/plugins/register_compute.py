@@ -3,7 +3,7 @@ from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 import statistics
 
-def register_compute(master_inst_list: list):
+def register_compute(master_inst_list: list, ops_dict: dict, extension_used: list):
     '''
     Computes the number of reads and writes to each register.
     Args:
@@ -59,7 +59,7 @@ def register_compute(master_inst_list: list):
     return ret_dict
 
 
-def fregister_compute(master_inst_list: list,extension_list: list):
+def fregister_compute(master_inst_list: list, ops_dict: dict, extension_used: list):
     '''
     Computes the number of reads and writes to each floating point register.
 
@@ -82,7 +82,7 @@ def fregister_compute(master_inst_list: list,extension_list: list):
     ret_dict = {'F_Register': [], 'Reads': [], 'Writes': []}
 
     # Check if 'F' and 'D' extensions are present, if not, return empty lists and dictionary.
-    if 'F' not in extension_list or 'D' not in extension_list:
+    if 'F' not in extension_used or 'D' not in extension_used:
         return (ret_dict)
 
     # Log that the process of computing register read and write counts is starting.

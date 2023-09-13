@@ -1,4 +1,4 @@
-
+import importlib
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
@@ -109,66 +109,75 @@ def run(log, isa, output, verbose):
         logger.warning("riscv-isac does not decode immediate fields for compressed instructions. \
 Value based metrics on branch ops may be inaccurate.")
 
+    # for metric in config['profiles']['cfg']['metrics']:
+    #     metric_module = importlib.import_module(metric)
+    #     for funct in config['profiles']['cfg']['metrics'][metric]:
+    #         # obj = eval(metric)
+    #         # print(funct)
+    #         # print(metric)
+    #         # getattr(obj, funct)
+    #         funct_to_call = getattr(metric, funct)
+    #         ret_dict1 = funct_to_call(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+    #         utils.tabulate_stats(ret_dict1, header_name=funct)
 
-    if 'cfg' in config['profiles']:
-        metrics = config['profiles']['cfg']['metrics']
-        if 'instr_groups' in metrics:
-            utils.tabulate_stats(ret_dict, header_name="Grouping Instructions by Type of Operation.")
 
-            # Group by privilege modes
-            ret_dict1 = instr_groups.privilege_modes(log)
-            utils.tabulate_stats(ret_dict1, header_name="Grouping Instructions by Privilege Mode.")
-        if 'branch_ops' in metrics:
-            # Group by branch sizes
-            branch_threshold = branch_ops.compute_threshold(master_inst_list=extension_instruction_list, ops_dict=op_dict)
-            ret_dict1 = branch_ops.group_by_branch_offset(master_inst_list=extension_instruction_list, ops_dict=op_dict, branch_threshold=branch_threshold)
-            # Group by branch signs
-            ret_dict2 = branch_ops.group_by_branch_sign(master_inst_list=extension_instruction_list, ops_dict=op_dict)
-            #analysis of loops
-            ret_dict3 = branch_ops.loop_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict)
+    metrics = config['profiles']['cfg']['metrics']
+    if 'instr_groups' in metrics:
+        utils.tabulate_stats(ret_dict, header_name="Grouping Instructions by Type of Operation.")
 
-            utils.tabulate_stats(ret_dict1, header_name="Grouping Branches by Offset Size.")
-            utils.tabulate_stats(ret_dict2, header_name="Grouping Branches by Direction.")
-            utils.tabulate_stats(ret_dict3, header_name="Nested loop Computation.")
-        if 'register_compute' in metrics:
-            #analysis of registers
-            ret_dict1 = register_compute.register_compute(master_inst_list=extension_instruction_list)
+        # Group by privilege modes
+        ret_dict1 = instr_groups.privilege_modes(log)
+        utils.tabulate_stats(ret_dict1, header_name="Grouping Instructions by Privilege Mode.")
+    if 'branch_ops' in metrics:
+        # Group by branch sizes
+        ret_dict1 = branch_ops.group_by_branch_offset(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+        # Group by branch signs
+        ret_dict2 = branch_ops.group_by_branch_sign(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+        #analysis of loops
+        ret_dict3 = branch_ops.loop_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
 
-            #analysis of floating point registers
-            ret_dict2 = register_compute.fregister_compute(master_inst_list=extension_instruction_list,extension_list=extension_list)
+        utils.tabulate_stats(ret_dict1, header_name="Grouping Branches by Offset Size.")
+        utils.tabulate_stats(ret_dict2, header_name="Grouping Branches by Direction.")
+        utils.tabulate_stats(ret_dict3, header_name="Nested loop Computation.")
+    if 'register_compute' in metrics:
+        #analysis of registers
+        ret_dict1 = register_compute.register_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
 
-            utils.tabulate_stats(ret_dict1, header_name="Register Computation.")
-            utils.tabulate_stats(ret_dict2, header_name="Floating Point Register Computation.")
-        if 'jumps_ops' in metrics:
-            #analysis of jumps
-            ret_dict1 = jumps_ops.jumps_comput(master_inst_list=extension_instruction_list, ops_dict=op_dict)
+        #analysis of floating point registers
+        ret_dict2 = register_compute.fregister_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
 
-            #analysis of jumps size
-            ret_dict2 = jumps_ops.jump_size(master_inst_list=extension_instruction_list, ops_dict=op_dict)
-            utils.tabulate_stats(ret_dict1, header_name="Jump Direction.")
-            utils.tabulate_stats(ret_dict2, header_name="Jumps Size.")
-        if 'cache' in metrics:
-            #analysis of cache
-            ret_dict1=cache.data_cache_simulator(extension_instruction_list, op_dict)
-            ret_dict2=cache.instruction_cache_simulator(master_inst_list)
+        utils.tabulate_stats(ret_dict1, header_name="Register Computation.")
+        utils.tabulate_stats(ret_dict2, header_name="Floating Point Register Computation.")
+    if 'jumps_ops' in metrics:
+        #analysis of jumps
+        ret_dict1 = jumps_ops.jumps_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
 
-            utils.tabulate_stats(ret_dict1, header_name="Data Cache Utilization.")
-            utils.tabulate_stats(ret_dict2, header_name="Instruction Cache Utilization.")
-        if 'dependency' in metrics:
-            #analysis of dependancy(raw)
-            ret_dict1 = dependency.raw_compute(master_inst_list=extension_instruction_list)
+        #analysis of jumps size
+        ret_dict2 = jumps_ops.jump_size(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+        utils.tabulate_stats(ret_dict1, header_name="Jump Direction.")
+        utils.tabulate_stats(ret_dict2, header_name="Jumps Size.")
+    if 'cache' in metrics:
+        #analysis of cache
+        ret_dict1=cache.data_cache_simulator(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+        ret_dict2=cache.instruction_cache_simulator(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
 
-            utils.tabulate_stats(ret_dict1, header_name="Reads after Writes(RAW) Computation.")
-        if 'csr_compute' in metrics:
-            #analysis of csr
-            ret_dict1 = csr_compute.csr_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict)
+        utils.tabulate_stats(ret_dict1, header_name="Data Cache Utilization.")
+        utils.tabulate_stats(ret_dict2, header_name="Instruction Cache Utilization.")
+    if 'dependency' in metrics:
+        #analysis of dependancy(raw)
+        ret_dict1 = dependency.raw_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
 
-            utils.tabulate_stats(ret_dict1, header_name="CSR Computation.")
-        if 'store_load_bypass' in metrics:
-            #analysis of store load bypass
-            ret_dict1 = store_load_bypass.store_load_bypass(extension_instruction_list, op_dict)
-            utils.tabulate_stats(ret_dict1, header_name="Store load bypass")
-        if 'pattern' in metrics:
-            #analysis of pattern
-            ret_dict1=pattern.group_by_pattern(master_inst_list)
-            utils.tabulate_stats(ret_dict1, header_name="Pattern")
+        utils.tabulate_stats(ret_dict1, header_name="Reads after Writes(RAW) Computation.")
+    if 'csr_compute' in metrics:
+        #analysis of csr
+        ret_dict1 = csr_compute.csr_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+
+        utils.tabulate_stats(ret_dict1, header_name="CSR Computation.")
+    if 'store_load_bypass' in metrics:
+        #analysis of store load bypass
+        ret_dict1 = store_load_bypass.store_load_bypass(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+        utils.tabulate_stats(ret_dict1, header_name="Store load bypass")
+    if 'pattern' in metrics:
+        #analysis of pattern
+        ret_dict1=pattern.group_by_pattern(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+        utils.tabulate_stats(ret_dict1, header_name="Pattern")

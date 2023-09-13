@@ -2,7 +2,7 @@ from cachesim import CacheSimulator, Cache, MainMemory
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
 
-def data_cache_simulator(master_inst_list, ops_dict):
+def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list):
     '''
     Cache simulator for data cache.
     Args:
@@ -105,7 +105,7 @@ def data_cache_simulator(master_inst_list, ops_dict):
 
 
 
-def instruction_cache_simulator(master_inst_list):
+def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list):
     '''
     Cache simulator for instruction cache.
     Args:

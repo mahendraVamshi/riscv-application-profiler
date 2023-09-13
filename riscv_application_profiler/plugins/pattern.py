@@ -2,7 +2,7 @@ from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import re
 
-def group_by_pattern(master_inst_list: list):
+def group_by_pattern(master_inst_list: list, ops_dict: dict, extension_used: list):
     '''
     Groups instructions based on the operation.
 
