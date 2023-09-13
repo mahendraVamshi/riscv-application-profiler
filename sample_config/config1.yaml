@@ -1,0 +1,31 @@
+profiles:
+  cfg:
+    isa: RV32I
+    metrics:
+      # - instr_groups
+      - branch_ops:
+        offsets:
+          inputs:
+            - inst_list
+            - threshold
+          outputs:
+            - 
+            -
+        sign:
+          inputs:
+            - inst_list
+            - threshold
+          outputs:
+            - 
+            -
+      - cache:
+
+      - cache
+      - dependency
+      - jumps_ops
+      - register_compute
+      - csr_compute
+      - store_load_bypass
+      - pattern
+    commitlog_regex : '^instretire:\s+(\d+)\s+([a-fA-F0-9]+)\s+([a-fA-F0-9]+)'
+    privilege_mode_regex : '^core\\s+\\d+:\\s+(\\d+)'

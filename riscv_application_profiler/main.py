@@ -8,14 +8,14 @@ from riscv_isac.log import logger
 import riscv_isac.plugins.spike as isac_spike_plugin
 import os
 from git import Repo
+import yaml  
 
-# Top level group named 'cli'
 @click.group()
 @click.version_option(version=__version__)
 def cli():
-	'''Command Line Interface for riscv_application_profiler'''
+    '''Command Line Interface for riscv_application_profiler'''
 
-@click.version_option(version=__version__)
+@cli.command()
 # CLI option 'log'.
 # Expects an ISA string.
 @click.option(
@@ -24,17 +24,7 @@ def cli():
 	help=
 	'This option expects the path to an execution log.',
 	required=True)
-# CLI option 'ISA'
-# Expects a ISA.
-@click.option(
-     '-i',
-     '--isa',
-     help='Set ISA extensions',
-     default='RV32I',
-     show_default=True,
-     required=False,
-     
-     )
+
 # CLI option 'output.
 # Expects a directory.
 @click.option(
@@ -45,36 +35,43 @@ def cli():
 	show_default=True,
 	required=False,
     )
+
+# CLI option 'config'.
+# Expects a YAML file.
+@click.option('-c', '--config', help="Path to the YAML configuration file.", required=True)
+
+# CLI option 'verbose'.
+# Expects a string.
 @click.option('--verbose', '-v', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
-# CLI function 'generate'
-@cli.command()
-def profile(log, isa, output, verbose):
+
+def profile(config, log, output, verbose):
     '''
     Generates the hardware description of the decoder
     '''
-    #isa = isa.upper()
+    with open(config, 'r') as config_file:
+        config_data = yaml.safe_load(config_file)
+
+    isa = config_data['profiles']['cfg']['isa']
     log_file = str(Path(log).absolute())
     output_dir = str(Path(output).absolute())
-    # if not os.path.exists(output_dir):
-    #     os.makedirs(output_dir)
-    # else:
-    #     shutil.rmtree(output_dir)
-    #     os.makedirs(output_dir)
-
-    # setup isac
     isac_setup_routine(lib_dir=f'{output_dir}/lib')
 
     logger.level(verbose)
     logger.info("**********************************")
     logger.info(f"RISC-V Application Profiler v{__version__}")
     logger.info("**********************************")
-    
     logger.info("ISA Extension used: " + isa)
+    
     logger.info(f"\nLog file: {log_file}")
     logger.info(f"Output directory: {output_dir}")
 
     # Invoke the actual profiler
     run(log_file, isa, output_dir, verbose)
-
     logger.info("Done profiling.")
     logger.info(f"Reports in {output_dir}/reports.")
+
+def main():
+    cli()
+
+if __name__ == '__main__':
+    main()

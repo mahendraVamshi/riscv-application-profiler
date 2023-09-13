@@ -1,0 +1,17 @@
+profiles:
+  cfg:
+    isa: RV64IMFDCZicsr
+    metrics:
+      - instr_groups
+      - branch_ops
+      - cache
+      - dependency
+      - jumps_ops
+      - register_compute
+      - csr_compute
+      - store_load_bypass
+      - pattern
+    commitlog_regex : '^core\s+\d+:\s+(\d*)\s+(0x[0-9a-fA-F]+)\s+\((0x[0-9a-fA-F]+)\)\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?'
+    privilege_mode_regex : '^core\s+\d+:\s+(\d+)'
+    uarch:
+      bypass_depth: 2

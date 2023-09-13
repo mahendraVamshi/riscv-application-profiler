@@ -16,3 +16,6 @@ riscv_opcodes/
 #files from isac build
 constants.py
 rvopcodesdecoder.py
+
+#cubic larger than 100MB
+tests/cubic

@@ -1,6 +1,13 @@
-commitlog_regex="^core\s+\d+:\s+(\d*)\s+(0x[0-9a-fA-F]+)\s+\((0x[0-9a-fA-F]+)\)\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?"
-disass_regex = "^\s*([0-9a-f]+):\s+([0-9a-f]+)\s+([a-z][a-z\.0-9]*)"
-privilege_mode_regex ='^core\s+\d+:\s+(\d+)'
+import yaml
+default_commitlog_regex = ...
+default_disass_regex = ...
+default_privilege_mode_regex = ...
+config_path='./sample_config/config.yaml'
+with open(config_path, 'r') as config_file:
+    config = yaml.safe_load(config_file)
+
+    commitlog_regex = config['profiles']['cfg'].get('commitlog_regex', default_commitlog_regex)
+    privilege_mode_regex = config['profiles']['cfg'].get('privilege_mode_regex', default_privilege_mode_regex)
 
 ops_dict = {
     "RV32": {
@@ -294,7 +301,7 @@ ops_dict = {
             "moves": [],
             "classifies": [],
             "branches": [],
-            "csrs": ["csrrw","csrrs","csrrc","csrrwi","csrrsi","csrrci"],
+            "csrs": ["csrrw","csrrs","csrrc","csrrwi","csrrsi","csrrci","rdtimeh","rdtime"],
             "fence":[],
             },
 
@@ -609,15 +616,15 @@ ops_dict = {
             "moves": [],
             "classifies": [],
             "branches": [],
-            "csrs": ["csrrw","csrrs","csrrc","csrrwi","csrrsi","csrrci"], 
+            "csrs": ["csrrw","csrrs","csrrc","csrrwi","csrrsi","csrrci","rdtimeh","rdtime"], 
             "fence":[],
             },
     },
 }
 
 reg_file = {f'x{i}':'0x00000000' for i in range(32)}
-reg_file['x2'] = '0x7ffffff0'
-reg_file['x3'] = '0x100000'
+reg_file['x2'] = '0x800030d0'
+reg_file['x3'] = '0x800030d0'
 freg_file = {f'f{i}':'0' for i in range(32)}
 
 csr_file = {'0x000': 'ustatus',

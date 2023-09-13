@@ -1,4 +1,4 @@
-
+import importlib
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
@@ -11,8 +11,17 @@ from riscv_application_profiler.plugins import jumps_ops
 from riscv_application_profiler.plugins import dependency
 from riscv_application_profiler.plugins import csr_compute
 from riscv_application_profiler.plugins import store_load_bypass
+from riscv_application_profiler.plugins import pattern
 import riscv_config.isa_validator as isaval
 from riscv_application_profiler.utils import Utilities
+import os
+import yaml
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(script_dir, 'config.yaml')
+with open(consts.config_path, 'r') as config_file:
+   
+    config = yaml.safe_load(config_file)
 
 def print_stats(op_dict, counts):
     '''
@@ -38,21 +47,23 @@ def run(log, isa, output, verbose):
         # Read the log file
         lines = logfile.readlines()
         cl_matches_list = [iter_commitlog.__next__() for i in range(len(lines))]
-    logger.info(f'Parsed {len(cl_matches_list)} instructions.')
-    logger.info("Decoding...")
     isac_decoder = disassembler()
     isac_decoder.setup(arch='rv64')
     master_inst_list = []
     for entry in cl_matches_list:
         if entry.instr is None:
             continue
+        # print(entry)
         temp_entry = isac_decoder.decode(entry)
         master_inst_list.append(temp_entry)
-
+        # if entry.instr == 57378 or entry.instr == 58374 or entry.instr == 62510 or entry.instr == 63538 or entry.instr == 64566 or entry.instr == 60422 or entry.instr == 57530 or entry.instr == 58558 or entry.instr == 59586 or entry.instr == 60614 or entry.instr == 58394 or entry.instr == 62114 or entry.instr == 61094:
+        #     print(temp_entry)
+    
+    logger.info(f'Parsed {len(master_inst_list)} instructions.')
+    logger.info("Decoding...")
     logger.info("Done decoding instructions.")
     logger.info("Starting to profile...")
-
-
+    
     utils = Utilities(log, output)
     utils.metadata()
 
@@ -83,9 +94,7 @@ def run(log, isa, output, verbose):
     
     isa_arg = isa.split('I')[0]
 
-    mode_list, mode_dict = instr_groups.privilege_modes(log)
-
-    op_lists,ops_count, extension_instruction_list, op_dict = instr_groups.group_by_operation(groups, isa_arg, extension_list, master_inst_list)
+    ret_dict, extension_instruction_list, op_dict = instr_groups.group_by_operation(groups, isa_arg, extension_list, master_inst_list)
     if (len(extension_instruction_list)<=len(master_inst_list)):
         # left_out=[]
         # for i in master_inst_list:
@@ -94,59 +103,81 @@ def run(log, isa, output, verbose):
         #         print(i)
         logger.warning("Check the extension input.")
 
-    curr_ops_dict = utils.compute_ops_dict(args_list=groups, isa_arg=isa_arg, ext_list=extension_list)
-
-    # Group by branch sizes
-    branch_threshold = branch_ops.compute_threshold(master_inst_list=extension_instruction_list, ops_dict=op_dict)
-    size_list, size_dict = branch_ops.group_by_branch_offset(master_inst_list=extension_instruction_list, ops_dict=op_dict, branch_threshold=branch_threshold)
-
-    # Group by branch signs
-    b_direc_list, b_direc_dict = branch_ops.group_by_branch_sign(master_inst_list=extension_instruction_list, ops_dict=op_dict)
-
-    #ananlyses of cache
-    data_cache_list, data_cache_dict=cache.data_cache_simulator(extension_instruction_list, op_dict)
-    instruction_cache_list,instruction_cache_dict=cache.instruction_cache_simulator(master_inst_list)
-
-    #ananlyses of loops
-    loop_list, loop_instr_dict = branch_ops.loop_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict)
-
-    #ananlyses of registers
-    reg_list, regs_dict = register_compute.register_compute(master_inst_list=extension_instruction_list)
-
-    #ananlyses of floating point registers
-    F_reg_list, F_regs_dict = register_compute.fregister_compute(master_inst_list=extension_instruction_list,extension_list=extension_list)
-
-    #ananlyses of jumps
-    j_direc_list, j_direc_dict = jumps_ops.jumps_comput(master_inst_list=extension_instruction_list, ops_dict=op_dict)
-
-    #ananlyses of jumps size
-    jump_list,jump_instr_dict = jumps_ops.jump_size(master_inst_list=extension_instruction_list, ops_dict=op_dict)
-
-    #ananlyses of dependancy(raw)
-    raw_instruction_list, raw_dict = dependency.raw_compute(master_inst_list=extension_instruction_list)
-
-    #ananlyses of csr
-    csr_reg_list, csr_dict = csr_compute.csr_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict)
-
-    #ananlyses of store load bypass
-    load_address_list,bypass_dict = store_load_bypass.store_load_bypass(extension_instruction_list, op_dict)
-    
+    curr_ops_dict = utils.compute_ops_dict(args_list=groups, isa_arg=isa_arg, ext_list=extension_list) 
     
     if 'C' in extension_list:
         logger.warning("riscv-isac does not decode immediate fields for compressed instructions. \
 Value based metrics on branch ops may be inaccurate.")
 
-    utils.tabulate_stats1(op_lists,ops_count, header_name="Operation", metric_name="Grouping Instructions by Type of Operation.")
-    utils.tabulate_stats1(mode_list, mode_dict, header_name="Privilaged modes", metric_name="Grouping Instructions by Privilege Mode.")
-    utils.tabulate_stats1(size_list, size_dict, header_name='Size',metric_name="Grouping Branches by Offset Size.")
-    utils.tabulate_stats1(b_direc_list, b_direc_dict, header_name='Direction',metric_name="Grouping Branches by Direction.")
-    utils.tabulate_stats1(loop_list, loop_instr_dict, header_name='Instruction Name',metric_name="Nested loop Computation.")
-    utils.tabulate_stats1(reg_list, regs_dict, header_name='Register Name',metric_name="Register Computation.")
-    utils.tabulate_stats1(F_reg_list, F_regs_dict, header_name='fRegister Name',metric_name="Floating Point Register Computation.")
-    utils.tabulate_stats1(j_direc_list, j_direc_dict, header_name='Direction',metric_name="Jump Direction.")
-    utils.tabulate_stats1(jump_list,jump_instr_dict, header_name='Name',metric_name="Jumps Size.")
-    utils.tabulate_stats1(data_cache_list, data_cache_dict, header_name='Data Cache',metric_name="Data Cache Utilization.")
-    utils.tabulate_stats1(instruction_cache_list, instruction_cache_dict, header_name='Instruction Cache',metric_name="Instruction Cache Utilization.")
-    utils.tabulate_stats1(raw_instruction_list, raw_dict, header_name='Dependant Instructions',metric_name="Reads after Writes(RAW) Computation.")
-    utils.tabulate_stats1(csr_reg_list, csr_dict, header_name='CSR Register(s)',metric_name="CSR Computation.")
-    utils.tabulate_stats1(load_address_list,bypass_dict, header_name='Address',metric_name="Store load bypass")
+    # for metric in config['profiles']['cfg']['metrics']:
+    #     metric_module = importlib.import_module(metric)
+    #     for funct in config['profiles']['cfg']['metrics'][metric]:
+    #         # obj = eval(metric)
+    #         # print(funct)
+    #         # print(metric)
+    #         # getattr(obj, funct)
+    #         funct_to_call = getattr(metric, funct)
+    #         ret_dict1 = funct_to_call(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+    #         utils.tabulate_stats(ret_dict1, header_name=funct)
+
+
+    metrics = config['profiles']['cfg']['metrics']
+    if 'instr_groups' in metrics:
+        utils.tabulate_stats(ret_dict, header_name="Grouping Instructions by Type of Operation.")
+
+        # Group by privilege modes
+        ret_dict1 = instr_groups.privilege_modes(log)
+        utils.tabulate_stats(ret_dict1, header_name="Grouping Instructions by Privilege Mode.")
+    if 'branch_ops' in metrics:
+        # Group by branch sizes
+        ret_dict1 = branch_ops.group_by_branch_offset(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+        # Group by branch signs
+        ret_dict2 = branch_ops.group_by_branch_sign(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+        #analysis of loops
+        ret_dict3 = branch_ops.loop_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+
+        utils.tabulate_stats(ret_dict1, header_name="Grouping Branches by Offset Size.")
+        utils.tabulate_stats(ret_dict2, header_name="Grouping Branches by Direction.")
+        utils.tabulate_stats(ret_dict3, header_name="Nested loop Computation.")
+    if 'register_compute' in metrics:
+        #analysis of registers
+        ret_dict1 = register_compute.register_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+
+        #analysis of floating point registers
+        ret_dict2 = register_compute.fregister_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+
+        utils.tabulate_stats(ret_dict1, header_name="Register Computation.")
+        utils.tabulate_stats(ret_dict2, header_name="Floating Point Register Computation.")
+    if 'jumps_ops' in metrics:
+        #analysis of jumps
+        ret_dict1 = jumps_ops.jumps_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+
+        #analysis of jumps size
+        ret_dict2 = jumps_ops.jump_size(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+        utils.tabulate_stats(ret_dict1, header_name="Jump Direction.")
+        utils.tabulate_stats(ret_dict2, header_name="Jumps Size.")
+    if 'cache' in metrics:
+        #analysis of cache
+        ret_dict1=cache.data_cache_simulator(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+        ret_dict2=cache.instruction_cache_simulator(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+
+        utils.tabulate_stats(ret_dict1, header_name="Data Cache Utilization.")
+        utils.tabulate_stats(ret_dict2, header_name="Instruction Cache Utilization.")
+    if 'dependency' in metrics:
+        #analysis of dependancy(raw)
+        ret_dict1 = dependency.raw_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+
+        utils.tabulate_stats(ret_dict1, header_name="Reads after Writes(RAW) Computation.")
+    if 'csr_compute' in metrics:
+        #analysis of csr
+        ret_dict1 = csr_compute.csr_compute(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+
+        utils.tabulate_stats(ret_dict1, header_name="CSR Computation.")
+    if 'store_load_bypass' in metrics:
+        #analysis of store load bypass
+        ret_dict1 = store_load_bypass.store_load_bypass(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+        utils.tabulate_stats(ret_dict1, header_name="Store load bypass")
+    if 'pattern' in metrics:
+        #analysis of pattern
+        ret_dict1=pattern.group_by_pattern(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
+        utils.tabulate_stats(ret_dict1, header_name="Pattern")

@@ -24,29 +24,50 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
         - A dictionary with the operations as keys and a list of InstructionEntry objects as values.
 
     '''
+    # Log the start of the process for grouping instructions by operation.
     logger.info("Grouping instructions by operation.")
-    
-    # Create a dictionary with the operations as keys
 
-    op_dict = {f'{op}': [] for op in operations}
-    ops_count={f'{op}': {'counts':0} for op in operations}
-    op_list = [f'{op}' for op in operations]
+    # Create a dictionary to hold instructions grouped by operation.
+    op_dict = {f'{op}': {} for op in operations}
+
+    # Create a dictionary to keep track of instruction counts per operation.
+    ops_count = {f'{op}': {'counts': 0} for op in operations}
+
+    # Create a dictionary to hold the resulting counts and operation names.
+    ret_dict = {'Operation': [f'{op}' for op in operations], 'Counts': []}
+
+    # Initialize a list to store extension-related instructions.
     extension_instruction_list = []
 
+    # Iterate through the list of instructions in master_inst_list.
     for entry in master_inst_list:
         for extension in extension_list:
             for op in operations:
                 try:
+                    # Check if the current instruction belongs to the specified operation.
                     if entry.instr_name in ops_dict[isa][extension][op]:
-                        op_dict[op].append(entry)
-                        ops_count[op]['counts']+=1
+                        # Append the instruction to the corresponding operation group.
+                        op_dict[op][entry]=1
+                        
+                        # Increment the instruction count for the operation.
+                        ops_count[op]['counts'] += 1
+                        
+                        # Append the instruction to the extension instruction list.
                         extension_instruction_list.append(entry)
                 except KeyError as e:
+                    # Handle the case where the extension is not supported.
                     logger.error(f'Extension {e} not supported.')
                     exit(1)
-    counts = {f'{op}': len(op_dict[op]) for op in operations}
-    logger.debug('Done.')
-    return (op_list,ops_count,extension_instruction_list,op_dict)
+
+    # Populate the 'Counts' field in the ret_dict with the instruction counts per operation.
+    ret_dict['Counts'] = [len(op_dict[op]) for op in operations]
+
+
+    # Log the completion of the computation.
+    logger.info("Done")
+
+    # Return the resulting dictionaries containing grouped instructions and counts.
+    return (ret_dict,extension_instruction_list,op_dict)
 
 
 def privilege_modes(log):
@@ -60,27 +81,41 @@ def privilege_modes(log):
         - A list of privilege modes.
         - A dictionary with the privilege modes as keys and the number of instructions in each group as values.
     '''
+    # Log the start of the process for computing privilege modes.
     logger.info("Computing privilege modes.")
+
+    # List of privilege modes to track: user, supervised, and machine.
     mode_list = ['user', 'supervised', 'machine']
-    mode_dict = {'user': {'count':0}, 'supervised': {'count':0}, 'machine': {'count':0}}
-    user_list = []
-    supervised_list = []
-    reserved_list = []
-    machine_list = []
+
+    # Initialize a dictionary to track the counts of privilege modes.
+    mode_dict = {'user': {'count': 0}, 'supervised': {'count': 0}, 'machine': {'count': 0}}
+
+    # Initialize a dictionary to hold the resulting counts and privilege mode names.
+    ret_dict = {'Privilege Mode': mode_list, 'Counts': []}
+
+    # Open the specified log file for reading.
     with open(log, 'r') as log_file:
+        # Iterate through each line in the log file.
         for line in log_file:
+            # Attempt to match the line against the privilege mode regex pattern.
             match = re.match(privilege_mode_regex, line)
             if match is not None:
+                # Extract the privilege mode value from the regex match.
                 x = int(match.group(1))
                 if x is not None:
-                    if x==0:
-                        mode_dict['user']['count']+=1
-                        user_list.append(line)
-                    elif x==1:
-                        mode_dict['supervised']['count']+=1
-                        supervised_list.append(line)
-                    elif x==3:
-                        mode_dict['machine']['count']+=1
-                        machine_list.append(line)
+                    # Update the counts for each privilege mode based on the extracted value.
+                    if x == 0:
+                        mode_dict['user']['count'] += 1
+                    elif x == 1:
+                        mode_dict['supervised']['count'] += 1
+                    elif x == 3:
+                        mode_dict['machine']['count'] += 1
 
-    return (mode_list,mode_dict)
+    # Populate the 'Counts' field in the ret_dict with the privilege mode counts.
+    ret_dict['Counts'] = [mode_dict[mode]['count'] for mode in mode_list]
+
+    # Log the completion of the privilege mode computation.
+    logger.info('Done.')
+
+    # Return the resulting dictionary containing privilege mode counts.
+    return ret_dict

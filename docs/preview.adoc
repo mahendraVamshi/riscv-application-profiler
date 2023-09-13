@@ -1,0 +1,4 @@
+RISC-V Application Profiler
+===========================
+
+This is the preface for the docs in rap.

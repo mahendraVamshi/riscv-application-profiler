@@ -27,7 +27,7 @@ test_requirements = []
 
 setup(
     name='riscv-application-profiler',
-    version='0.2.0',
+    version='1.0.0',
     description="RISC-V Application Profiler",
     long_description=readme + '\n\n',
     classifiers=[
