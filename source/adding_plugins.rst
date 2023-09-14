@@ -17,7 +17,8 @@ Create a new Python file in the ``plugins`` folder of the project.
 Your plugin should accept the following inputs:
 
 - ``master_inst_list``: A list of all instructions in the program, represented as a list of ``Instruction`` objects.
-- ``op_dict``: A dictionary containing all operations in the program. Keys represent operation names, and values are operation objects.
+- ``ops_dict``: A dictionary containing all operations in the program. Keys represent operation names, and values are operation objects.
+- ``extension_used``: A boolean value indicating whether the program uses an extension. This is used to determine whether to include extension-specific operations in the analysis.
 
 Any custom inputs must be defined in the configuration YAML file. These will be treated as keyword args to the function.
 
@@ -25,18 +26,16 @@ Any custom inputs must be defined in the configuration YAML file. These will be 
 
 Your plugin should return a dictionary containing the results of your analysis. The keys of this dictionary should be operation names, and the values are metrics that were computed in the plugin itself. All returned values will be tabulated. Eventually, this will become a custom class.
 
-== Integrating a Plugin into profiler.py
+== Adding a Plugin to the yaml File
 
-To integrate your plugin into the `profiler.py` script, follow these steps:
+To execute your plugin, you must add it to the configuration YAML file. To do this, follow these steps:
 
-1. Import the Plugin:
+1. Add ``plugin_name``:
 
-Import the plugin function in ``profiler.py``.
+Add the plugin file name to your yaml file, under `profiles:config:metric`. Under that add your plugin funtion name along with header name as `plugin_file_name:
+plugin_function_name:
+ - header_name`.
 
-2. Check Configuration:
+2. Execute the Plugin:
 
-In the `profiler.py` script, check if your plugin is enabled by reading the configuration file. Ensure that it can be toggled on and off based on user preferences.
-
-3. Execute the Plugin:
-
-If the plugin is enabled, execute it by calling the corresponding function and passing the required inputs.
+Sit back and run the profiler as usual. Your plugin will be executed along with the rest of the analysis.
