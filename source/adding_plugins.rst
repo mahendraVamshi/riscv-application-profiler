@@ -1,9 +1,6 @@
 How to Add Plugins to the Profiler
 ==================================
 
-Introduction
-------------
-
 Plugins can be added to the profiler to extend its functionality and analyze program behavior. This guide explains the steps to create and integrate a new plugin into the profiler.
 
 Creating a New Plugin
