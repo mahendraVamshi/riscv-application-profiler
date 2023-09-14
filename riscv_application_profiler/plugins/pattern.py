@@ -19,6 +19,7 @@ def group_by_pattern(master_inst_list: list, ops_dict: dict, extension_used: lis
     count_dict = {}
     pattern_dict = {}
     address_name_dict = {}
+    address_pc_dict = {}
     address_cycle_dict = {}
     prev = None
 
@@ -28,6 +29,7 @@ def group_by_pattern(master_inst_list: list, ops_dict: dict, extension_used: lis
         if hex(entry.instr_addr) not in count_dict:
             count_dict[hex(entry.instr_addr)] = 0
             address_name_dict[hex(entry.instr_addr)] = entry.instr_name
+            address_pc_dict[hex(entry.instr_addr)] = str(hex(entry.instr_addr))
             address_cycle_dict[hex(entry.instr_addr)] = 1
         count_dict[hex(entry.instr_addr)] += 1
 
@@ -44,29 +46,37 @@ def group_by_pattern(master_inst_list: list, ops_dict: dict, extension_used: lis
     sort_count_list = [entry for entry in sort_count_list if len(entry[1]) > 1 and entry[0] != 1]
 
     # Initialize a dictionary to store sorted pattern information.
-    s_dict = {'count': [], 'instr': [], 'cycles': [], 'cycles_reduced': []}
+    s_dict = {'count': [], 'instr': [], 'PC': [], 'cycles': [], 'cycles_reduced': []}
 
     # Process sorted patterns.
     for entry in sort_count_list:
         adj_inst = [address_name_dict[entry[1][0]]]
+        adj_pc = [address_pc_dict[entry[1][0]]]
         adj_cycles = [address_cycle_dict[entry[1][0]]]
         prev = entry[1][0]
         for i in entry[1][1:]:
             # Check if the difference between addresses is 4 or 2.
             if (int(i, 16) - int(prev, 16)) == 4 or (int(i, 16) - int(prev, 16)) == 2:
                 adj_inst.append(address_name_dict[i])
+                adj_pc.append(address_pc_dict[i])
                 adj_cycles.append(address_cycle_dict[i])
             else:
+                # Store the current pattern information.
+                # if adj_cycles in s_dict['cycles']:
+                #     continue
                 s_dict['instr'].append(adj_inst)
+                s_dict['PC'].append(adj_pc)
                 s_dict['cycles'].append(adj_cycles)
                 s_dict['count'].append(entry[0])
                 adj_inst = [address_name_dict[i]]
+                adj_pc = [address_cycle_dict[i]]
                 adj_cycles = [address_cycle_dict[i]]
             prev = i
         if len(adj_inst) > 1:
             s_dict['count'].append(entry[0])
             s_dict['cycles'].append(adj_cycles)
             s_dict['instr'].append(adj_inst)
+            s_dict['PC'].append(adj_pc)
 
     # Calculate improved performance for each pattern.
     for i in range(len(s_dict['count'])):
