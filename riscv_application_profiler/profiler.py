@@ -46,11 +46,8 @@ def run(log, isa, output, verbose):
     for entry in cl_matches_list:
         if entry.instr is None:
             continue
-        # print(entry)
         temp_entry = isac_decoder.decode(entry)
         master_inst_list.append(temp_entry)
-        # if entry.instr == 57378 or entry.instr == 58374 or entry.instr == 62510 or entry.instr == 63538 or entry.instr == 64566 or entry.instr == 60422 or entry.instr == 57530 or entry.instr == 58558 or entry.instr == 59586 or entry.instr == 60614 or entry.instr == 58394 or entry.instr == 62114 or entry.instr == 61094:
-        #     print(temp_entry)
     
     logger.info(f'Parsed {len(master_inst_list)} instructions.')
     logger.info("Decoding...")
