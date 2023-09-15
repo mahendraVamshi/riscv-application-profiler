@@ -13,6 +13,6 @@ Welcome to RISC-V Application Profiler's documentation!
    intro
    preview
    adding_plugins
-   Grouping_instructions
+   plugins
 
 
