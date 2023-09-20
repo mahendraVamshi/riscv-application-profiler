@@ -22,14 +22,20 @@ def group_by_pattern(master_inst_list: list, ops_dict: dict, extension_used: lis
     address_pc_dict = {}
     address_cycle_dict = {}
     prev = None
-
     # Loop through each entry in the master_inst_list.
     for entry in master_inst_list:
+        name = entry.instr_name+ ' '
+        if entry.rs1 is not None:
+            name=name+'rs1: '+str(entry.rs1[1])+str(entry.rs1[0])+' '
+        if entry.rs2 is not None:
+            name=name+'rs2: '+str(entry.rs2[1])+str(entry.rs2[0])+' '
+        if entry.rd is not None:
+            name=name+'rd: '+str(entry.rd[1])+str(entry.rd[0])+' '
         # Check if the instruction address is not in the count_dict.
         if hex(entry.instr_addr) not in count_dict:
             count_dict[hex(entry.instr_addr)] = 0
-            address_name_dict[hex(entry.instr_addr)] = entry.instr_name
-            address_pc_dict[hex(entry.instr_addr)] = str(hex(entry.instr_addr))
+            address_name_dict[hex(entry.instr_addr)] = name
+            address_pc_dict[hex(entry.instr_addr)] = hex(entry.instr_addr)
             address_cycle_dict[hex(entry.instr_addr)] = 1
         count_dict[hex(entry.instr_addr)] += 1
 
@@ -38,12 +44,14 @@ def group_by_pattern(master_inst_list: list, ops_dict: dict, extension_used: lis
         if count_dict[entry] not in pattern_dict:
             pattern_dict[count_dict[entry]] = list()
         pattern_dict[count_dict[entry]].append(entry)
+    if 1 in pattern_dict:
+        del pattern_dict[1]
 
     # Sort the patterns by occurrence count in descending order.
     sort_count_list = sorted(pattern_dict.items(), key=lambda x: x[0], reverse=True)
 
     # Remove single instructions or patterns with count 1.
-    sort_count_list = [entry for entry in sort_count_list if len(entry[1]) > 1 and entry[0] != 1]
+    sort_count_list = [entry for entry in sort_count_list if len(entry[1]) > 1]
 
     # Initialize a dictionary to store sorted pattern information.
     s_dict = {'count': [], 'instr': [], 'PC': [], 'cycles': [], 'cycles_reduced': []}
@@ -60,7 +68,7 @@ def group_by_pattern(master_inst_list: list, ops_dict: dict, extension_used: lis
                 adj_inst.append(address_name_dict[i])
                 adj_pc.append(address_pc_dict[i])
                 adj_cycles.append(address_cycle_dict[i])
-            else:
+            elif len(adj_inst) > 1:
                 # Store the current pattern information.
                 # if adj_cycles in s_dict['cycles']:
                 #     continue
@@ -69,7 +77,7 @@ def group_by_pattern(master_inst_list: list, ops_dict: dict, extension_used: lis
                 s_dict['cycles'].append(adj_cycles)
                 s_dict['count'].append(entry[0])
                 adj_inst = [address_name_dict[i]]
-                adj_pc = [address_cycle_dict[i]]
+                adj_pc = [i]
                 adj_cycles = [address_cycle_dict[i]]
             prev = i
         if len(adj_inst) > 1:
