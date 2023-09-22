@@ -6,8 +6,7 @@ Instruction Groups
 
 By categorizing instructions based on their type,
 developers can identify which types of instructions are
-executed most frequently and which ones take the
-longest time to execute. This information can help
+executed most frequently. This information can help
 identify performance bottlenecks in the code and guide
 optimization efforts
 
