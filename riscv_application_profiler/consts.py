@@ -1,14 +1,3 @@
-import yaml
-default_commitlog_regex = ...
-default_disass_regex = ...
-default_privilege_mode_regex = ...
-config_path='./sample_config/config.yaml'
-with open(config_path, 'r') as config_file:
-    config = yaml.safe_load(config_file)
-
-    commitlog_regex = config['profiles']['cfg'].get('commitlog_regex', default_commitlog_regex)
-    privilege_mode_regex = config['profiles']['cfg'].get('privilege_mode_regex', default_privilege_mode_regex)
-
 ops_dict = {
     "RV32": {
         "I": {

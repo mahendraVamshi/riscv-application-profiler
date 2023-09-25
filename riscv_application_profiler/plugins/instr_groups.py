@@ -70,7 +70,7 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
     return (ret_dict,extension_instruction_list,op_dict)
 
 
-def privilege_modes(log):
+def privilege_modes(log,config):
     '''
     Computes the privilege modes.
     
@@ -83,6 +83,7 @@ def privilege_modes(log):
     '''
     # Log the start of the process for computing privilege modes.
     logger.info("Computing privilege modes.")
+    privilege_mode_regex = config['profiles']['cfg']['privilege_mode_regex']
 
     # List of privilege modes to track: user, supervised, and machine.
     mode_list = ['user', 'supervised', 'machine']

@@ -10,11 +10,10 @@ from riscv_application_profiler.utils import Utilities
 import os
 import yaml
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-config_path = os.path.join(script_dir, 'config.yaml')
-with open(consts.config_path, 'r') as config_file:
-   
-    config = yaml.safe_load(config_file)
+# script_dir = os.path.dirname(os.path.abspath(__file__))
+# config_path = os.path.join(script_dir, 'config.yaml')
+# with open(consts.config_path, 'r') as config_file:
+#     config = yaml.safe_load(config_file)
 
 def print_stats(op_dict, counts):
     '''
@@ -31,7 +30,7 @@ def print_stats(op_dict, counts):
         logger.info(f'{op}: {counts[op]}')
     logger.info("Done.")
 
-def run(log, isa, output, verbose):
+def run(log, isa, output, verbose, config):
     from build.lib.rvopcodesdecoder import disassembler
     spike_parser = spike()
     spike_parser.setup(trace=str(log), arch='rv64')
@@ -101,7 +100,7 @@ Value based metrics on branch ops may be inaccurate.")
 
     
     utils.tabulate_stats(ret_dict, header_name='Grouping instructions by Operation')
-    ret_dict = instr_groups.privilege_modes(log)
+    ret_dict = instr_groups.privilege_modes(log,config)
     utils.tabulate_stats(ret_dict, header_name='Privilege Mode')
 
 

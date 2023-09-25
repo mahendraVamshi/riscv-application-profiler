@@ -5,6 +5,7 @@ from riscv_application_profiler import __version__
 from riscv_application_profiler.profiler import run
 from riscv_application_profiler.isac_port import isac_setup_routine
 from riscv_isac.log import logger
+import riscv_application_profiler.consts
 import riscv_isac.plugins.spike as isac_spike_plugin
 import os
 from git import Repo
@@ -40,18 +41,23 @@ def cli():
 # Expects a YAML file.
 @click.option('-c', '--config', help="Path to the YAML configuration file.", required=True)
 
+# CLI option 'cycle accurate config'.
+# Expects a YAML file.
+@click.option('-ca', '--cycle_accurate_config', help="Path to the YAML cycle accurate configuration file.", required=False)
+
 # CLI option 'verbose'.
 # Expects a string.
-@click.option('--verbose', '-v', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
+@click.option('-v', '--verbose', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
 
-def profile(config, log, output, verbose):
+def profile(config, log, output, verbose, cycle_accurate_config):
     '''
     Generates the hardware description of the decoder
     '''
     with open(config, 'r') as config_file:
-        config_data = yaml.safe_load(config_file)
-
-    isa = config_data['profiles']['cfg']['isa']
+        ia_config = yaml.safe_load(config_file)
+    default_commitlog_regex = ia_config['profiles']['cfg']['commitlog_regex']
+    default_privilege_mode_regex = ia_config['profiles']['cfg']['privilege_mode_regex']
+    isa = ia_config['profiles']['cfg']['isa']
     log_file = str(Path(log).absolute())
     output_dir = str(Path(output).absolute())
     isac_setup_routine(lib_dir=f'{output_dir}/lib')
@@ -66,7 +72,7 @@ def profile(config, log, output, verbose):
     logger.info(f"Output directory: {output_dir}")
 
     # Invoke the actual profiler
-    run(log_file, isa, output_dir, verbose)
+    run(log_file, isa, output_dir, verbose, ia_config)
     logger.info("Done profiling.")
     logger.info(f"Reports in {output_dir}/reports.")
 
