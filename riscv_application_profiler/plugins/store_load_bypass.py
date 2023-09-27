@@ -3,7 +3,7 @@ from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 from pprint import pprint
 
-def store_load_bypass (master_inst_list: list, ops_dict: dict, extension_used: list):
+def store_load_bypass (master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Computes the number of instances of store load bypass.
     

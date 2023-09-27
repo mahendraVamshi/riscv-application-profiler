@@ -3,7 +3,7 @@ from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 import statistics
 
-def register_compute(master_inst_list: list, ops_dict: dict, extension_used: list):
+def register_compute(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Computes the number of reads and writes to each register.
     Args:
@@ -59,7 +59,7 @@ def register_compute(master_inst_list: list, ops_dict: dict, extension_used: lis
     return ret_dict
 
 
-def fregister_compute(master_inst_list: list, ops_dict: dict, extension_used: list):
+def fregister_compute(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Computes the number of reads and writes to each floating point register.
 

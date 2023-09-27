@@ -30,7 +30,7 @@ def compute_threshold(master_inst_list: list, ops_dict: dict) -> int:
 
     return int(threshold)
 
-def group_by_branch_offset(master_inst_list: list, ops_dict: dict, extension_used: list):
+def group_by_branch_offset(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Groups instructions based on the branch offset.
 
@@ -72,7 +72,7 @@ def group_by_branch_offset(master_inst_list: list, ops_dict: dict, extension_use
     return ret_dict
 
 
-def group_by_branch_sign(master_inst_list: list, ops_dict: dict, extension_used: list):
+def group_by_branch_sign(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Groups instructions based on the sign bit of the branch offset.
     
@@ -115,7 +115,7 @@ def group_by_branch_sign(master_inst_list: list, ops_dict: dict, extension_used:
 
 
 
-def loop_compute(master_inst_list: list, ops_dict: dict, extension_used: list):
+def loop_compute (master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Groups instructions based on the branch offset.
     

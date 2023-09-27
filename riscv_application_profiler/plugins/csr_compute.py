@@ -2,7 +2,7 @@ from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 
-def csr_compute(master_inst_list: list, ops_dict: dict, extension_used: list):
+def csr_compute(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Computes the number of reads and writes to each CSR.
     

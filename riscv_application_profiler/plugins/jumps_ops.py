@@ -2,7 +2,7 @@ from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 
-def jumps_compute(master_inst_list: list ,ops_dict: dict, extension_used: list):
+def jumps_compute(master_inst_list: list ,ops_dict: dict, extension_used: list, cycle_accurate_config):
     '''
     Computes the number of jumps in the program.
 
@@ -74,7 +74,7 @@ def jumps_compute(master_inst_list: list ,ops_dict: dict, extension_used: list):
     return ret_dict
 
 
-def jump_size(master_inst_list: list, ops_dict: dict, extension_used: list):
+def jump_size(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Computes the number of jumps in the program.
 
