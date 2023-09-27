@@ -55,6 +55,11 @@ def profile(config, log, output, verbose, cycle_accurate_config):
     '''
     with open(config, 'r') as config_file:
         ia_config = yaml.safe_load(config_file)
+    if cycle_accurate_config:
+        with open(cycle_accurate_config, 'r') as cycle_accurate_config_file:
+            ca_config = yaml.safe_load(cycle_accurate_config_file)
+    else:
+        ca_config = None
     default_commitlog_regex = ia_config['profiles']['cfg']['commitlog_regex']
     default_privilege_mode_regex = ia_config['profiles']['cfg']['privilege_mode_regex']
     isa = ia_config['profiles']['cfg']['isa']
@@ -72,7 +77,7 @@ def profile(config, log, output, verbose, cycle_accurate_config):
     logger.info(f"Output directory: {output_dir}")
 
     # Invoke the actual profiler
-    run(log_file, isa, output_dir, verbose, ia_config)
+    run(log_file, isa, output_dir, verbose, ia_config, ca_config)
     logger.info("Done profiling.")
     logger.info(f"Reports in {output_dir}/reports.")
 
