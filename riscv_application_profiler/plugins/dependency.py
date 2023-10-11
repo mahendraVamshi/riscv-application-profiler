@@ -3,7 +3,7 @@ from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 import statistics
 
-def raw_compute(master_inst_list: list, ops_dict: dict, extension_used: list):
+def raw_compute(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Groups instructions based on the branch offset.
 
@@ -96,10 +96,19 @@ def raw_compute(master_inst_list: list, ops_dict: dict, extension_used: list):
                 regs[name]['depth'] = 1
 
     # Populate the result dictionary from raw data.
-    for entry in raw:
-        ret_dict['Instructions'].append(entry)
-        ret_dict['Count'].append(raw[entry]['count'])
-        ret_dict['Depth'].append(raw[entry]['depth'])
+
+    if cycle_accurate_config != None:
+        for entry in raw:
+            if raw[entry]['depth'] < int(cycle_accurate_config['cycles']['pipeline_depth']):
+                if cycle_accurate_config['cycles']['bypass_latency'] == None:
+                    ret_dict['Instructions'].append(entry)
+                    ret_dict['Count'].append(raw[entry]['count'])
+                    ret_dict['Depth'].append(raw[entry]['depth'])
+    else:
+        for entry in raw:
+            ret_dict['Instructions'].append(entry)
+            ret_dict['Count'].append(raw[entry]['count'])
+            ret_dict['Depth'].append(raw[entry]['depth'])
 
     # Log the completion of the computation.
     logger.info("Done")

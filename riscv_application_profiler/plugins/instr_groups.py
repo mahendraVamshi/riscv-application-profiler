@@ -7,7 +7,7 @@ from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import re
 
-def group_by_operation(operations: list, isa, extension_list, master_inst_list: list):
+def group_by_operation(operations: list, isa, extension_list, master_inst_list: list, config, cycle_accurate_config):
     
 
     '''
@@ -44,10 +44,19 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
         for extension in extension_list:
             for op in operations:
                 try:
-                    # Check if the current instruction belongs to the specified operation.
+                        # Check if the current instruction belongs to the specified operation.
                     if entry.instr_name in ops_dict[isa][extension][op]:
                         # Append the instruction to the corresponding operation group.
-                        op_dict[op][entry]=1
+                        if cycle_accurate_config != None:
+                            for inst in cycle_accurate_config['cycles']['instructions_cycles']:
+                                if re.match(inst, entry.instr_name) != None:                              
+                                    op_dict[op][entry] = cycle_accurate_config['cycles']['instructions_cycles'][inst]
+                                    master_inst_list[entry] = cycle_accurate_config['cycles']['instructions_cycles'][inst]
+                                else:
+                                    # print(entry.instr_name)
+                                    op_dict[op][entry] = 1
+                        else:
+                            op_dict[op][entry]=1
                         
                         # Increment the instruction count for the operation.
                         ops_count[op]['counts'] += 1
@@ -61,7 +70,8 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
 
     # Populate the 'Counts' field in the ret_dict with the instruction counts per operation.
     ret_dict['Counts'] = [len(op_dict[op]) for op in operations]
-
+    # op_dict['total_cycles'] = sum([op_dict[op][entry] for op in operations for entry in op_dict[op]])
+    # print(op_dict['total_cycles'])
 
     # Log the completion of the computation.
     logger.info("Done")

@@ -4,6 +4,8 @@ import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
 from riscv_isac.plugins.spike import *
 from riscv_application_profiler.plugins import instr_groups
+from riscv_application_profiler.plugins import dependency, cache, csr_compute, pattern
+from riscv_application_profiler import verif
 from riscv_application_profiler import plugins
 import riscv_config.isa_validator as isaval
 from riscv_application_profiler.utils import Utilities
@@ -30,8 +32,8 @@ def print_stats(op_dict, counts):
         logger.info(f'{op}: {counts[op]}')
     logger.info("Done.")
 
-def run(log, isa, output, verbose, config):
-    from build.lib.rvopcodesdecoder import disassembler
+def run(log, isa, output, verbose, config, cycle_accurate_config, check):
+    from rvop_decoder.rvopcodesdecoder import disassembler
     spike_parser = spike()
     spike_parser.setup(trace=str(log), arch='rv64')
     iter_commitlog = spike_parser.__iter__()
@@ -47,7 +49,7 @@ def run(log, isa, output, verbose, config):
             continue
         temp_entry = isac_decoder.decode(entry)
         master_inst_list.append(temp_entry)
-    
+    master_inst_dict = {entry: 1 for entry in master_inst_list}
     logger.info(f'Parsed {len(master_inst_list)} instructions.')
     logger.info("Decoding...")
     logger.info("Done decoding instructions.")
@@ -83,7 +85,7 @@ def run(log, isa, output, verbose, config):
     
     isa_arg = isa.split('I')[0]
 
-    ret_dict, extension_instruction_list, op_dict = instr_groups.group_by_operation(groups, isa_arg, extension_list, master_inst_list)
+    ret_dict, extension_instruction_list, op_dict = instr_groups.group_by_operation(groups, isa_arg, extension_list, master_inst_dict, config, cycle_accurate_config)
     if (len(extension_instruction_list)<=len(master_inst_list)):
         # left_out=[]
         # for i in master_inst_list:
@@ -103,16 +105,32 @@ Value based metrics on branch ops may be inaccurate.")
     ret_dict = instr_groups.privilege_modes(log,config)
     utils.tabulate_stats(ret_dict, header_name='Privilege Mode')
 
-
-    for metric in config['profiles']['cfg']['metrics']:
-        # Finding the new plugin file mentioned in the yaml file
-        spec = importlib.util.spec_from_file_location("plugins", f"riscv_application_profiler/plugins/{metric}.py")
-        # Converting file to a module
-        metric_module = importlib.util.module_from_spec(spec)
-        # Importing the module
-        spec.loader.exec_module(metric_module)
+    if cycle_accurate_config != None:
+        ret_dict = dependency.raw_compute(master_inst_dict, op_dict, extension_list, config, cycle_accurate_config)
+        utils.tabulate_stats(ret_dict, header_name='Raw Compute')
+        ret_dict = cache.data_cache_simulator(master_inst_dict, op_dict, extension_list, config, cycle_accurate_config)
+        utils.tabulate_stats(ret_dict, header_name='Data Cache Simulator')
+        ret_dict = cache.instruction_cache_simulator(master_inst_dict, op_dict, extension_list, config, cycle_accurate_config)
+        utils.tabulate_stats(ret_dict, header_name='Instruction Cache Simulator')
+        ret_dict = csr_compute.csr_compute(master_inst_dict, op_dict, extension_list, config, cycle_accurate_config)
+        utils.tabulate_stats(ret_dict, header_name='CSR Compute')
+        ret_dict = pattern.group_by_pattern(master_inst_dict, op_dict, extension_list, config, cycle_accurate_config)
+        utils.tabulate_stats(ret_dict, header_name='Grouping instructions by Pattern')
+        # total_cycles = op_dict['total_cycles']
+        total_cycles = sum([master_inst_dict[entry] for entry in master_inst_dict]) + cycle_accurate_config['cycles']['reset_cycles']
+        print(total_cycles)
+        verif.modi(check, master_inst_dict)
         
-        for funct in config['profiles']['cfg']['metrics'][metric]:
-            funct_to_call = getattr(metric_module, funct)
-            ret_dict1 = funct_to_call(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list)
-            utils.tabulate_stats(ret_dict1, header_name=funct)
+    else:
+        for metric in config['profiles']['cfg']['metrics']:
+            # Finding the new plugin file mentioned in the yaml file
+            spec = importlib.util.spec_from_file_location("plugins", f"riscv_application_profiler/plugins/{metric}.py")
+            # Converting file to a module
+            metric_module = importlib.util.module_from_spec(spec)
+            # Importing the module
+            spec.loader.exec_module(metric_module)
+            
+            for funct in config['profiles']['cfg']['metrics'][metric]:
+                funct_to_call = getattr(metric_module, funct)
+                ret_dict1 = funct_to_call(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list, config= config, cycle_accurate_config=cycle_accurate_config)
+                utils.tabulate_stats(ret_dict1, header_name=funct)

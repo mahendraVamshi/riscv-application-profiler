@@ -7,35 +7,10 @@ import os
 import shutil
 import sys
 
-def repo_setup(url, lib, branch):
-    '''
-    Clones the repository and checks out the specified branch.
-    '''
-    repo = Repo.clone_from(url, f'{lib}/')
-    repo.git.checkout(branch)
-    return repo
-
-def isac_setup_routine(lib_dir):
+def isac_setup_routine():
     '''
     Sets up the riscv-isac environment.
     '''
-    if os.path.exists(lib_dir):
-        shutil.rmtree(f'{lib_dir}')
-    os.makedirs(lib_dir, exist_ok=True)
-
-    # Clone the riscv-isac repository
-    isac_repo = repo_setup('https://github.com/mahendraVamshi/riscv-isac.git', lib_dir, 'master')
-
-    constants_file = os.path.join(os.getcwd(),  f'{lib_dir}/riscv_isac/data/constants.py')
-    plugin_file = os.path.join(os.getcwd(),  f'{lib_dir}/riscv_isac/data/rvopcodesdecoder.py')
-
-    shutil.copy(plugin_file,lib_dir)
-    shutil.copy(constants_file,lib_dir)
-
-    opcodes_repo = repo_setup('https://github.com/riscv/riscv-opcodes.git', f'{lib_dir}/riscv_opcodes', 'master')
-
-    # remove .git
-    shutil.rmtree(f'{lib_dir}/.git')
-
-    # add the library to the search path
-    sys.path.append(lib_dir)
+    if not os.path.exists('rvop_decoder'):
+        os.system('riscv_isac setup')
+    sys.path.append(os.path.join(os.getcwd(), 'rvop_decoder'))

@@ -36,7 +36,7 @@ def group_by_pattern(master_inst_list: list, ops_dict: dict, extension_used: lis
             count_dict[hex(entry.instr_addr)] = 0
             address_name_dict[hex(entry.instr_addr)] = name
             address_pc_dict[hex(entry.instr_addr)] = hex(entry.instr_addr)
-            address_cycle_dict[hex(entry.instr_addr)] = 1
+            address_cycle_dict[hex(entry.instr_addr)] = master_inst_list[entry]
         count_dict[hex(entry.instr_addr)] += 1
 
     # Group instructions based on their occurrence count.
