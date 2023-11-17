@@ -55,7 +55,7 @@ Command line arguements:
 Example:
 
 ```shell
-riscv_application_profiler profile --log ./tests/hello.log --output ./build --config ./sample_config/config.yaml 
+riscv_application_profiler profile --log ./tests/hello_world_ed.dump --output ./build --config ./sample_config/config1.yaml  
 or
 riscv_application_profiler profile --log ./tests/hello.log --output ./build --config ./sample_config/config.yaml --cycle_accurate_config ./azurite_config/ca1.yaml 
 ```
