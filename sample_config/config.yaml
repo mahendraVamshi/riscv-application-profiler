@@ -19,7 +19,7 @@ profiles:
           - Grouping jumps by jump direction.
         jump_size:
           - Grouping jumps by jump size.
-      cache:
+      cache_ia:
         data_cache_simulator:
           - Data cache utilization.
         instruction_cache_simulator:
