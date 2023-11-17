@@ -52,9 +52,9 @@ def cli():
 @click.option('-v', '--verbose', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
 
 # remove later
-@click.option('-ch', '--check', help="Path to the dump file which has cycle latency.", required=False)
+# @click.option('-ch', '--check', help="Path to the dump file which has cycle latency.", required=False)
 
-def profile(config, log, output, verbose, cycle_accurate_config, check):
+def profile(config, log, output, verbose, cycle_accurate_config): #, check):
     '''
     Generates the hardware description of the decoder
     '''
@@ -63,11 +63,11 @@ def profile(config, log, output, verbose, cycle_accurate_config, check):
     if cycle_accurate_config:
         with open(cycle_accurate_config, 'r') as cycle_accurate_config_file:
             ca_config = yaml.safe_load(cycle_accurate_config_file)
-        if check:
-            check_file = str(Path(check).absolute())
-            verify(check_file)
-        else:
-            check_file = None
+        # if check:
+        #     check_file = str(Path(check).absolute())
+        #     verify(check_file)
+        # else:
+        #     check_file = None
     else:
         ca_config = None
     default_commitlog_regex = ia_config['profiles']['cfg']['commitlog_regex']
@@ -90,7 +90,10 @@ def profile(config, log, output, verbose, cycle_accurate_config, check):
     logger.info(f"Output directory: {output_dir}")
 
     # Invoke the actual profiler
-    run(log_file, isa, output_dir, verbose, ia_config, ca_config, check_file)
+    if ca_config != None:
+        run(log_file, isa, output_dir, verbose, ia_config, ca_config)# ,check_file)
+    else:
+        run(log_file, isa, output_dir, verbose, ia_config, None)# ,None)
     logger.info("Done profiling.")
     logger.info(f"Reports in {output_dir}/reports.")
 
