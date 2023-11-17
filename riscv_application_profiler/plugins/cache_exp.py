@@ -1,7 +1,6 @@
 from cachesim import CacheSimulator, Cache, MainMemory, CacheVisualizer
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
-import riscv_application_profiler.plugins.cache_config as cache_config
 
 miss_address_dict = dict()
 hit_address_dict = dict()

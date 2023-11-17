@@ -1,7 +1,7 @@
 from cachesim import CacheSimulator, Cache, MainMemory, CacheVisualizer, get_backend
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
-import riscv_application_profiler.plugins.cache_config as cache_config
+# import riscv_application_profiler.plugins.cache_config as cache_config
 
 miss_address_dict = dict()
 hit_address_dict = dict()
@@ -12,14 +12,7 @@ data_cache_status = dict()
 mem_mem_dict = dict()
 setup = list()
 
-def cache_setup (cache,config):
-    if setup == []:
-        mem,D_cs,I_cs,D_cache_level,I_cache_level = cache_config.d_l1_config("l1", config)
-        setup.append(1)
-    if cache == 'data':
-        return mem,D_cs,D_cache_level
-    elif cache == 'instr':
-        return mem,I_cs,I_cache_level
+
 
 def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
