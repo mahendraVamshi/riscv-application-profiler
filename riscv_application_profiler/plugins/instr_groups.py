@@ -39,6 +39,8 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
     # Initialize a list to store extension-related instructions.
     extension_instruction_list = []
 
+    prev_instr_name = None
+    prev_instr_addr = None
     # Iterate through the list of instructions in master_inst_list.
     for entry in master_inst_list:
         for extension in extension_list:
@@ -48,13 +50,31 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
                     if entry.instr_name in ops_dict[isa][extension][op]:
                         # Append the instruction to the corresponding operation group.
                         if cycle_accurate_config != None:
+                            matched = False
                             for inst in cycle_accurate_config['cycles']['instructions_cycles']:
-                                if re.match(inst, entry.instr_name) != None:                              
-                                    op_dict[op][entry] = cycle_accurate_config['cycles']['instructions_cycles'][inst]
-                                    master_inst_list[entry] = cycle_accurate_config['cycles']['instructions_cycles'][inst]
-                                else:
-                                    # print(entry.instr_name)
-                                    op_dict[op][entry] = 1
+                                if re.match(inst, entry.instr_name) != None:
+                                    op_dict[op][entry] = cycle_accurate_config['cycles']['instructions_cycles'][inst]['latency']
+                                    master_inst_list[entry] = cycle_accurate_config['cycles']['instructions_cycles'][inst]['latency']
+                            
+                                    if prev_instr_addr != entry.instr_addr and prev_instr_name == entry.instr_name:
+                                        op_dict[op][entry] -= op_dict[op][prev_instr] - cycle_accurate_config['cycles']['instructions_cycles'][inst]['throughput']
+                                        master_inst_list[entry] -= master_inst_list[prev_instr] - cycle_accurate_config['cycles']['instructions_cycles'][inst]['throughput']
+
+                                    prev_instr = entry
+                                    prev_instr_name = entry.instr_name
+                                    prev_instr_addr = entry.instr_addr
+
+                                    matched = True
+                                    break
+                            if matched == False:
+                                op_dict[op][entry] = 1
+                                master_inst_list[entry] = 1
+
+                                prev_instr = entry
+                                prev_instr_name = entry.instr_name
+                                prev_instr_addr = entry.instr_addr
+                                
+                                    
                         else:
                             op_dict[op][entry]=1
                         
