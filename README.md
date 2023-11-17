@@ -61,7 +61,7 @@ riscv_application_profiler profile --log ./tests/hello_world_ed.dump --output ./
 ```
 Cycle accurate profiling:
 ```shell
-riscv_application_profiler profile --log ./tests/hello.log --output ./build --config ./sample_config/config.yaml --cycle_accurate_config ./cycle_accurate_config/ca_config.yaml
+riscv_application_profiler profile --log ./tests/hello_world_ed.dump --output ./build --config ./sample_config/config1.yaml  --cycle_accurate_config ./cycle_accurate_config/ca_config.yaml
 ```
 
 **Note**: The log file should be an execution log generated using spike as of today. Support for configuring log formats will be added in the future.
