@@ -68,38 +68,43 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
     line_num = 0
     # Loop through instructions
     for i in master_inst_list:
-        line_num += 1
+        line_num += 1 
         if 'fence' in i.instr_name:
-            # print(dirty_lines_set)
+
+            max_util *= line_size
+            min_util *= line_size
+            temp_total_util = ((max_util - min_util) / max_util) * 100
+            cache_util_list.append(temp_total_util)
+            if temp_total_util > total_util:
+                total_util = temp_total_util
+
+            # sorting the dirty lines set, as fence instruction traverse the cache in sorted order
             sorted_dirty_lines_set = tuple(sorted(dirty_lines_set))
-            
-            # print(sorted_dirty_lines_set)
-            ops_dict['fence'][i] += 1 # to tell it's fence it takes one cycle
+
+            ops_dict['fence'][i] += 1 # one cycle for fence instruction
             master_inst_list[i] += 1
 
-            ops_dict['fence'][i] += cache_lines # to check all lines
-            master_inst_list[i] += cache_lines
-            j=1
-            for cache_line_num in sorted_dirty_lines_set:
-                if (cache_line_num + cycle_accurate_config['cycles']['bus_latency']['data'] + cycle_accurate_config['cycles']['structural_hazards']['bus']) > cache_lines:
-                    # to see if last few lines are dirty , and add cycles accordingly
-                    additional_cycle += (cache_line_num + cycle_accurate_config['cycles']['bus_latency']['data'] + cycle_accurate_config['cycles']['structural_hazards']['bus']) - cache_lines
-                    master_inst_list[i] += (cache_line_num + cycle_accurate_config['cycles']['bus_latency']['data'] + cycle_accurate_config['cycles']['structural_hazards']['bus']) - cache_lines
-                if (j < len(sorted_dirty_lines_set)) and ((sorted_dirty_lines_set[j] - cache_line_num) < (cycle_accurate_config['cycles']['structural_hazards']['bus'])):
-                    # to see if there is a gap between dirty lines
-                    # print(cache_line_num,sorted_dirty_lines_set[j])
-                    ops_dict['fence'][i] += (cycle_accurate_config['cycles']['structural_hazards']['bus']) - (sorted_dirty_lines_set[j] - cache_line_num)
-                    master_inst_list[i] += (cycle_accurate_config['cycles']['structural_hazards']['bus']) - (sorted_dirty_lines_set[j] - cache_line_num)
-                    # print((cycle_accurate_config['cycles']['bus_latency']['data'] - 1) - (sorted_dirty_lines_set[j] - cache_line_num))
+            ops_dict['fence'][i] += total_cache_line # each cache line takes one cycle
+            master_inst_list[i] += total_cache_line
+            j=1 # used to get the next dirty line
+            for cache_line in sorted_dirty_lines_set:
+                if (cache_line + cycle_accurate_config['cycles']['bus_latency']['data'] + (number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache'])) > total_cache_line:
+                    # to see if last few lines are dirty , and add cycles accordingly 
+                    master_inst_list[i] += (cache_line + cycle_accurate_config['cycles']['bus_latency']['data'] + (number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache'])) - total_cache_line
+                if (j < len(sorted_dirty_lines_set)) and ((sorted_dirty_lines_set[j] - cache_line) < number_of_words_in_line): # DEBUG: check if it's less than 8 or 18 and how much delay cycles to add
+                    # to see if there is a gap between dirty lines are less than the number of words in a line(structural hazard)
+                    ops_dict['fence'][i] += (number_of_words_in_line ) - (sorted_dirty_lines_set[j] - cache_line)
+                    master_inst_list[i] += (number_of_words_in_line ) - (sorted_dirty_lines_set[j] - cache_line)
                 j=j+1
 
-            cs.force_write_back()
-            l1 = Cache("L1", no_of_sets, no_of_ways, line_size, "RR")
-            cs = CacheSimulator(l1, mem)
-            min_util = max_util = cs.count_invalid_entries()
+            # sort of creating afresh cache, as fence instruction invalidates the cache
+            # cs.force_write_back()
+            cs.mark_all_invalid("L1")
+            min_util = max_util = cs.count_invalid_entries("L1")
             prev_hits = l1.backend.HIT_count
             prev_misses = l1.backend.MISS_count
             
+            # clearing the dirty lines set as cache is empty after fence instruction
             dirty_lines_set.clear()
 
         # Handle load/store instructions
