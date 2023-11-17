@@ -1,0 +1,13 @@
+  mem_latency:
+    cacheable:
+      data:
+        hit: 1
+        miss: 10 # 2 #bus_latency, critical word first #10
+      instruction:
+        hit: 1
+        miss: 18 # 2 #bus_latency + (size of cache line in bytes /4) eg: 10 + (32/4) = 18
+    non_cacheable:
+      data:
+        miss: 10 #bus_latency 
+      instruction:
+        miss: 11 #bus_latency 
