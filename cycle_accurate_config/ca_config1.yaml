@@ -34,3 +34,16 @@ cycles:
       {latency : 1,
       throughput : 1}
       }
+  flush_cycles:
+    csr: 2 # pipeline_depth - 1 and 1 for csr # check once
+    branch: 0
+    fence.i: 2
+  reset_cycles: 100 # internal reset cycles
+  pipeline_depth: 2
+  bus_latency: # this is inaccurate
+    data: 8
+    instruction: 9
+  bypass_latency: 1
+  structural_hazards:
+    data_cache: 1
+    bus: 8 # bus capacity in terms of words
