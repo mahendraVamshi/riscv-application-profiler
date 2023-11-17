@@ -44,7 +44,7 @@ profiles:
         start: 0x80000000
         end: 0x8fffffff
       no_of_sets : 64
-      no_of_ways : 4
+      no_of_ways : 8
       line_size : 32
       replacement_policy: "FIFO" #round robin
       write_back : True # false for write through
@@ -54,8 +54,8 @@ profiles:
       range:
         start: 0x80000000
         end: 0x8fffffff
-      no_of_sets : 64
-      no_of_ways : 4
+      no_of_sets : 32
+      no_of_ways : 2
       line_size : 32
       replacement_policy: "LFSR"
       write_back : True # false for write through
