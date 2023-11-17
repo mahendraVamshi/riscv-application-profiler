@@ -1,3 +1,4 @@
+# ia config file
 profiles:
   cfg:
     isa: RV64IMFDCZicsr
