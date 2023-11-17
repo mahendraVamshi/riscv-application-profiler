@@ -368,32 +368,107 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
             min_util = max_util = cs.count_invalid_entries()
             prev_hits = l1.backend.HIT_count
             prev_misses = l1.backend.MISS_count
+            
+        # Determine the byte length for the operation
+        if 'c.' in entry.instr_name:
+            # compressed instructions are 2 bytes
+            byte_length = 2
+        else:
+            # all other instructions are 4 bytes
+            byte_length = 4
+
         line_num += 1
-        stage2_dict[line_num] = 0
+        stage1_dict[line_num] = 0 # to keep track of stage1 cycles
+
+        # straddle check variables, stradde delay gives extra cycles when straddele occurs
+        straddle_check_hit = straddle_check_miss = straddle_delay = 0 
+
         # Load instruction address into the cache
         if (entry.instr_addr >= cacheable_start and entry.instr_addr <= cacheable_end):
+            # checking if the instruction address is in cacheable range
+            
             cs.load(entry.instr_addr, byte_length)
+            
             if prev_hits < l1.backend.HIT_count:
-                fetch_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['instruction']['hit'] 
-                prev_hits = l1.backend.HIT_count
-            elif prev_misses < l1.backend.MISS_count:
-                fetch_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['instruction']['miss']
-                prev_misses = l1.backend.MISS_count
-        else:
-            fetch_cycle = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['instruction']['miss']
+                # checking if it's a hit, l1.backend.HIT_count is incremented after a load only when it's a hit
+                fetch_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['instruction']['hit']
+                # when straddle occurs, and it's a hit then it's a hit in two cache lines. Therefore straddle_check_hit get's incremented by 2
+                # There might be a sdraddle miss then it's a hit on one cahce line and miss on another cache line. Therefore straddle_check_hit get's incremented by 1
+                straddle_check_hit = l1.backend.HIT_count - prev_hits
+                # keeping track of previous hits, used for knowing the current address is a hit or a miss
+                prev_hits = l1.backend.HIT_count  
 
-        if (fetch_cycle - prev_last_stage_cycle) > 0:
+            # replaced elif with if because of cache line straddling
+            if prev_misses < l1.backend.MISS_count:
+                # checking if it's a miss, l1.backend.MISS_count is incremented after a load only when it's a miss
+                fetch_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['instruction']['miss']
+                # when straddle occurs, and it's a miss then it's a miss in two cache lines. Therefore straddle_check_miss get's incremented by 2
+                # There might be a sdraddle hit then it's a miss on one cahce line and hit on another cache line. Therefore straddle_check_miss get's incremented by 1
+                straddle_check_miss += l1.backend.MISS_count - prev_misses
+                # keeping track of previous misses, used for knowing the current address is a hit or a miss
+                prev_misses = l1.backend.MISS_count
+
+            if straddle_check_hit == 1 and straddle_check_miss == 1:
+                # its straddle and a miss on one line and hit on another line
+                straddle_delay = 2 # delay for the above case
+                fetch_cycle = fetch_cycle + 2
+            elif straddle_check_hit == 2 and straddle_check_miss == 0:
+                # its straddle and a hit on both lines
+                straddle_delay = 1 # delay for the above case
+                fetch_cycle = fetch_cycle + 1
+            elif straddle_check_hit == 0 and straddle_check_miss == 2: # not sure about this case
+                # its straddle and a miss on both lines
+                straddle_delay = 1 
+                fetch_cycle = fetch_cycle + cycle_accurate_config['cycles']['mem_latency']['cacheable']['instruction']['miss'] + 1
+
+            stage1_dict[line_num] = fetch_cycle  
+        else:
+            # all non cacheable pc address access is a miss
+            fetch_cycle = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['instruction']['miss']
+            
+
+        if line_num in data_cache_status:
+            if fetch_cycle > (data_cache_status[line_num]):
+                aa = 0
+                if data_cache_status[line_num] >= number_of_words_in_line - 1 and (line_num - 1) in data_cache_status:
+                    keys_to_delete[line_num] = data_cache_status[line_num - 1] - 1
+                elif data_cache_status[line_num] < number_of_words_in_line :
+                    keys_to_delete[line_num] = data_cache_status[line_num]
+                for aa in range(1, data_cache_status[line_num]):
+                    if (line_num + aa) in data_cache_status:
+                        if data_cache_status[line_num + aa] >= data_cache_status[line_num]:
+                            break
+                        else:
+                            # keys_to_delete[line_num + aa] = data_cache_status[line_num + aa]
+                            continue
+                if (line_num + aa - 1) in data_cache_status:
+                    
+                    keys_to_delete[line_num + aa] = data_cache_status[line_num + aa - 1] - 1
+
+                # print(keys_to_delete)
+        
+        if line_num in keys_to_delete:
+            if line_num in mem_mem_dict:
+                master_inst_list[entry] = master_inst_list[entry] - keys_to_delete[line_num]
+            elif keys_to_delete[line_num] > cycle_accurate_config['cycles']['mem_latency']['cacheable']['instruction']['hit']:
+                master_inst_list[entry] = master_inst_list[entry] + keys_to_delete[line_num] 
+
+        if (fetch_cycle - prev_last_stage_cycle) > 0 :
+            # checking if fetching of instruction ahs to be stalled
+            # if prev_last_stage_cycle is greater, then fetch will be completed as previous stage is completed
             for op in ops_dict.keys():
                 if entry in ops_dict[op]:
+                
                     ops_dict[op][entry] = ops_dict[op][entry] + (fetch_cycle - prev_last_stage_cycle)
                     master_inst_list[entry] = master_inst_list[entry] + (fetch_cycle - prev_last_stage_cycle)
+                    stage1_dict[line_num] = fetch_cycle - prev_last_stage_cycle
 
                     if line_num in miss_address_dict:
                         miss_address_dict[line_num] = master_inst_list[entry]
-                    stage2_dict[line_num] = master_inst_list[entry]
-                    # print (miss_address_dict[line_num])
 
-                    prev_last_stage_cycle = master_inst_list[entry] - (fetch_cycle - prev_last_stage_cycle)
+
+                    # stage2_dict[line_num] = master_inst_list[entry] - stage1_dict[line_num]
+                    prev_last_stage_cycle = master_inst_list[entry] - stage1_dict[line_num]
         else:
             prev_last_stage_cycle = master_inst_list[entry]
             if line_num in miss_address_dict:
