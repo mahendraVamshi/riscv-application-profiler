@@ -47,3 +47,17 @@ cycles:
   structural_hazards:
     data_cache: 1
     bus: 8 # bus capacity in terms of words
+  # replacemnt_latency: 257
+  mem_latency:
+    cacheable:
+      data:
+        hit: 2
+        miss: 8 # 2 #bus_latency, critical word first #10
+      instruction:
+        hit: 2
+        miss: 16 # 2 #bus_latency + (size of cache line in bytes /4) eg: 10 + (32/4) = 18
+    non_cacheable:
+      data:
+        miss: 8 #bus_latency 
+      instruction:
+        miss: 9 #bus_latency 
