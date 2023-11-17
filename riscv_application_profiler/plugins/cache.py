@@ -1,15 +1,18 @@
 from cachesim import CacheSimulator, Cache, MainMemory, CacheVisualizer
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
-import itertools
-import collections
-import cachesim
-import inspect
+import riscv_application_profiler.plugins.cache_config as cache_config
 
 miss_address_dict = dict()
+hit_address_dict = dict()
 miss_inst_dict = dict()
-stage1_dict = dict()
 stage2_dict = dict()
+stage1_dict = dict()
+data_cache_status = dict()
+mem_mem_dict = dict()
+setup = list()
+
+# separate functions to compute data cache and instruction cache
 
 def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
@@ -30,42 +33,49 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
     cache_list = ['Level 1']
 
     # Dictionary to store cache utilization information
-    cache_dict = {l: {'utilization(%)': 0} for l in cache_list}
+    cache_dict = {"data_l1": {'max utilization(%)': 0, "avg utilization": 0} }
+
+    total_util = 0
+    cache_util_list = []
 
     # Dictionary to store the final results
-    ret_dict = {'Data Cache': [f'{op}' for op in cache_list], 'Utilization(%)': []}
+    ret_dict = {'Data Cache': ['Level 1'], 'Maximum Utilization(%)': [], 'Average Utilization': []}
+    # mem,cs,l1 = cache_setup('data', config)
 
-    # Setting up memory and cache parameters
-    mem = MainMemory()
+
     no_of_sets = config['profiles']['cfg']['data_cache']['no_of_sets']
     no_of_ways = config['profiles']['cfg']['data_cache']['no_of_ways']
     line_size = config['profiles']['cfg']['data_cache']['line_size']
-    cache_lines = no_of_sets * no_of_ways
+    replacement_policy = config['profiles']['cfg']['data_cache']['replacement_policy']
+    total_cache_line = no_of_sets * no_of_ways
+    number_of_words_in_line = line_size//4 # line size in byptes / 4 bytes (word size)
+
 
     # Creating the L1 cache
-    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, "RR")
+    mem = MainMemory()
+    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, replacement_policy)
     mem.load_to(l1)
     mem.store_from(l1)
     cs = CacheSimulator(l1, mem)
     # Initializing minimum and maximum utilization
-    min_util = max_util = cs.count_invalid_entries()
+    min_util = max_util = cs.count_invalid_entries("L1")
 
     additional_cycle = 0
     prev_hits = l1.backend.HIT_count
 
     prev_misses = l1.backend.MISS_count
 
-    address_set = set()
     cacheable_data_start = int(config['profiles']['cfg']['data_cache']['range']['start'])
     cacheable_data_end = int(config['profiles']['cfg']['data_cache']['range']['end'])
     cacheable_instr_start = int(config['profiles']['cfg']['instr_cache']['range']['start'])
     cacheable_instr_end = int(config['profiles']['cfg']['instr_cache']['range']['end'])
 
+    hit_address_line_num = miss_address_line_num = 0
+    last_mem_line_no = 0
+    mem_mem_delay = 0
     
-
-    depth = 0
-    dirty_lines_set = set()
-    line_num = 0
+    dirty_lines_set = set() # to keep track of dirty lines
+    line_num = 0 # to keep track of instruction/line number
     # Loop through instructions
     for i in master_inst_list:
         line_num += 1 
@@ -268,36 +278,41 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
                     ops_dict['stores'][i] = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss']
                     master_inst_list[i] = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss']
             
+            
+            
+            # keeping track of previous hits and misses, used for knowing the current address is a hit or a miss
             prev_hits = l1.backend.HIT_count 
             prev_misses = l1.backend.MISS_count
 
             # Update current utilization and track min/max values
-            this_util = cs.count_invalid_entries()
+            this_util = cs.count_invalid_entries("L1")
             max_util = max(max_util, this_util)
             min_util = min(min_util, this_util)
 
         # Handle register commits
         if i.reg_commit and i.reg_commit[1] != '0':
-            consts.reg_file[f'x{i.rd[0]}'] = i.reg_commit[2]
+            consts.reg_file[f'x{int(i.reg_commit[1])}'] = i.reg_commit[2] 
 
     # Print cache statistics
     cs.print_stats()
     # Calculate total utilization percentages
     max_util *= line_size
     min_util *= line_size
-    total_util = ((max_util - min_util) / max_util) * 100
+    temp_total_util = ((max_util - min_util) / max_util) * 100
+    cache_util_list.append(temp_total_util)
+    if temp_total_util > total_util:
+        total_util = temp_total_util
 
     # Update cache utilization information
-    cache_dict['Level 1']['utilization(%)'] = total_util
-    ret_dict['Utilization(%)'] = [cache_dict[cache]['utilization(%)'] for cache in cache_list]
+    cache_dict['data_l1']['max utilization(%)'] = total_util
+    cache_dict['data_l1']['avg utilization'] = sum(cache_util_list)/len(cache_util_list)
+    ret_dict['Maximum Utilization(%)'] = [cache_dict['data_l1']['max utilization(%)']]
+    ret_dict['Average Utilization'] = [cache_dict['data_l1']['avg utilization']]
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
     consts.reg_file['x2'] = '0x800030d0'
     consts.reg_file['x3'] = '0x800030d0'
-
-
-    
 
     # Return the final results
     return ret_dict
@@ -319,29 +334,35 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
     logger.info("Instruction Cache Statistics:")
 
     # Setting up memory and cache parameters
-    mem = MainMemory()
     no_of_sets = config['profiles']['cfg']['instr_cache']['no_of_sets']
     no_of_ways = config['profiles']['cfg']['instr_cache']['no_of_ways']
     line_size = config['profiles']['cfg']['instr_cache']['line_size']
+    replacement_policy = config['profiles']['cfg']['instr_cache']['replacement_policy']
+    number_of_words_in_line = line_size//4 # line size in byptes / 4 bytes (word size)
+
 
     # List of cache levels and dictionary to store cache utilization information
     cache_list = ['Level 1']
-    cache_dict = {l: {'utilization(%)': 0} for l in cache_list}
+    cache_dict = {"instr_l1": {'max utilization(%)': 0, "avg utilization": 0} }
+
+
+    total_util = 0
+    cache_util_list = []
 
     # Dictionary to store the final results
-    ret_dict = {'Instruction Cache': [f'{op}' for op in cache_list], 'Utilization(%)': []}
+    ret_dict = {'Instruction Cache': ['Level 1'], 'Maximum Utilization(%)': [], 'Average Utilization': []}
+
 
     # Creating the L1 instruction cache
-    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, "LRU")
+    mem = MainMemory()
+    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, replacement_policy)
     mem.load_to(l1)
     mem.store_from(l1)
     cs = CacheSimulator(l1, mem)
 
     # Initializing minimum and maximum utilization
-    min_util = max_util = cs.count_invalid_entries()
+    min_util = max_util = cs.count_invalid_entries("L1")
 
-    # Fixed byte length for instruction loading
-    byte_length = 4
 
     # Loop through master instruction list
     prev_hits = l1.backend.HIT_count
@@ -350,8 +371,11 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
     fetch_cycle = 0
     cacheable_start = int(config['profiles']['cfg']['instr_cache']['range']['start'])
     cacheable_end = int(config['profiles']['cfg']['instr_cache']['range']['end'])
+    # keeping track of instruction/line number
     line_num = 0
-
+    keys_to_delete = {}
+    # print(data_cache_status)
+    
     for entry in master_inst_list:
 
         # Handle fence instructions
@@ -471,12 +495,10 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
                     prev_last_stage_cycle = master_inst_list[entry] - stage1_dict[line_num]
         else:
             prev_last_stage_cycle = master_inst_list[entry]
-            if line_num in miss_address_dict:
-                miss_address_dict[line_num] = 0
             
         
         # Update current utilization and track min/max values
-        this_util = cs.count_invalid_entries()
+        this_util = cs.count_invalid_entries("L1")
         max_util = max(max_util, this_util)
         min_util = min(min_util, this_util)
 
@@ -487,11 +509,16 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
     # Calculate total utilization percentages
     max_util *= line_size
     min_util *= line_size
-    total_util = ((max_util - min_util) / max_util) * 100
+    temp_total_util = ((max_util - min_util) / max_util) * 100
+    cache_util_list.append(temp_total_util)
+    if temp_total_util > total_util:
+        total_util = temp_total_util
 
     # Update cache utilization information
-    cache_dict['Level 1']['utilization(%)'] = total_util
-    ret_dict['Utilization(%)'] = [cache_dict[cache]['utilization(%)'] for cache in cache_list]
+    cache_dict['instr_l1']['max utilization(%)'] = total_util
+    cache_dict['instr_l1']['avg utilization'] = sum(cache_util_list)/len(cache_util_list)
+    ret_dict['Maximum Utilization(%)'] = [cache_dict['instr_l1']['max utilization(%)']]
+    ret_dict['Average Utilization'] = [cache_dict['instr_l1']['avg utilization']]
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
@@ -499,89 +526,5 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
     consts.reg_file['x3'] = '0x800030d0'
 
     # Return the final results
-    mem_mem(master_inst_list, ops_dict, miss_address_dict, config, cycle_accurate_config, stage2_dict)
     return ret_dict
 
-
-def mem_mem (master_inst_list, ops_dict, missed_address_dict, config, cycle_accurate_config, stage2_dict):
-    '''
-    Function to calculate the total cycles for memory operations
-    Args:
-        - ops_dict: A dictionary with the operations as keys and a list of
-            InstructionEntry objects as values.
-        
-        Returns:
-            - A dictionary with the operations as keys and the total cycles as values.
-    '''
-
-
-    data_cache_capacity = cycle_accurate_config['cycles']['structural_hazards']['data_cache']
-    additional_length = 0
-    overlaping_latency = 0
-    words_in_line = config['profiles']['cfg']['data_cache']['line_size']//4
-    line_num = 0
-    change_in_stage2 = 0
-
-    for entry in master_inst_list:
-        if change_in_stage2 > 0:
-            stage2_dict[line_num] = stage2_dict[line_num] - structural_latency
-            master_inst_list[entry] =  master_inst_list[entry] - structural_latency
-            change_in_stage2 = 0
-        line_num += 1
-        if entry in ops_dict['loads'] or entry in ops_dict['stores']:
-
-            # checking first mem inst is a miss
-            if line_num in missed_address_dict:
-
-                if (additional_length - (overlaping_latency + miss_address_dict[line_num])) > 0:
-                    structural_latency = additional_length - overlaping_latency
-                    if entry in ops_dict['loads']:
-                        ops_dict['loads'][entry] += structural_latency
-                        master_inst_list[entry] += structural_latency
-                        if (line_num+1 in stage2_dict) and (stage2_dict[line_num+1] - structural_latency) > 0:
-                            change_in_stage2 = stage2_dict[line_num+1] - ops_dict['loads'][entry]
-                            
-
-                    else:
-                        ops_dict['stores'][entry] += structural_latency
-                        master_inst_list[entry] += structural_latency
-                        if (line_num+1 in stage2_dict) and (stage2_dict[line_num+1] - structural_latency) > 0:
-                            change_in_stage2 = stage2_dict[line_num+1] - ops_dict['stores'][entry]
-                            
-
-
-                additional_length = words_in_line - data_cache_capacity
-                overlaping_latency = 0
-
-            else:
-
-                    
-                if (additional_length - overlaping_latency) > 0:
-                    structural_latency = additional_length - overlaping_latency
-                    # print(additional_length - overlaping_latency)
-                    if entry in ops_dict['loads']:
-                        ops_dict['loads'][entry] += structural_latency
-                        master_inst_list[entry] += structural_latency
-                        if (line_num+1 in stage2_dict) and (stage2_dict[line_num+1] - structural_latency) > 0:
-                            change_in_stage2 = stage2_dict[line_num+1] - ops_dict['loads'][entry]
-                           
-                    else:
-                        ops_dict['stores'][entry] += structural_latency
-                        master_inst_list[entry] += structural_latency
-                        if (line_num+1 in stage2_dict) and (stage2_dict[line_num+1] - structural_latency) > 0:
-                            change_in_stage2 = stage2_dict[line_num+1] - ops_dict['stores'][entry]
-                            
-                    additional_length = 0
-                    overlaping_latency = 0
-
-        else:
-            overlaping_latency += master_inst_list[entry]
-
-                    
-
-                
-
-                
-            
-    
-    
