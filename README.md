@@ -40,6 +40,8 @@ spike --log-commits <path-to-binary>
 To profile an application, run:
 ```shell
 riscv_application_profiler profile --log <path-to-log> --output <path-to-output-directory> --config <path-to-config-file> config.yaml
+or
+riscv_application_profiler profile --log <path-to-log> --output <path-to-output-directory> --config <path-to-config-file> config.yaml --cycle_accurate_config <path-to-config-file> config.yaml
 ```
 
 Command line arguements:
@@ -54,6 +56,8 @@ Example:
 
 ```shell
 riscv_application_profiler profile --log ./tests/hello.log --output ./build --config ./sample_config/config.yaml 
+or
+riscv_application_profiler profile --log ./tests/hello.log --output ./build --config ./sample_config/config.yaml --cycle_accurate_config ./azurite_config/ca1.yaml 
 ```
 
 **Note**: The log file should be an execution log generated using spike as of today. Support for configuring log formats will be added in the future.
@@ -71,6 +75,7 @@ Lists:
 - Presence of Nested Loops.
 - Store-Load bypass.
 - Presence of RAW dependencies.
+- Pattern detection for custom instructions.
 
 Histogram for:
 - RegisterFile (XRF/FRF) usage.
