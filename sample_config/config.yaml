@@ -1,38 +1,38 @@
 profiles:
   cfg:
-    isa: RV64IMFDCBZicsr
-    metrics:
-      # branch_ops:
-      #   group_by_branch_offset:
-      #     - Grouping Branchs by Offset Size.
-      #   group_by_branch_sign:
-      #     - Grouping Branchs by Direction.
-      #   loop_compute:
-      #     - Nested loop computation.
-      # register_compute:
-      #   register_compute:
-      #     - Register computation.
-      #   fregister_compute:
-      #     - Floating point register computation.
-      # jumps_ops:
-      #   jumps_compute:
-      #     - Grouping jumps by jump direction.
-      #   jump_size:
-      #     - Grouping jumps by jump size.
+    isa: RV64IMFDCZicsr
+    metrics:   # Metrics such as grouping instructs by operation and privledge mode are hard coded in the profiler.py file as the input to these functions is the commit log. 
+      branch_ops:
+        group_by_branch_offset:
+          - Grouping Branchs by Offset Size.
+        group_by_branch_sign:
+          - Grouping Branchs by Direction.
+        loop_compute:
+          - Nested loop computation.
+      register_compute:
+        register_compute:
+          - Register computation.
+        fregister_compute:
+          - Floating point register computation.
+      jumps_ops:
+        jumps_compute:
+          - Grouping jumps by jump direction.
+        jump_size:
+          - Grouping jumps by jump size.
       cache:
         data_cache_simulator:
           - Data cache utilization.
         instruction_cache_simulator:
           - Instruction cache utilization.
-      # dependency:
-      #   raw_compute:
-      #     - RAW dependency Computation.
+      dependency:
+        raw_compute:
+          - RAW dependency Computation.
       csr_compute:
         csr_compute:
           - CSR computation.
-      # store_load_bypass:
-      #   store_load_bypass:
-      #     - Store load bypass Computation.
+      store_load_bypass:
+        store_load_bypass:
+          - Store load bypass Computation.
       pattern:
         group_by_pattern:
           - Pattern computation.
@@ -44,15 +44,38 @@ profiles:
       range:
         start: 0x80000000
         end: 0x8fffffff
-      no_of_sets : 64
+      no_of_sets : 8
       no_of_ways : 4
       line_size : 32
+      replacement_policy: "FIFO" #round robin
+      write_back : True # false for write through
+      write_allocate : True # false for write no allocate
       structural_latency: 7 #number of words - 1
     instr_cache:
       range:
         start: 0x80000000
         end: 0x8fffffff
-      no_of_sets : 64
+      no_of_sets : 8
       no_of_ways : 4
       line_size : 32
+      replacement_policy: "LFSR"
+      write_back : True # false for write through
+      write_allocate : True # false for write no allocate
       structural_latency: 7 #number of words - 1
+    l2_cache:
+      range:
+        start: 0x80000000
+        end: 0x8fffffff
+      no_of_sets : 8
+      no_of_ways : 4
+      line_size : 32
+      replacement_policy: "LFSR"
+      write_back : True # false for write through
+      write_allocate : True # false for write no allocate
+      structural_latency: 7 #number of words - 1
+    stack_pointer: 0x80000000
+    global_pointer: 0x80000000
+
+  # interface:
+    # L1: cache_line
+    # L2: 32 bits

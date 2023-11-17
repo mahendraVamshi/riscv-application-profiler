@@ -1,31 +1,61 @@
+# cycle accurate profiling
 profiles:
   cfg:
-    isa: RV32I
-    metrics:
-      # - instr_groups
-      - branch_ops:
-        offsets:
-          inputs:
-            - inst_list
-            - threshold
-          outputs:
-            - 
-            -
-        sign:
-          inputs:
-            - inst_list
-            - threshold
-          outputs:
-            - 
-            -
-      - cache:
+    isa: RV64IMFDCZicsr
+    metrics:    # Metrics such as grouping instructs by operation and privledge mode are hard coded in the profiler.py file as the input to these functions is the commit log. However, the metrics such as grouping instructs by CSRs and cache computation is mandatory for a cycle accurate profiling. Therefore it's hard coded in the profiler.py file.
+      branch_ops:
+        group_by_branch_offset:
+          - Grouping Branchs by Offset Size.
+        group_by_branch_sign:
+          - Grouping Branchs by Direction.
+        loop_compute:
+          - Nested loop computation.
+      register_compute:
+        register_compute:
+          - Register computation.
+        fregister_compute:
+          - Floating point register computation.
+      jumps_ops:
+        jumps_compute:
+          - Grouping jumps by jump direction.
+        jump_size:
+          - Grouping jumps by jump size.
+      dependency:
+        raw_compute:
+          - RAW dependency Computation.
+      store_load_bypass:
+        store_load_bypass:
+          - Store load bypass Computation.
+      pattern:
+        group_by_pattern:
+          - Pattern computation.
+    commitlog_regex : '^core\s+\d+:\s+(\d*)\s+(0x[0-9a-fA-F]+)\s+\((0x[0-9a-fA-F]+)\)\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?\s*(x[0-9]*)?(c[0-9]+[_a-z]*)?(mem)?\s*(0x[0-9a-fA-F]*)?'
+    privilege_mode_regex : '^core\s+\d+:\s+(\d+)'
+    uarch:
+      bypass_depth: 2
+    data_cache:
+      range:
+        start: 0x80000000
+        end: 0x8fffffff
+      no_of_sets : 64
+      no_of_ways : 4
+      line_size : 32
+      replacement_policy: "FIFO" #round robin
+      write_back : True # false for write through
+      write_allocate : True # false for write no allocate
+      structural_latency: 7 #number of words - 1
+    instr_cache:
+      range:
+        start: 0x80000000
+        end: 0x8fffffff
+      no_of_sets : 64
+      no_of_ways : 4
+      line_size : 32
+      replacement_policy: "LFSR"
+      write_back : True # false for write through
+      write_allocate : True # false for write no allocate
+      structural_latency: 7 #number of words - 1
 
-      - cache
-      - dependency
-      - jumps_ops
-      - register_compute
-      - csr_compute
-      - store_load_bypass
-      - pattern
-    commitlog_regex : '^instretire:\s+(\d+)\s+([a-fA-F0-9]+)\s+([a-fA-F0-9]+)'
-    privilege_mode_regex : '^core\\s+\\d+:\\s+(\\d+)'
+  # interface:
+    # L1: cache_line
+    # L2: 32 bits
