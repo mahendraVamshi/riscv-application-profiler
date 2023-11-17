@@ -15,7 +15,7 @@ def verify(check):
         for line in check_file:
             match = re.match('\[\s+(\d+)\]', line)
             if match is not None:
-                # Extract the privilege mode value from the regex match.
+
                 x = int(match.group(1))
                 if x is not None:
                     count += x
@@ -24,7 +24,7 @@ def verify(check):
     print(count//10)
 
 def modi(check, mast_dict):
-    with open(check, 'r') as check_file, open("mine.txt", 'w') as mine:
+    with open(check, 'r') as check_file, open("mine.txt", 'w') as mine, open("error.txt", 'w') as error:
         l = list(mast_dict.values())
         l1 = list(mast_dict.keys())
         for idx,line in enumerate(check_file):
@@ -32,3 +32,16 @@ def modi(check, mast_dict):
             entry = l1[idx]
             n_line = line+ '\t'+ '--------    ' + entry.instr_name + '\t'+ '['+str(l[idx])+']'
             mine.writelines(n_line+'\n')
+            match = re.match('\[\s+(\d+)\]', line)
+            if match is not None:
+                x = (int(match.group(1)))//10
+                if x is not None:
+                    if x != l[idx]:
+                        error.writelines(n_line+'\n')
+                        error.writelines('Expected: '+str(l[idx])+'\n')
+                        error.writelines('Actual: '+str(x)+'\n')
+                        error.writelines('Difference: '+str(l[idx]-x)+'\n')
+                        error.writelines('Line number: '+str(idx + 1)+'\n')
+                        error.writelines('-----------------------------\n')
+                     
+            
