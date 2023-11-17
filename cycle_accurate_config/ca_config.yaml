@@ -1,0 +1,37 @@
+#L1 and L2 cache
+
+cycles:
+  # start_cycles: 100
+  instructions_cycles:
+    instructions_cycles:
+    {add: 
+      {latency : 1,
+      throughput : 1},
+    sub:
+      {latency : 1,
+      throughput : 1},
+    mul:  
+      {latency : 4,
+      throughput : 4},
+    div:
+      {latency : 16,
+      throughput : 16},
+    rem:
+      {latency : 16,
+      throughput : 16},
+    csr:
+      {latency : 1,
+      throughput : 1},
+    s(a-z)l*:
+      {latency : 1,
+      throughput : 1},
+    s(a-z)r*:
+      {latency : 1,
+      throughput : 1},
+    j:
+      {latency : 1,
+      throughput : 1},
+    c.:
+      {latency : 1,
+      throughput : 1}
+      }
