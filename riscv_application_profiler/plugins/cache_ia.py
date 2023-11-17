@@ -27,16 +27,21 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
     ret_dict = {'Data Cache': [f'{op}' for op in cache_list], 'Utilization(%)': []}
 
     # Setting up memory and cache parameters
-    mem = MainMemory()
-    no_of_sets = 64
-    no_of_ways = 4
-    line_size = 64
+    no_of_sets = config['profiles']['cfg']['data_cache']['no_of_sets']
+    no_of_ways = config['profiles']['cfg']['data_cache']['no_of_ways']
+    line_size = config['profiles']['cfg']['data_cache']['line_size']
+    replacement_policy = config['profiles']['cfg']['data_cache']['replacement_policy']
+    total_cache_line = no_of_sets * no_of_ways
+    number_of_words_in_line = line_size//4 # line size in byptes / 4 bytes (word size)
 
     # Creating the L1 cache
-    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, "RR")
+    mem = MainMemory()
+    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, replacement_policy)
     mem.load_to(l1)
     mem.store_from(l1)
     cs = CacheSimulator(l1, mem)
+    # Initializing minimum and maximum utilization
+
 
     # Initializing minimum and maximum utilization
     min_util = max_util = cs.count_invalid_entries('L1')
@@ -120,10 +125,10 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
     logger.info("Instruction Cache Statistics:")
 
     # Setting up memory and cache parameters
-    mem = MainMemory()
-    no_of_sets = 64
-    no_of_ways = 4
-    line_size = 64
+    no_of_sets = config['profiles']['cfg']['instr_cache']['no_of_sets']
+    no_of_ways = config['profiles']['cfg']['instr_cache']['no_of_ways']
+    line_size = config['profiles']['cfg']['instr_cache']['line_size']
+    replacement_policy = config['profiles']['cfg']['instr_cache']['replacement_policy']
 
     # List of cache levels and dictionary to store cache utilization information
     cache_list = ['Level 1']
@@ -133,11 +138,11 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
     ret_dict = {'Instruction Cache': [f'{op}' for op in cache_list], 'Utilization(%)': []}
 
     # Creating the L1 instruction cache
-    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, "LRU")
+    mem = MainMemory()
+    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, replacement_policy)
     mem.load_to(l1)
     mem.store_from(l1)
     cs = CacheSimulator(l1, mem)
-
     # Initializing minimum and maximum utilization
     min_util = max_util = cs.count_invalid_entries('L1')
 

@@ -72,7 +72,7 @@ def csr_compute(master_inst_list: list, ops_dict: dict, extension_used: list, co
                             csr[csr_reg]['read'] += 1
                             csr[csr_reg]['write'] += 1
                             prev_inst_csr = csr[csr_reg]
-        else:
+        elif cycle_accurate_config != None:
             if prev_inst_csr != None:
                 for op in ops_dict.keys():
                     if entry in ops_dict[op]:
