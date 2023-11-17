@@ -2,7 +2,7 @@
 profiles:
   cfg:
     isa: RV64IMFDCZicsr
-    metrics:    # Metrics such as grouping instructs by operation and privledge mode are hard coded in the profiler.py file as the input to these functions is the commit log. However, the metrics such as grouping instructs by CSRs and cache computation is mandatory for a cycle accurate profiling. Therefore it's hard coded in the profiler.py file.
+    metrics:    # Metrics such as grouping instructs by operation and privledge mode are hard coded in the profiler.py file as the input to these functions is the commit log. However, the metrics such as grouping instructs by CSRs and cache computation is mandatory for a cycle accurate profiling.
       branch_ops:
         group_by_branch_offset:
           - Grouping Branchs by Offset Size.
@@ -23,6 +23,12 @@ profiles:
       dependency:
         raw_compute:
           - RAW dependency Computation.
+      csr_compute: # mandatory
+        csr_compute:
+          - CSR computation.
+      cache_exp: # mandatory
+        cache_simulator:
+          - Cache utilization.
       store_load_bypass:
         store_load_bypass:
           - Store load bypass Computation.
