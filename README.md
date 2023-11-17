@@ -17,7 +17,7 @@ pip install -e .
 ```
 
 ```shell
-git clone https://github.com/mahendraVamshi/riscv-application-profiler.git
+git clone https://github.com/mahendraVamshi/riscv-application-profiler.git -b vamshi
 cd riscv-application-profiler
 pip install -e .
 ```
