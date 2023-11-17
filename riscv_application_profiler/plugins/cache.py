@@ -1,18 +1,15 @@
 from cachesim import CacheSimulator, Cache, MainMemory, CacheVisualizer
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
-import riscv_application_profiler.plugins.cache_config as cache_config
+import itertools
+import collections
+import cachesim
+import inspect
 
 miss_address_dict = dict()
-hit_address_dict = dict()
 miss_inst_dict = dict()
-stage2_dict = dict()
 stage1_dict = dict()
-data_cache_status = dict()
-mem_mem_dict = dict()
-setup = list()
-
-# separate functions to compute data cache and instruction cache
+stage2_dict = dict()
 
 def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
@@ -33,49 +30,42 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
     cache_list = ['Level 1']
 
     # Dictionary to store cache utilization information
-    cache_dict = {"data_l1": {'max utilization(%)': 0, "avg utilization": 0} }
-
-    total_util = 0
-    cache_util_list = []
+    cache_dict = {l: {'utilization(%)': 0} for l in cache_list}
 
     # Dictionary to store the final results
-    ret_dict = {'Data Cache': ['Level 1'], 'Maximum Utilization(%)': [], 'Average Utilization': []}
-    # mem,cs,l1 = cache_setup('data', config)
+    ret_dict = {'Data Cache': [f'{op}' for op in cache_list], 'Utilization(%)': []}
 
-
+    # Setting up memory and cache parameters
+    mem = MainMemory()
     no_of_sets = config['profiles']['cfg']['data_cache']['no_of_sets']
     no_of_ways = config['profiles']['cfg']['data_cache']['no_of_ways']
     line_size = config['profiles']['cfg']['data_cache']['line_size']
-    replacement_policy = config['profiles']['cfg']['data_cache']['replacement_policy']
-    total_cache_line = no_of_sets * no_of_ways
-    number_of_words_in_line = line_size//4 # line size in byptes / 4 bytes (word size)
-
+    cache_lines = no_of_sets * no_of_ways
 
     # Creating the L1 cache
-    mem = MainMemory()
-    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, replacement_policy)
+    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, "RR")
     mem.load_to(l1)
     mem.store_from(l1)
     cs = CacheSimulator(l1, mem)
     # Initializing minimum and maximum utilization
-    min_util = max_util = cs.count_invalid_entries("L1")
+    min_util = max_util = cs.count_invalid_entries()
 
     additional_cycle = 0
     prev_hits = l1.backend.HIT_count
 
     prev_misses = l1.backend.MISS_count
 
+    address_set = set()
     cacheable_data_start = int(config['profiles']['cfg']['data_cache']['range']['start'])
     cacheable_data_end = int(config['profiles']['cfg']['data_cache']['range']['end'])
     cacheable_instr_start = int(config['profiles']['cfg']['instr_cache']['range']['start'])
     cacheable_instr_end = int(config['profiles']['cfg']['instr_cache']['range']['end'])
 
-    hit_address_line_num = miss_address_line_num = 0
-    last_mem_line_no = 0
-    mem_mem_delay = 0
     
-    dirty_lines_set = set() # to keep track of dirty lines
-    line_num = 0 # to keep track of instruction/line number
+
+    depth = 0
+    dirty_lines_set = set()
+    line_num = 0
     # Loop through instructions
     for i in master_inst_list:
         line_num += 1 
@@ -117,28 +107,18 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
             # clearing the dirty lines set as cache is empty after fence instruction
             dirty_lines_set.clear()
 
-        
-
         # Handle load/store instructions
         if i in ops_dict['loads'] or i in ops_dict['stores']:
-                
             # Determine the address based on instruction type
             if 'sp' in i.instr_name:
-                # taking value from x2 as it infers the stack pointer
                 base = int(consts.reg_file['x2'], 16)
             else:
-                rs = str(i.rs1[1]) + str(i.rs1[0]) # gives the register name which is used as base address
+                rs = str(i.rs1[1]) + str(i.rs1[0])
                 base = int(consts.reg_file.get(rs, consts.freg_file.get(rs, '0x0')), 16)
-                    
-            # check if immediate value is present
             if i.imm is None:
                 address = base
             else:
                 address = base + i.imm
-            # print (i, hex(address), hex(base))
-
-            last_mem_line_no = line_num
-
             # Determine the byte length for the operation
             if ('d' in i.instr_name):
                 byte_length = 8
@@ -148,171 +128,85 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
                 byte_length = 2
             elif ('b' in i.instr_name):
                 byte_length = 1
+
+            address_set.add(address)
+            
             # Handle load and store operations
             if i in ops_dict['loads']  :
                 if (i.instr_addr >= cacheable_instr_start and i.instr_addr <= cacheable_instr_end) and (address >= cacheable_data_start and address <= cacheable_data_end):
-                    # checking if the address is in cacheable range
-                    cs.load(address, byte_length)
-                    if prev_misses < l1.backend.MISS_count:
-
-                        # checking if it's a miss, l1.backend.MISS_count is incremented after a store only when it's a miss
-                        ops_dict['loads'][i] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['miss'] 
-                        master_inst_list[i] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['miss'] 
-                        stage2_dict[line_num] = master_inst_list[i]
-
-                        if line_num - miss_address_line_num > 0 and miss_address_line_num != 0:
-                            if (line_num - miss_address_line_num) < number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache']:
-                                for add_len in range(line_num - miss_address_line_num):
-                                    # keeping track of how many instructions will data cahe be busy in cse it's a miss, considering each fill takes one cycle
-                                    data_cache_status[miss_address_line_num+add_len] = number_of_words_in_line - add_len
-                                master_inst_list[i] = master_inst_list[i] + (number_of_words_in_line - (line_num - miss_address_line_num))
-                                ops_dict['loads'][i] = ops_dict['loads'][i] + (number_of_words_in_line - (line_num - miss_address_line_num))
-                                mem_mem_dict[line_num] = (number_of_words_in_line - (line_num - miss_address_line_num))
-
-                        miss_address_line_num = line_num
-
-                        data_cache_status[line_num] = number_of_words_in_line
-
-                        # keeping track of instructions that cused a data cache miss and the instruction number
-                        miss_address_dict[line_num] = i
-
-                        if line_num == 479:
-                            print(i, hex(address), hex(base), master_inst_list[i])
-                            print(data_cache_status)
-
-                    elif prev_hits <= l1.backend.HIT_count:
-                        # checking if it's a hit, l1.backend.HIT_count is incremented or remains same after a store only when it's a hit
-                        ops_dict['loads'][i] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['hit'] 
-                        master_inst_list[i] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['hit'] 
-                        stage2_dict[line_num] = master_inst_list[i]
-                        hit_address_line_num = line_num
-                        if hit_address_line_num - miss_address_line_num > 0 and miss_address_line_num != 0:
-                            # data cache will complete writing in the instruction causes a hit in the data cache
-                            if (hit_address_line_num - miss_address_line_num) < number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache']:
-                                for add_len in range(hit_address_line_num - miss_address_line_num):
-                                    # keeping track of how many instructions will data cahe be busy in cse it's a miss, considering each fill takes one cycle
-                                    data_cache_status[miss_address_line_num+add_len] = number_of_words_in_line - add_len
-                                master_inst_list[i] = master_inst_list[i] + (number_of_words_in_line - (hit_address_line_num - miss_address_line_num))
-                                ops_dict['loads'][i] = ops_dict['loads'][i] + (number_of_words_in_line - (hit_address_line_num - miss_address_line_num)) 
-                                mem_mem_dict[line_num] = (number_of_words_in_line - (hit_address_line_num - miss_address_line_num))
-                            else:
-                                for add_len in range(number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache']):
-                                    # keeping track of how many instructions will data cahe be busy in cse it's a miss, considering each fill takes one cycle
-                                    data_cache_status[miss_address_line_num+add_len] = number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache'] - add_len
-                            miss_address_line_num = 0
-
-                    # calculating the dirty line using cache line id
+                    
                     cl_id = address >> cs.last_level.backend.cl_bits
-                    set_id = cl_id % no_of_sets
-                    way_id = cl_id % no_of_ways
+                    set_id = cl_id % cs.last_level.backend.sets
+                    way_id = cl_id % cs.last_level.backend.ways
                     dirty_line = (set_id*no_of_ways) + way_id
                     dirty_lines_set.add(dirty_line+1)
+
+                    cs.load(address, byte_length)
+                    if prev_hits < l1.backend.HIT_count:
+                        additional_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['hit'] - 1
+                    elif prev_misses < l1.backend.MISS_count:
+                        additional_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['miss'] - 1
+                        miss_address_dict[line_num] = i
+                    else:
+                        additional_cycle = 0
                 else:
-                    # all non cacheable address access is a miss
-                    ops_dict['loads'][i] = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss']
-                    master_inst_list[i] = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss']
+                    additional_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['miss'] - 1
+                ops_dict['loads'][i] = ops_dict['loads'][i] + additional_cycle
+                master_inst_list[i] = master_inst_list[i] + additional_cycle
                     
 
             elif i in ops_dict['stores'] :
                 if(i.instr_addr >= cacheable_instr_start and i.instr_addr <= cacheable_instr_end) and (address >= cacheable_data_start and address <= cacheable_data_end):
-                    # checking if the address is in cacheable range\
-                    cs.store(address, byte_length)
 
-                    if prev_misses < l1.backend.MISS_count:
-
-                        # checking if it's a miss, l1.backend.MISS_count is incremented after a store only when it's a miss
-                        ops_dict['stores'][i] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['miss'] 
-                        master_inst_list[i] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['miss'] 
-                        stage2_dict[line_num] = master_inst_list[i]
-
-                        if line_num - miss_address_line_num > 0 and miss_address_line_num != 0:
-                            if (line_num - miss_address_line_num) < number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache']:
-                                for add_len in range(line_num - miss_address_line_num):
-                                    # keeping track of how many instructions will data cahe be busy in cse it's a miss, considering each fill takes one cycle
-                                    data_cache_status[miss_address_line_num+add_len] = number_of_words_in_line - add_len
-                                master_inst_list[i] = master_inst_list[i] + (number_of_words_in_line - (line_num - miss_address_line_num))
-                                ops_dict['stores'][i] = ops_dict['stores'][i] + (number_of_words_in_line - (line_num - miss_address_line_num))
-                                mem_mem_dict[line_num] = (number_of_words_in_line - (line_num - miss_address_line_num))
-
-                        miss_address_line_num = line_num
-
-                        data_cache_status[line_num] = number_of_words_in_line
-
-                        # keeping track of instructions that cused a data cache miss and the instruction number
-                        miss_address_dict[line_num] = i
-
-                        if line_num == 506:
-                            print(i, hex(address), hex(base), ops_dict['stores'][i], master_inst_list[i])
-                            print(data_cache_status)
-
-                    elif prev_hits <= l1.backend.HIT_count:
-                        # checking if it's a hit, l1.backend.HIT_count is incremented or remains same after a store only when it's a hit
-                        ops_dict['stores'][i] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['hit'] 
-                        master_inst_list[i] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['hit'] 
-                        stage2_dict[line_num] = master_inst_list[i]
-                        hit_address_line_num = line_num
-                        if hit_address_line_num - miss_address_line_num > 0 and miss_address_line_num != 0:
-                            # data cache will complete writing in the instruction causes a hit in the data cache
-                            if (hit_address_line_num - miss_address_line_num) < number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache']:
-                                for add_len in range(hit_address_line_num - miss_address_line_num):
-                                    # keeping track of how many instructions will data cahe be busy in cse it's a miss, considering each fill takes one cycle
-                                    data_cache_status[miss_address_line_num+add_len] = number_of_words_in_line - add_len
-                                master_inst_list[i] = master_inst_list[i] + (number_of_words_in_line - (hit_address_line_num - miss_address_line_num))
-                                ops_dict['stores'][i] = ops_dict['stores'][i] + (number_of_words_in_line - (hit_address_line_num - miss_address_line_num)) 
-                                mem_mem_dict[line_num] = (number_of_words_in_line - (hit_address_line_num - miss_address_line_num))
-                            else:
-                                for add_len in range(number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache']):
-                                    # keeping track of how many instructions will data cahe be busy in cse it's a miss, considering each fill takes one cycle
-                                    data_cache_status[miss_address_line_num+add_len] = number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache'] - add_len
-                            miss_address_line_num = 0
-
-                    # calculating the dirty line using cache line id
                     cl_id = address >> cs.last_level.backend.cl_bits
-                    set_id = cl_id % no_of_sets
-                    way_id = cl_id % no_of_ways
+                    set_id = cl_id % cs.last_level.backend.sets
+                    way_id = cl_id % cs.last_level.backend.ways
                     dirty_line = (set_id*no_of_ways) + way_id
                     dirty_lines_set.add(dirty_line+1)
 
+                    cs.store(address, byte_length)
+                    if prev_hits < l1.backend.HIT_count:
+                        additional_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['hit'] - 1
+                    elif prev_misses < l1.backend.MISS_count:
+                        additional_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['miss'] - 1
+                        miss_address_dict[line_num] = i
+                    else:
+                        additional_cycle = 0
                 else:
-                    # all non cacheable address access is a miss
-                    ops_dict['stores'][i] = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss']
-                    master_inst_list[i] = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss']
+                    additional_cycle = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss'] - 1
+                ops_dict['stores'][i] = ops_dict['stores'][i] + additional_cycle
+                master_inst_list[i] = master_inst_list[i] + additional_cycle
             
-            
-            
-            # keeping track of previous hits and misses, used for knowing the current address is a hit or a miss
             prev_hits = l1.backend.HIT_count 
             prev_misses = l1.backend.MISS_count
 
             # Update current utilization and track min/max values
-            this_util = cs.count_invalid_entries("L1")
+            this_util = cs.count_invalid_entries()
             max_util = max(max_util, this_util)
             min_util = min(min_util, this_util)
 
         # Handle register commits
         if i.reg_commit and i.reg_commit[1] != '0':
-            consts.reg_file[f'x{int(i.reg_commit[1])}'] = i.reg_commit[2] 
+            consts.reg_file[f'x{i.rd[0]}'] = i.reg_commit[2]
 
     # Print cache statistics
     cs.print_stats()
     # Calculate total utilization percentages
     max_util *= line_size
     min_util *= line_size
-    temp_total_util = ((max_util - min_util) / max_util) * 100
-    cache_util_list.append(temp_total_util)
-    if temp_total_util > total_util:
-        total_util = temp_total_util
+    total_util = ((max_util - min_util) / max_util) * 100
 
     # Update cache utilization information
-    cache_dict['data_l1']['max utilization(%)'] = total_util
-    cache_dict['data_l1']['avg utilization'] = sum(cache_util_list)/len(cache_util_list)
-    ret_dict['Maximum Utilization(%)'] = [cache_dict['data_l1']['max utilization(%)']]
-    ret_dict['Average Utilization'] = [cache_dict['data_l1']['avg utilization']]
+    cache_dict['Level 1']['utilization(%)'] = total_util
+    ret_dict['Utilization(%)'] = [cache_dict[cache]['utilization(%)'] for cache in cache_list]
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
     consts.reg_file['x2'] = '0x800030d0'
     consts.reg_file['x3'] = '0x800030d0'
+
+
+    
 
     # Return the final results
     return ret_dict
@@ -334,35 +228,29 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
     logger.info("Instruction Cache Statistics:")
 
     # Setting up memory and cache parameters
+    mem = MainMemory()
     no_of_sets = config['profiles']['cfg']['instr_cache']['no_of_sets']
     no_of_ways = config['profiles']['cfg']['instr_cache']['no_of_ways']
     line_size = config['profiles']['cfg']['instr_cache']['line_size']
-    replacement_policy = config['profiles']['cfg']['instr_cache']['replacement_policy']
-    number_of_words_in_line = line_size//4 # line size in byptes / 4 bytes (word size)
-
 
     # List of cache levels and dictionary to store cache utilization information
     cache_list = ['Level 1']
-    cache_dict = {"instr_l1": {'max utilization(%)': 0, "avg utilization": 0} }
-
-
-    total_util = 0
-    cache_util_list = []
+    cache_dict = {l: {'utilization(%)': 0} for l in cache_list}
 
     # Dictionary to store the final results
-    ret_dict = {'Instruction Cache': ['Level 1'], 'Maximum Utilization(%)': [], 'Average Utilization': []}
-
+    ret_dict = {'Instruction Cache': [f'{op}' for op in cache_list], 'Utilization(%)': []}
 
     # Creating the L1 instruction cache
-    mem = MainMemory()
-    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, replacement_policy)
+    l1 = Cache("L1", no_of_sets, no_of_ways, line_size, "LRU")
     mem.load_to(l1)
     mem.store_from(l1)
     cs = CacheSimulator(l1, mem)
 
     # Initializing minimum and maximum utilization
-    min_util = max_util = cs.count_invalid_entries("L1")
+    min_util = max_util = cs.count_invalid_entries()
 
+    # Fixed byte length for instruction loading
+    byte_length = 4
 
     # Loop through master instruction list
     prev_hits = l1.backend.HIT_count
@@ -371,11 +259,8 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
     fetch_cycle = 0
     cacheable_start = int(config['profiles']['cfg']['instr_cache']['range']['start'])
     cacheable_end = int(config['profiles']['cfg']['instr_cache']['range']['end'])
-    # keeping track of instruction/line number
     line_num = 0
-    keys_to_delete = {}
-    # print(data_cache_status)
-    
+
     for entry in master_inst_list:
 
         # Handle fence instructions
@@ -392,117 +277,40 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
             min_util = max_util = cs.count_invalid_entries()
             prev_hits = l1.backend.HIT_count
             prev_misses = l1.backend.MISS_count
-
-            # flushing of pipeline
-            # DEBUG
-            prev_instr_fencei = entry.instr_name
-            
-        # Determine the byte length for the operation
-        if 'c.' in entry.instr_name:
-            # compressed instructions are 2 bytes
-            byte_length = 2
-        else:
-            # all other instructions are 4 bytes
-            byte_length = 4
-
         line_num += 1
-        stage1_dict[line_num] = 0 # to keep track of stage1 cycles
-
-        # straddle check variables, stradde delay gives extra cycles when straddele occurs
-        straddle_check_hit = straddle_check_miss = straddle_delay = 0 
-
+        stage2_dict[line_num] = 0
         # Load instruction address into the cache
         if (entry.instr_addr >= cacheable_start and entry.instr_addr <= cacheable_end):
-            # checking if the instruction address is in cacheable range
-            
             cs.load(entry.instr_addr, byte_length)
-            
             if prev_hits < l1.backend.HIT_count:
-                # checking if it's a hit, l1.backend.HIT_count is incremented after a load only when it's a hit
-                fetch_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['instruction']['hit']
-                # when straddle occurs, and it's a hit then it's a hit in two cache lines. Therefore straddle_check_hit get's incremented by 2
-                # There might be a sdraddle miss then it's a hit on one cahce line and miss on another cache line. Therefore straddle_check_hit get's incremented by 1
-                straddle_check_hit = l1.backend.HIT_count - prev_hits
-                # keeping track of previous hits, used for knowing the current address is a hit or a miss
-                prev_hits = l1.backend.HIT_count  
-
-            # replaced elif with if because of cache line straddling
-            if prev_misses < l1.backend.MISS_count:
-                # checking if it's a miss, l1.backend.MISS_count is incremented after a load only when it's a miss
+                fetch_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['instruction']['hit'] 
+                prev_hits = l1.backend.HIT_count
+            elif prev_misses < l1.backend.MISS_count:
                 fetch_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['instruction']['miss']
-                # when straddle occurs, and it's a miss then it's a miss in two cache lines. Therefore straddle_check_miss get's incremented by 2
-                # There might be a sdraddle hit then it's a miss on one cahce line and hit on another cache line. Therefore straddle_check_miss get's incremented by 1
-                straddle_check_miss += l1.backend.MISS_count - prev_misses
-                # keeping track of previous misses, used for knowing the current address is a hit or a miss
                 prev_misses = l1.backend.MISS_count
-
-            if straddle_check_hit == 1 and straddle_check_miss == 1:
-                # its straddle and a miss on one line and hit on another line
-                straddle_delay = 2 # delay for the above case
-                fetch_cycle = fetch_cycle + 2
-            elif straddle_check_hit == 2 and straddle_check_miss == 0:
-                # its straddle and a hit on both lines
-                straddle_delay = 1 # delay for the above case
-                fetch_cycle = fetch_cycle + 1
-            elif straddle_check_hit == 0 and straddle_check_miss == 2: # not sure about this case
-                # its straddle and a miss on both lines
-                straddle_delay = 1 
-                fetch_cycle = fetch_cycle + cycle_accurate_config['cycles']['mem_latency']['cacheable']['instruction']['miss'] + 1
-
-            stage1_dict[line_num] = fetch_cycle  
         else:
-            # all non cacheable pc address access is a miss
             fetch_cycle = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['instruction']['miss']
-            
 
-        if line_num in data_cache_status:
-            if fetch_cycle > (data_cache_status[line_num]):
-                aa = 0
-                if data_cache_status[line_num] >= number_of_words_in_line - 1 and (line_num - 1) in data_cache_status:
-                    keys_to_delete[line_num] = data_cache_status[line_num - 1] - 1
-                elif data_cache_status[line_num] < number_of_words_in_line :
-                    keys_to_delete[line_num] = data_cache_status[line_num]
-                for aa in range(1, data_cache_status[line_num]):
-                    if (line_num + aa) in data_cache_status:
-                        if data_cache_status[line_num + aa] >= data_cache_status[line_num]:
-                            break
-                        else:
-                            # keys_to_delete[line_num + aa] = data_cache_status[line_num + aa]
-                            continue
-                if (line_num + aa - 1) in data_cache_status:
-                    
-                    keys_to_delete[line_num + aa] = data_cache_status[line_num + aa - 1] - 1
-
-                # print(keys_to_delete)
-        
-        if line_num in keys_to_delete:
-            if line_num in mem_mem_dict:
-                master_inst_list[entry] = master_inst_list[entry] - keys_to_delete[line_num]
-            elif keys_to_delete[line_num] > cycle_accurate_config['cycles']['mem_latency']['cacheable']['instruction']['hit']:
-                master_inst_list[entry] = master_inst_list[entry] + keys_to_delete[line_num] 
-
-        if (fetch_cycle - prev_last_stage_cycle) > 0 :
-            # checking if fetching of instruction ahs to be stalled
-            # if prev_last_stage_cycle is greater, then fetch will be completed as previous stage is completed
+        if (fetch_cycle - prev_last_stage_cycle) > 0:
             for op in ops_dict.keys():
                 if entry in ops_dict[op]:
-                
                     ops_dict[op][entry] = ops_dict[op][entry] + (fetch_cycle - prev_last_stage_cycle)
                     master_inst_list[entry] = master_inst_list[entry] + (fetch_cycle - prev_last_stage_cycle)
-                    stage1_dict[line_num] = fetch_cycle - prev_last_stage_cycle
 
                     if line_num in miss_address_dict:
                         miss_address_dict[line_num] = master_inst_list[entry]
+                    stage2_dict[line_num] = master_inst_list[entry]
+                    # print (miss_address_dict[line_num])
 
-
-                    # stage2_dict[line_num] = master_inst_list[entry] - stage1_dict[line_num]
-                    prev_last_stage_cycle = master_inst_list[entry] - stage1_dict[line_num]
+                    prev_last_stage_cycle = master_inst_list[entry] - (fetch_cycle - prev_last_stage_cycle)
         else:
             prev_last_stage_cycle = master_inst_list[entry]
+            if line_num in miss_address_dict:
+                miss_address_dict[line_num] = 0
             
         
         # Update current utilization and track min/max values
-        this_util = cs.count_invalid_entries("L1")
+        this_util = cs.count_invalid_entries()
         max_util = max(max_util, this_util)
         min_util = min(min_util, this_util)
 
@@ -513,16 +321,11 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
     # Calculate total utilization percentages
     max_util *= line_size
     min_util *= line_size
-    temp_total_util = ((max_util - min_util) / max_util) * 100
-    cache_util_list.append(temp_total_util)
-    if temp_total_util > total_util:
-        total_util = temp_total_util
+    total_util = ((max_util - min_util) / max_util) * 100
 
     # Update cache utilization information
-    cache_dict['instr_l1']['max utilization(%)'] = total_util
-    cache_dict['instr_l1']['avg utilization'] = sum(cache_util_list)/len(cache_util_list)
-    ret_dict['Maximum Utilization(%)'] = [cache_dict['instr_l1']['max utilization(%)']]
-    ret_dict['Average Utilization'] = [cache_dict['instr_l1']['avg utilization']]
+    cache_dict['Level 1']['utilization(%)'] = total_util
+    ret_dict['Utilization(%)'] = [cache_dict[cache]['utilization(%)'] for cache in cache_list]
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
@@ -530,5 +333,89 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
     consts.reg_file['x3'] = '0x800030d0'
 
     # Return the final results
+    mem_mem(master_inst_list, ops_dict, miss_address_dict, config, cycle_accurate_config, stage2_dict)
     return ret_dict
 
+
+def mem_mem (master_inst_list, ops_dict, missed_address_dict, config, cycle_accurate_config, stage2_dict):
+    '''
+    Function to calculate the total cycles for memory operations
+    Args:
+        - ops_dict: A dictionary with the operations as keys and a list of
+            InstructionEntry objects as values.
+        
+        Returns:
+            - A dictionary with the operations as keys and the total cycles as values.
+    '''
+
+
+    data_cache_capacity = cycle_accurate_config['cycles']['structural_hazards']['data_cache']
+    additional_length = 0
+    overlaping_latency = 0
+    words_in_line = config['profiles']['cfg']['data_cache']['line_size']//4
+    line_num = 0
+    change_in_stage2 = 0
+
+    for entry in master_inst_list:
+        if change_in_stage2 > 0:
+            stage2_dict[line_num] = stage2_dict[line_num] - structural_latency
+            master_inst_list[entry] =  master_inst_list[entry] - structural_latency
+            change_in_stage2 = 0
+        line_num += 1
+        if entry in ops_dict['loads'] or entry in ops_dict['stores']:
+
+            # checking first mem inst is a miss
+            if line_num in missed_address_dict:
+
+                if (additional_length - (overlaping_latency + miss_address_dict[line_num])) > 0:
+                    structural_latency = additional_length - overlaping_latency
+                    if entry in ops_dict['loads']:
+                        ops_dict['loads'][entry] += structural_latency
+                        master_inst_list[entry] += structural_latency
+                        if (line_num+1 in stage2_dict) and (stage2_dict[line_num+1] - structural_latency) > 0:
+                            change_in_stage2 = stage2_dict[line_num+1] - ops_dict['loads'][entry]
+                            
+
+                    else:
+                        ops_dict['stores'][entry] += structural_latency
+                        master_inst_list[entry] += structural_latency
+                        if (line_num+1 in stage2_dict) and (stage2_dict[line_num+1] - structural_latency) > 0:
+                            change_in_stage2 = stage2_dict[line_num+1] - ops_dict['stores'][entry]
+                            
+
+
+                additional_length = words_in_line - data_cache_capacity
+                overlaping_latency = 0
+
+            else:
+
+                    
+                if (additional_length - overlaping_latency) > 0:
+                    structural_latency = additional_length - overlaping_latency
+                    # print(additional_length - overlaping_latency)
+                    if entry in ops_dict['loads']:
+                        ops_dict['loads'][entry] += structural_latency
+                        master_inst_list[entry] += structural_latency
+                        if (line_num+1 in stage2_dict) and (stage2_dict[line_num+1] - structural_latency) > 0:
+                            change_in_stage2 = stage2_dict[line_num+1] - ops_dict['loads'][entry]
+                           
+                    else:
+                        ops_dict['stores'][entry] += structural_latency
+                        master_inst_list[entry] += structural_latency
+                        if (line_num+1 in stage2_dict) and (stage2_dict[line_num+1] - structural_latency) > 0:
+                            change_in_stage2 = stage2_dict[line_num+1] - ops_dict['stores'][entry]
+                            
+                    additional_length = 0
+                    overlaping_latency = 0
+
+        else:
+            overlaping_latency += master_inst_list[entry]
+
+                    
+
+                
+
+                
+            
+    
+    
