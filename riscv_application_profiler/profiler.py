@@ -4,7 +4,6 @@ import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
 from riscv_isac.plugins.spike import *
 from riscv_application_profiler.plugins import instr_groups
-from riscv_application_profiler.plugins import dependency, cache, csr_compute, pattern
 from riscv_application_profiler import verif
 from riscv_application_profiler import plugins
 import riscv_config.isa_validator as isaval
@@ -32,7 +31,7 @@ def print_stats(op_dict, counts):
         logger.info(f'{op}: {counts[op]}')
     logger.info("Done.")
 
-def run(log, isa, output, verbose, config, cycle_accurate_config, check):
+def run(log, isa, output, verbose, config, cycle_accurate_config): #, check):
     from rvop_decoder.rvopcodesdecoder import disassembler
     spike_parser = spike()
     spike_parser.setup(trace=str(log), arch='rv64')
@@ -106,20 +105,23 @@ Value based metrics on branch ops may be inaccurate.")
     utils.tabulate_stats(ret_dict, header_name='Privilege Mode')
 
     if cycle_accurate_config != None:
-        ret_dict = dependency.raw_compute(master_inst_dict, op_dict, extension_list, config, cycle_accurate_config)
-        utils.tabulate_stats(ret_dict, header_name='Raw Compute')
-        ret_dict = cache.data_cache_simulator(master_inst_dict, op_dict, extension_list, config, cycle_accurate_config)
-        utils.tabulate_stats(ret_dict, header_name='Data Cache Simulator')
-        ret_dict = cache.instruction_cache_simulator(master_inst_dict, op_dict, extension_list, config, cycle_accurate_config)
-        utils.tabulate_stats(ret_dict, header_name='Instruction Cache Simulator')
-        ret_dict = csr_compute.csr_compute(master_inst_dict, op_dict, extension_list, config, cycle_accurate_config)
-        utils.tabulate_stats(ret_dict, header_name='CSR Compute')
-        ret_dict = pattern.group_by_pattern(master_inst_dict, op_dict, extension_list, config, cycle_accurate_config)
-        utils.tabulate_stats(ret_dict, header_name='Grouping instructions by Pattern')
+
+        for metric in config['profiles']['cfg']['metrics']:
+            # Finding the new plugin file mentioned in the yaml file
+            spec = importlib.util.spec_from_file_location("plugins", f"riscv_application_profiler/plugins/{metric}.py")
+            # Converting file to a module
+            metric_module = importlib.util.module_from_spec(spec)
+            # Importing the module
+            spec.loader.exec_module(metric_module)
+            
+            for funct in config['profiles']['cfg']['metrics'][metric]:
+                funct_to_call = getattr(metric_module, funct)
+                ret_dict1 = funct_to_call(master_inst_dict, ops_dict=op_dict, extension_used=extension_list, config= config, cycle_accurate_config=cycle_accurate_config)
+                utils.tabulate_stats(ret_dict1, header_name=funct)
+
         # total_cycles = op_dict['total_cycles']
         total_cycles = sum([master_inst_dict[entry] for entry in master_inst_dict]) + cycle_accurate_config['cycles']['reset_cycles']
-        print(total_cycles)
-        verif.modi(check, master_inst_dict)
+        print('Total Cycles: ', total_cycles)
         
     else:
         for metric in config['profiles']['cfg']['metrics']:
@@ -132,5 +134,5 @@ Value based metrics on branch ops may be inaccurate.")
             
             for funct in config['profiles']['cfg']['metrics'][metric]:
                 funct_to_call = getattr(metric_module, funct)
-                ret_dict1 = funct_to_call(master_inst_list=extension_instruction_list, ops_dict=op_dict, extension_used=extension_list, config= config, cycle_accurate_config=cycle_accurate_config)
+                ret_dict1 = funct_to_call(master_inst_dict, ops_dict=op_dict, extension_used=extension_list, config= config, cycle_accurate_config=cycle_accurate_config)
                 utils.tabulate_stats(ret_dict1, header_name=funct)
