@@ -26,9 +26,14 @@ profiles:
       csr_compute: # mandatory
         csr_compute:
           - CSR computation.
-      cache_exp: # mandatory
-        cache_simulator:
-          - Cache utilization.
+      cache:
+        data_cache_simulator:
+          - Data cache utilization.
+        instruction_cache_simulator:
+          - Instruction cache utilization.
+      # cache_exp: # mandatory
+      #   cache_simulator:
+      #     - Cache utilization.
       store_load_bypass:
         store_load_bypass:
           - Store load bypass Computation.

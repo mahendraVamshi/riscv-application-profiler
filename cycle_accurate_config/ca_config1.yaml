@@ -1,8 +1,7 @@
-# Only L1 cache
+
 cycles:
   # start_cycles: 100
   instructions_cycles:
-    instructions_cycles:
     {add: 
       {latency : 1,
       throughput : 1},
@@ -10,14 +9,14 @@ cycles:
       {latency : 1,
       throughput : 1},
     mul:  
-      {latency : 4,
-      throughput : 4},
+      {latency : 1,
+      throughput : 1},
     div:
-      {latency : 16,
-      throughput : 16},
+      {latency : 1,
+      throughput : 1},
     rem:
-      {latency : 16,
-      throughput : 16},
+      {latency : 1,
+      throughput : 1},
     csr:
       {latency : 1,
       throughput : 1},
@@ -35,10 +34,10 @@ cycles:
       throughput : 1}
       }
   flush_cycles:
-    csr: 2 # pipeline_depth - 1 and 1 for csr # check once
+    csr: 1 
     branch: 0
-    fence.i: 2
-  reset_cycles: 100 # internal reset cycles
+    fence.i: 1
+  reset_cycles: 69
   pipeline_depth: 2
   bus_latency: # this is inaccurate
     data: 8
@@ -51,11 +50,11 @@ cycles:
   mem_latency:
     cacheable:
       data:
-        hit: 2
-        miss: 8 # 2 #bus_latency, critical word first #10
+        hit: 1
+        miss: 8 
       instruction:
-        hit: 2
-        miss: 16 # 2 #bus_latency + (size of cache line in bytes /4) eg: 10 + (32/4) = 18
+        hit: 1
+        miss: 8
     non_cacheable:
       data:
         miss: 8 #bus_latency 
