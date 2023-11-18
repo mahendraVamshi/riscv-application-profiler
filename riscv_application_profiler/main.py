@@ -51,7 +51,8 @@ def cli():
 # Expects a string.
 @click.option('-v', '--verbose', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
 
-# remove later
+# if one has files of log along with latency they can enable check option below 
+# required changes for those are commented 
 # @click.option('-ch', '--check', help="Path to the dump file which has cycle latency.", required=False)
 
 def profile(config, log, output, verbose, cycle_accurate_config): #, check):
