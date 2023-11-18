@@ -143,13 +143,13 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
 
             ops_dict['fence'][entry] += total_cache_line # each cache line takes one cycle
             master_inst_list[entry] += total_cache_line
-            
+
             dirty_line_index=1 # used to get the next dirty line
             for cache_line in sorted_dirty_lines_set:
                 if (cache_line + cycle_accurate_config['cycles']['bus_latency']['data'] + (number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache'])) > total_cache_line:
                     # to see if last few lines are dirty , and add cycles accordingly 
                     master_inst_list[entry] += (cache_line + cycle_accurate_config['cycles']['bus_latency']['data'] + (number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache'])) - total_cache_line
-                if (dirty_line_index < len(sorted_dirty_lines_set)) and ((sorted_dirty_lines_set[dirty_line_index] - cache_line) < number_of_words_in_line): # DEBUG: check if it's less than 8 or 18 and how much delay cycles to add
+                if (dirty_line_index < len(sorted_dirty_lines_set)) and ((sorted_dirty_lines_set[dirty_line_index] - cache_line) < number_of_words_in_line): 
                     # to see if there is a gap between dirty lines are less than the number of words in a line(structural hazard)
                     ops_dict['fence'][entry] += (number_of_words_in_line ) - (sorted_dirty_lines_set[dirty_line_index] - cache_line)
                     master_inst_list[entry] += (number_of_words_in_line ) - (sorted_dirty_lines_set[dirty_line_index] - cache_line)

@@ -117,7 +117,7 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict, extension_used: l
         ret_dict['Bypass Width'].append(bypass_dict[address]['bypass_width'])
 
     # Log the completion of the store-load bypass computation.
-    logger.debug('Done.')
+    logger.info('Done.')
 
     # Return the resulting dictionary containing store-load bypass data.
     return ret_dict

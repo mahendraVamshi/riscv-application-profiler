@@ -53,7 +53,7 @@ def register_compute(master_inst_list: list, ops_dict: dict, extension_used: lis
         ret_dict['Reads'].append(regs[reg]['read_count'])
         ret_dict['Writes'].append(regs[reg]['write_count'])
 
-    logger.debug('Done.')
+    logger.info('Done.')
 
     # Return the resulting dictionary containing register read and write counts.
     return ret_dict
@@ -122,7 +122,7 @@ def fregister_compute(master_inst_list: list, ops_dict: dict, extension_used: li
         ret_dict['Writes'].append(regs[reg]['write_count'])
 
     # Log the completion of F_register read and write computation.
-    logger.debug('Done.')
+    logger.info('Done.')
 
     # Return the resulting dictionary containing F_register read and write counts.
     return ret_dict

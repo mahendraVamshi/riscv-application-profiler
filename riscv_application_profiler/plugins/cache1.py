@@ -153,8 +153,6 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
             l2_hit += l2.backend.HIT_count
 
 
-            # DEBUG : flush l1 first and then l2
-
             data_invalid_entries = cs.count_invalid_entries('d_l1')
             data_temp_total_util = ((total_cache_line - data_invalid_entries) / total_cache_line) * 100
             cache_util_list.append(data_temp_total_util)
@@ -183,7 +181,7 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
                 if (cache_line + cycle_accurate_config['cycles']['bus_latency']['data'] + (number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache'])) > total_cache_line:
                     # to see if last few lines are dirty , and add cycles accordingly 
                     master_inst_list[entry] += (cache_line + cycle_accurate_config['cycles']['bus_latency']['data'] + (number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache'])) - total_cache_line
-                if (dirty_line_index < len(l2_dirty_lines)) and ((l2_dirty_lines[dirty_line_index] - cache_line) < number_of_words_in_line): # DEBUG: check if it's less than 8 or 18 and how much delay cycles to add
+                if (dirty_line_index < len(l2_dirty_lines)) and ((l2_dirty_lines[dirty_line_index] - cache_line) < number_of_words_in_line): 
                     # to see if there is a gap between dirty lines are less than the number of words in a line(structural hazard)
                     ops_dict['fence'][entry] += (number_of_words_in_line ) - (l2_dirty_lines[dirty_line_index] - cache_line)
                     master_inst_list[entry] += (number_of_words_in_line ) - (l2_dirty_lines[dirty_line_index] - cache_line)
