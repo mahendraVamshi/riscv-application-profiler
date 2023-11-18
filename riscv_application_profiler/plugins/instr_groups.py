@@ -53,12 +53,15 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
                             matched = False
                             for inst in cycle_accurate_config['cycles']['instructions_cycles']:
                                 if re.match(inst, entry.instr_name) != None:
+                                    # assigning latency to instructions
                                     op_dict[op][entry] = cycle_accurate_config['cycles']['instructions_cycles'][inst]['latency']
                                     master_inst_list[entry] = cycle_accurate_config['cycles']['instructions_cycles'][inst]['latency']
                             
                                     if prev_instr_addr != entry.instr_addr and prev_instr_name == entry.instr_name:
-                                        op_dict[op][entry] -= op_dict[op][prev_instr] - cycle_accurate_config['cycles']['instructions_cycles'][inst]['throughput']
-                                        master_inst_list[entry] -= master_inst_list[prev_instr] - cycle_accurate_config['cycles']['instructions_cycles'][inst]['throughput']
+                                        # checking if curent instr is equal to prev instr in case it can be parallelised
+                                        if (op_dict[op][prev_instr] - cycle_accurate_config['cycles']['instructions_cycles'][inst]['throughput'] > 0):
+                                            op_dict[op][entry] -= op_dict[op][prev_instr] - cycle_accurate_config['cycles']['instructions_cycles'][inst]['throughput']
+                                            master_inst_list[entry] -= master_inst_list[prev_instr] - cycle_accurate_config['cycles']['instructions_cycles'][inst]['throughput']
 
                                     prev_instr = entry
                                     prev_instr_name = entry.instr_name

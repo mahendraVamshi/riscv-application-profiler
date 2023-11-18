@@ -73,6 +73,8 @@ def csr_compute(master_inst_list: list, ops_dict: dict, extension_used: list, co
                             csr[csr_reg]['write'] += 1
                             prev_inst_csr = csr[csr_reg]
         elif cycle_accurate_config != None:
+            # if there's a writing to a csr instr, then we have to flush the pipe
+            # so we have to add those flush instr to the next instruction 
             if prev_inst_csr != None:
                 for op in ops_dict.keys():
                     if entry in ops_dict[op]:

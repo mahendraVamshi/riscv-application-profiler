@@ -22,6 +22,8 @@ def compute_threshold(master_inst_list: list, ops_dict: dict) -> int:
     branch_offsets = [entry.imm for entry in ops_dict['branches'] if entry.imm is not None]
 
     # compute the mean and standard deviation of the branch offsets
+    if len(branch_offsets) == 0:
+        return 0
     mean = statistics.mean(branch_offsets)
     std_dev = statistics.stdev(branch_offsets)
 

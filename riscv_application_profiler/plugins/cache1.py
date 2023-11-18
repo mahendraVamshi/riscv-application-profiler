@@ -147,11 +147,9 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
 
 
             dl1_miss += d_l1.backend.MISS_count 
-            il1_miss += i_l1.backend.MISS_count
             l2_miss += l2.backend.MISS_count
 
             dl1_hit += d_l1.backend.HIT_count
-            il1_hit += i_l1.backend.HIT_count
             l2_hit += l2.backend.HIT_count
 
 
@@ -180,16 +178,16 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
             master_inst_list[entry] += total_cache_line + l2_total_cache_line
 
 
-            j=1 # used to get the next dirty line
+            dirty_line_index=1 # used to get the next dirty line
             for cache_line in l2_dirty_lines:
                 if (cache_line + cycle_accurate_config['cycles']['bus_latency']['data'] + (number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache'])) > total_cache_line:
                     # to see if last few lines are dirty , and add cycles accordingly 
                     master_inst_list[entry] += (cache_line + cycle_accurate_config['cycles']['bus_latency']['data'] + (number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache'])) - total_cache_line
-                if (j < len(l2_dirty_lines)) and ((l2_dirty_lines[j] - cache_line) < number_of_words_in_line): # DEBUG: check if it's less than 8 or 18 and how much delay cycles to add
+                if (dirty_line_index < len(l2_dirty_lines)) and ((l2_dirty_lines[dirty_line_index] - cache_line) < number_of_words_in_line): # DEBUG: check if it's less than 8 or 18 and how much delay cycles to add
                     # to see if there is a gap between dirty lines are less than the number of words in a line(structural hazard)
-                    ops_dict['fence'][entry] += (number_of_words_in_line ) - (l2_dirty_lines[j] - cache_line)
-                    master_inst_list[entry] += (number_of_words_in_line ) - (l2_dirty_lines[j] - cache_line)
-                j=j+1
+                    ops_dict['fence'][entry] += (number_of_words_in_line ) - (l2_dirty_lines[dirty_line_index] - cache_line)
+                    master_inst_list[entry] += (number_of_words_in_line ) - (l2_dirty_lines[dirty_line_index] - cache_line)
+                dirty_line_index=dirty_line_index+1
 
             # sort of creating afresh cache, as fence instruction invalidates the cache
             cs.force_write_back('l2')
@@ -327,6 +325,8 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
 
         # Handle fence instructions
         if 'fence.i' in entry.instr_name:
+            il1_miss += i_l1.backend.MISS_count
+            il1_hit += i_l1.backend.HIT_count
             instr_invalid_entries = cs1.count_invalid_entries('i_l1')
             instr_temp_total_util = ((total_cache_line - instr_invalid_entries) / total_cache_line) * 100
             cache_util_list1.append(instr_temp_total_util)

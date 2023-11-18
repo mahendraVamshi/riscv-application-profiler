@@ -21,10 +21,10 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
     cache_list = ['Level 1']
 
     # Dictionary to store cache utilization information
-    cache_dict = {l: {'utilization(%)': 0} for l in cache_list}
+    cache_dict = {l: {'max utilization(%)': 0, "avg utilization": 0} for l in cache_list}
 
     # Dictionary to store the final results
-    ret_dict = {'Data Cache': [f'{op}' for op in cache_list], 'Utilization(%)': []}
+    ret_dict = {'Data Cache': ['Level 1'], 'Data cache Maximum Utilization(%)': [], 'Data cache Average Utilization': []}
 
     # Setting up memory and cache parameters
     no_of_sets = config['profiles']['cfg']['data_cache']['no_of_sets']
@@ -33,6 +33,9 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
     replacement_policy = config['profiles']['cfg']['data_cache']['replacement_policy']
     total_cache_line = no_of_sets * no_of_ways
     number_of_words_in_line = line_size//4 # line size in byptes / 4 bytes (word size)
+
+    data_util_list = []
+    total_util = 0
 
     # Creating the L1 cache
     mem = MainMemory()
@@ -47,35 +50,46 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
     min_util = max_util = cs.count_invalid_entries('L1')
 
     # Loop through instructions
-    for i in master_inst_list:
+    for entry in master_inst_list:
+
+        if 'fence' in entry.instr_name:
+            max_util *= line_size
+            min_util *= line_size
+            temp_total_util = ((max_util - min_util) / max_util) * 100
+            data_util_list.append(temp_total_util)
+            if temp_total_util > total_util:
+                total_util = temp_total_util
+            cs.force_write_back("L1")
+            cs.mark_all_invalid("L1")
+            min_util = max_util = cs.count_invalid_entries("L1")
         
         # Handle load/store instructions
-        if i in ops_dict['loads'] or i in ops_dict['stores']:
+        if entry in ops_dict['loads'] or entry in ops_dict['stores']:
             # Determine the address based on instruction type
-            if 'sp' in i.instr_name:
+            if 'sp' in entry.instr_name:
                 base = int(consts.reg_file['x2'], 16)
             else:
-                rs = str(i.rs1[1]) + str(i.rs1[0])
+                rs = str(entry.rs1[1]) + str(entry.rs1[0])
                 base = int(consts.reg_file.get(rs, consts.freg_file.get(rs, '0x0')), 16)
-            if i.imm is None:
+            if entry.imm is None:
                 address = base
             else:
-                address = base + i.imm
+                address = base + entry.imm
             
             # Determine the byte length for the operation
-            if ('d' in i.instr_name):
+            if ('d' in entry.instr_name):
                 byte_length = 8
-            elif ('w' in i.instr_name):
+            elif ('w' in entry.instr_name):
                 byte_length = 4
-            elif ('h' in i.instr_name):
+            elif ('h' in entry.instr_name):
                 byte_length = 2
-            elif ('b' in i.instr_name):
+            elif ('b' in entry.instr_name):
                 byte_length = 1
             
             # Handle load and store operations
-            if i in ops_dict['loads']:
+            if entry in ops_dict['loads']:
                 cs.load(address, byte_length)
-            elif i in ops_dict['stores']:
+            elif entry in ops_dict['stores']:
                 cs.store(address, byte_length)
 
             # Update current utilization and track min/max values
@@ -85,8 +99,8 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
 
         
         # Handle register commits
-        if i.reg_commit and i.reg_commit[1] != '0':
-            consts.reg_file[f'x{i.rd[0]}'] = i.reg_commit[2]
+        if entry.reg_commit and entry.reg_commit[1] != '0':
+            consts.reg_file[f'x{entry.rd[0]}'] = entry.reg_commit[2]
 
     # Print cache statistics
     cs.print_stats()
@@ -94,11 +108,16 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
     # Calculate total utilization percentages
     max_util *= line_size
     min_util *= line_size
-    total_util = ((max_util - min_util) / max_util) * 100
+    temp_total_util = ((max_util - min_util) / max_util) * 100
+    data_util_list.append(temp_total_util)
+    if temp_total_util > total_util:
+        total_util = temp_total_util
 
     # Update cache utilization information
-    cache_dict['Level 1']['utilization(%)'] = total_util
-    ret_dict['Utilization(%)'] = [cache_dict[cache]['utilization(%)'] for cache in cache_list]
+    cache_dict['Level 1']['max utilization(%)'] = total_util
+    cache_dict['Level 1']['avg utilization'] = sum(data_util_list)/1
+    ret_dict['Data cache Maximum Utilization(%)'] = [cache_dict['Level 1']['max utilization(%)']]
+    ret_dict['Data cache Average Utilization'] = [cache_dict['Level 1']['avg utilization']]
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
@@ -132,11 +151,10 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
 
     # List of cache levels and dictionary to store cache utilization information
     cache_list = ['Level 1']
-    cache_dict = {l: {'utilization(%)': 0} for l in cache_list}
+    cache_dict = {l: {'max utilization(%)': 0, "avg utilization": 0} for l in cache_list}
 
     # Dictionary to store the final results
-    ret_dict = {'Instruction Cache': [f'{op}' for op in cache_list], 'Utilization(%)': []}
-
+    ret_dict = {'Instruction Cache': ['Level 1'], 'Instr cache Maximum Utilization(%)': [], 'Instr cache Average Utilization': []}
     # Creating the L1 instruction cache
     mem = MainMemory()
     l1 = Cache("L1", no_of_sets, no_of_ways, line_size, replacement_policy)
@@ -145,12 +163,25 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
     cs = CacheSimulator(l1, mem)
     # Initializing minimum and maximum utilization
     min_util = max_util = cs.count_invalid_entries('L1')
+    instr_util_list = []
+    total_util = 0
 
     # Fixed byte length for instruction loading
     byte_length = 4
 
     # Loop through master instruction list
     for entry in master_inst_list:
+        if 'fence.i' in entry.instr_name:
+            max_util *= line_size
+            min_util *= line_size
+            temp_total_util = ((max_util - min_util) / max_util) * 100
+            instr_util_list.append(temp_total_util)
+            if temp_total_util > total_util:
+                total_util = temp_total_util
+            cs.force_write_back("L1")
+            cs.mark_all_invalid("L1")
+            min_util = max_util = cs.count_invalid_entries("L1")
+
         # Load instruction address into the cache
         cs.load(entry.instr_addr, byte_length)
         
@@ -165,11 +196,15 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
     # Calculate total utilization percentages
     max_util *= line_size
     min_util *= line_size
-    total_util = ((max_util - min_util) / max_util) * 100
-
+    temp_total_util = ((max_util - min_util) / max_util) * 100
+    instr_util_list.append(temp_total_util)
+    if temp_total_util > total_util:
+        total_util = temp_total_util
     # Update cache utilization information
-    cache_dict['Level 1']['utilization(%)'] = total_util
-    ret_dict['Utilization(%)'] = [cache_dict[cache]['utilization(%)'] for cache in cache_list]
+    cache_dict['Level 1']['max utilization(%)'] = total_util
+    cache_dict['Level 1']['avg utilization'] = sum(instr_util_list)/1
+    ret_dict['Instr cache Maximum Utilization(%)'] = [cache_dict['Level 1']['max utilization(%)']]
+    ret_dict['Instr cache Average Utilization'] = [cache_dict['Level 1']['avg utilization']]
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
