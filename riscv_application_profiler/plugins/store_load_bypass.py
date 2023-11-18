@@ -88,7 +88,7 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict, extension_used: l
         # Update register values based on commit information.
         if (entry.reg_commit is not None):
             if (entry.reg_commit[1] != '0'):
-                consts.reg_file[f'x{entry.reg_commit[1]}'] = entry.reg_commit[2]
+                consts.reg_file[f'x{int(entry.reg_commit[1])}'] = entry.reg_commit[2]
 
     keys_to_remove = []
 
