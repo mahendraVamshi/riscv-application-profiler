@@ -2,6 +2,8 @@ from cachesim import CacheSimulator, Cache, MainMemory, CacheVisualizer
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
 
+# single function to handle both data and instruction cache
+
 miss_address_dict = dict()
 hit_address_dict = dict()
 miss_inst_dict = dict()
