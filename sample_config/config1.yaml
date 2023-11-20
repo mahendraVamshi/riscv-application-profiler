@@ -26,7 +26,7 @@ profiles:
       csr_compute: # mandatory
         csr_compute:
           - CSR computation.
-      cache:
+      cache_ca:
         data_cache_simulator:
           - Data cache utilization.
         instruction_cache_simulator:
@@ -66,6 +66,9 @@ profiles:
       write_back : True # false for write through
       write_allocate : True # false for write no allocate
       structural_latency: 7 #number of words - 1
+
+    stack_pointer: 0x800030d0
+    global_pointer: 0x800030d0
 
   # interface:
     # L1: cache_line

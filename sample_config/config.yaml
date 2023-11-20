@@ -74,8 +74,8 @@ profiles:
       write_back : True # false for write through
       write_allocate : True # false for write no allocate
       structural_latency: 7 #number of words - 1
-    stack_pointer: 0x80000000
-    global_pointer: 0x80000000
+    stack_pointer: 0x800030d0
+    global_pointer: 0x800030d0
 
   # interface:
     # L1: cache_line
