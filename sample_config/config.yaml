@@ -25,6 +25,9 @@ profiles:
           - Data cache utilization.
         instruction_cache_simulator:
           - Instruction cache utilization.
+      # cache_l2:
+      #   cache_simulator:
+      #     - Cache utilization.
       dependency:
         raw_compute:
           - RAW dependency Computation.
