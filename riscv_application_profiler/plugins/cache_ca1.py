@@ -41,8 +41,9 @@ def cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used: list
     cache_util_list = []
 
     # Dictionary to store the final results
-    ret_dict = {'Data Cache': ['Level 1'], 'Data cache Maximum Utilization(%)': [], 'Data cache Average Utilization': []}
-    # mem,cs,d_l1 = cache_setup('data', config)
+    ret_dict = {'Data Cache': ['Level 1'], 'Data cache Maximum Utilization(%)': [], 'Data cache Average Utilization': [], 'Hit rate': [], 'Miss rate': []}
+    
+    d_hit_count = d_miss_count = 0
 
 
     no_of_sets = config['profiles']['cfg']['data_cache']['no_of_sets']
@@ -86,6 +87,7 @@ def cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used: list
     no_of_sets1 = config['profiles']['cfg']['instr_cache']['no_of_sets']
     no_of_ways1 = config['profiles']['cfg']['instr_cache']['no_of_ways']
     line_size1 = config['profiles']['cfg']['instr_cache']['line_size']
+    total_cache_line1 = no_of_sets1 * no_of_ways1
     instr_cache_replacement_policy = config['profiles']['cfg']['instr_cache']['replacement_policy']
     number_of_words_in_line1 = line_size1//4 # line size in byptes / 4 bytes (word size)
 
@@ -99,9 +101,9 @@ def cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used: list
     cache_util_list1 = []
 
     # Dictionary to store the final results
-    ret_dict1 = {'Instruction Cache': ['Level 1'], 'Instr cache Maximum Utilization(%)': [], 'Instr cache Average Utilization': []}
+    ret_dict1 = {'Instruction Cache': ['Level 1'], 'Instr cache Maximum Utilization(%)': [], 'Instr cache Average Utilization': [], 'Hit rate': [], 'Miss rate': []}
 
-
+    i_hit_count = i_miss_count = 0
     
     i_l1 = Cache("i_l1", no_of_sets1, no_of_ways1, line_size1, instr_cache_replacement_policy)
     cs1 = CacheSimulator(i_l1, mem)
@@ -129,15 +131,17 @@ def cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used: list
     for entry in master_inst_dict:
         line_num += 1 
         if 'fence' in entry.instr_name:
-
+            
+            # computing cache utilization 
             data_invalid_entries = cs.count_invalid_entries('d_l1')
-            # checking total utilization of data cache
             data_temp_total_util = ((total_cache_line - data_invalid_entries) / total_cache_line) * 100
             cache_util_list.append(data_temp_total_util)
             if data_temp_total_util > total_util:
                 total_util = data_temp_total_util
+            d_hit_count += d_l1.backend.HIT_count
+            d_miss_count += d_l1.backend.MISS_count
 
-
+            dirty_lines_set = cs.dirty_cl_ids('d_l1') # getting dirty lines set
             # sorting the dirty lines set, as fence instruction traverse the cache in sorted order
             sorted_dirty_lines_set = tuple(sorted(dirty_lines_set))
 
@@ -334,6 +338,12 @@ def cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used: list
             cache_util_list1.append(instr_temp_total_util)
             if instr_temp_total_util > total_util1:
                 total_util1 = instr_temp_total_util
+            
+            # flush i cache
+            master_inst_dict[entry] += total_cache_line1
+
+            i_hit_count += i_l1.backend.HIT_count
+            i_miss_count += i_l1.backend.MISS_count
             # invalidating the cache and flushing the pipeline
             # invalidation happens in IF stage and flushing happens in WB stage
             cs1.mark_all_invalid('i_l1')
@@ -445,31 +455,38 @@ def cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used: list
         else:
             prev_last_stage_cycle1 = master_inst_dict[entry]
 
-
-    # Print cache statistics
-    cs.print_stats()
-   
-
-    cs1.print_stats()
-
+    instr_invalid_entries = cs1.count_invalid_entries('i_l1')
+    instr_temp_total_util = ((total_cache_line - instr_invalid_entries) / total_cache_line) * 100
+    cache_util_list1.append(instr_temp_total_util)
+    if instr_temp_total_util > total_util1:
+        total_util1 = instr_temp_total_util
+    i_hit_count += i_l1.backend.HIT_count
+    i_miss_count += i_l1.backend.MISS_count
     # Update cache utilization information
     cache_dict1['instr_d_l1']['max utilization(%)'] = total_util1
     cache_dict1['instr_d_l1']['avg utilization'] = sum(cache_util_list1)/len(cache_util_list1)
     ret_dict1['Instr cache Maximum Utilization(%)'] = [cache_dict1['instr_d_l1']['max utilization(%)']]
     ret_dict1['Instr cache Average Utilization'] = [cache_dict1['instr_d_l1']['avg utilization']]
+    ret_dict1['Hit rate'] = [i_hit_count/(i_hit_count+i_miss_count)]
+    ret_dict1['Miss rate'] = [i_miss_count/(i_hit_count+i_miss_count)]
 
-
+    data_invalid_entries = cs.count_invalid_entries('d_l1')
+    data_temp_total_util = ((total_cache_line - data_invalid_entries) / total_cache_line) * 100
+    cache_util_list.append(data_temp_total_util)
+    if data_temp_total_util > total_util:
+        total_util = data_temp_total_util
+    d_hit_count += d_l1.backend.HIT_count
+    d_miss_count += d_l1.backend.MISS_count
     # Update cache utilization information
     cache_dict['data_d_l1']['max utilization(%)'] = total_util
     cache_dict['data_d_l1']['avg utilization'] = sum(cache_util_list)/len(cache_util_list)
     ret_dict['Data cache Maximum Utilization(%)'] = [cache_dict['data_d_l1']['max utilization(%)']]
     ret_dict['Data cache Average Utilization'] = [cache_dict['data_d_l1']['avg utilization']]
+    ret_dict['Hit rate'] = [d_hit_count/(d_hit_count+d_miss_count)]
+    ret_dict['Miss rate'] = [d_miss_count/(d_hit_count+d_miss_count)]
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-
-    # print('data l1 and instr l1 util respectivly in %')
-    # print (total_util, total_util1)
 
     # Return the final results
     ret_dict.update(ret_dict1)

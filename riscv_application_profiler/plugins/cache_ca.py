@@ -42,7 +42,7 @@ def data_cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used:
     cache_util_list = []
 
     # Dictionary to store the final results
-    ret_dict = {'Data Cache': ['Level 1'], 'Maximum Utilization(%)': [], 'Average Utilization': []}
+    ret_dict = {'Data Cache': ['Level 1'], 'Maximum Utilization(%)': [], 'Average Utilization': [], 'Miss Rate': [], 'Hit Rate': []}
     # mem,cs,l1 = cache_setup('data', config)
 
 
@@ -76,6 +76,8 @@ def data_cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used:
     hit_address_line_num = miss_address_line_num = 0
     last_mem_line_no = 0
     mem_mem_delay = 0
+
+    d_miss_count = d_hit_count = 0
     
     dirty_lines_set = set() # to keep track of dirty lines
     line_num = 0 # to keep track of instruction/line number
@@ -84,14 +86,16 @@ def data_cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used:
         line_num += 1 
         if 'fence' in entry.instr_name:
 
-            max_util *= line_size
-            min_util *= line_size
-            # Calculate total utilization percentages
-            temp_total_util = ((max_util - min_util) / max_util) * 100
+            invalid_entries = cs.count_invalid_entries("L1") 
+            temp_total_util = ((total_cache_line - invalid_entries) / total_cache_line) * 100
             cache_util_list.append(temp_total_util)
             if temp_total_util > total_util:
                 total_util = temp_total_util
+            
+            d_miss_count += l1.backend.MISS_count
+            d_hit_count += l1.backend.HIT_count
 
+            dirty_lines_set = cs.dirty_cl_ids('L1')
             # sorting the dirty lines set, as fence instruction traverse the cache in sorted order
             sorted_dirty_lines_set = tuple(sorted(dirty_lines_set))
 
@@ -203,12 +207,6 @@ def data_cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used:
                                     data_cache_status[miss_address_line_num+add_len] = number_of_words_in_line - add_len
                             miss_address_line_num = 0
 
-                    # calculating the dirty line using cache line id
-                    cl_id = address >> cs.last_level.backend.cl_bits
-                    set_id = cl_id % no_of_sets
-                    way_id = cl_id % no_of_ways
-                    dirty_line = (set_id*no_of_ways) + way_id
-                    dirty_lines_set.add(dirty_line+1)
                 else:
                     # all non cacheable address access is a miss
                     ops_dict['loads'][entry] = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss']
@@ -262,12 +260,6 @@ def data_cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used:
                                     data_cache_status[miss_address_line_num+add_len] = number_of_words_in_line - add_len
                             miss_address_line_num = 0
 
-                    # calculating the dirty line using cache line id
-                    cl_id = address >> cs.last_level.backend.cl_bits
-                    set_id = cl_id % no_of_sets
-                    way_id = cl_id % no_of_ways
-                    dirty_line = (set_id*no_of_ways) + way_id
-                    dirty_lines_set.add(dirty_line+1)
 
                 else:
                     # all non cacheable address access is a miss
@@ -289,21 +281,23 @@ def data_cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used:
         if entry.reg_commit and entry.reg_commit[1] != '0':
             consts.reg_file[f'x{int(entry.reg_commit[1])}'] = entry.reg_commit[2] 
 
-    # Print cache statistics
-    cs.print_stats()
     # Calculate total utilization percentages
-    max_util *= line_size
-    min_util *= line_size
-    temp_total_util = ((max_util - min_util) / max_util) * 100
+    invalid_entries = cs.count_invalid_entries("L1")
+    temp_total_util = ((total_cache_line - invalid_entries) / total_cache_line) * 100
     cache_util_list.append(temp_total_util)
     if temp_total_util > total_util:
         total_util = temp_total_util
+
+    d_miss_count += l1.backend.MISS_count
+    d_hit_count += l1.backend.HIT_count
 
     # Update cache utilization information
     cache_dict['data_l1']['max utilization(%)'] = total_util
     cache_dict['data_l1']['avg utilization'] = sum(cache_util_list)/len(cache_util_list)
     ret_dict['Maximum Utilization(%)'] = [cache_dict['data_l1']['max utilization(%)']]
     ret_dict['Average Utilization'] = [cache_dict['data_l1']['avg utilization']]
+    ret_dict['Miss Rate'] = [d_miss_count/(d_miss_count+d_hit_count)]
+    ret_dict['Hit Rate'] = [d_hit_count/(d_miss_count+d_hit_count)]
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
@@ -334,6 +328,7 @@ def instruction_cache_simulator(master_inst_dict: dict, ops_dict: dict, extensio
     no_of_sets = config['profiles']['cfg']['instr_cache']['no_of_sets']
     no_of_ways = config['profiles']['cfg']['instr_cache']['no_of_ways']
     line_size = config['profiles']['cfg']['instr_cache']['line_size']
+    total_cache_line = no_of_sets * no_of_ways
     replacement_policy = config['profiles']['cfg']['instr_cache']['replacement_policy']
     number_of_words_in_line = line_size//4 # line size in byptes / 4 bytes (word size)
 
@@ -347,8 +342,9 @@ def instruction_cache_simulator(master_inst_dict: dict, ops_dict: dict, extensio
     cache_util_list = []
 
     # Dictionary to store the final results
-    ret_dict = {'Instruction Cache': ['Level 1'], 'Maximum Utilization(%)': [], 'Average Utilization': []}
+    ret_dict = {'Instruction Cache': ['Level 1'], 'Maximum Utilization(%)': [], 'Average Utilization': [], 'Miss Rate': [], 'Hit Rate': []}
 
+    i_miss_count = i_hit_count = 0
 
     # Creating the L1 instruction cache
     mem = MainMemory()
@@ -377,12 +373,18 @@ def instruction_cache_simulator(master_inst_dict: dict, ops_dict: dict, extensio
 
         # Handle fence instructions
         if 'fence.i' in entry.instr_name:
-            max_util *= line_size
-            min_util *= line_size
-            temp_total_util = ((max_util - min_util) / max_util) * 100
+            invalid_entries = cs.count_invalid_entries('L1')
+            temp_total_util = ((total_cache_line - invalid_entries) / total_cache_line) * 100
             cache_util_list.append(temp_total_util)
             if temp_total_util > total_util:
                 total_util = temp_total_util
+
+            # flush i cache
+            master_inst_dict[entry] += total_cache_line
+
+            i_miss_count += l1.backend.MISS_count
+            i_hit_count += l1.backend.HIT_count
+
             # invalidating the cache and flushing the pipeline
             # invalidation happens in IF stage and flushing happens in WB stage
             cs.mark_all_invalid('L1')
@@ -505,23 +507,23 @@ def instruction_cache_simulator(master_inst_dict: dict, ops_dict: dict, extensio
         max_util = max(max_util, this_util)
         min_util = min(min_util, this_util)
 
-    # Print cache statistics
-    cs.print_stats()
-
-
     # Calculate total utilization percentages
-    max_util *= line_size
-    min_util *= line_size
-    temp_total_util = ((max_util - min_util) / max_util) * 100
+    invalid_entries = cs.count_invalid_entries("L1")
+    temp_total_util = ((total_cache_line - invalid_entries) / total_cache_line) * 100
     cache_util_list.append(temp_total_util)
     if temp_total_util > total_util:
         total_util = temp_total_util
+    
+    i_miss_count += l1.backend.MISS_count
+    i_hit_count += l1.backend.HIT_count
 
     # Update cache utilization information
     cache_dict['instr_l1']['max utilization(%)'] = total_util
     cache_dict['instr_l1']['avg utilization'] = sum(cache_util_list)/len(cache_util_list)
     ret_dict['Maximum Utilization(%)'] = [cache_dict['instr_l1']['max utilization(%)']]
     ret_dict['Average Utilization'] = [cache_dict['instr_l1']['avg utilization']]
+    ret_dict['Miss Rate'] = [i_miss_count/(i_miss_count+i_hit_count)]
+    ret_dict['Hit Rate'] = [i_hit_count/(i_miss_count+i_hit_count)]
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
