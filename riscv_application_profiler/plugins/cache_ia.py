@@ -2,17 +2,19 @@ from cachesim import CacheSimulator, Cache, MainMemory
 import riscv_application_profiler.consts as consts
 from riscv_isac.log import *
 
-def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
+def data_cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Cache simulator for data cache.
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
+        - master_inst_dict: A dictionary of InstructionEntry objects.
         - op_dict: A dictionary with the operations as keys and a list of
             InstructionEntry objects as values.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
         
         Returns:
-            - A list of cache names and a dictionary with the cache names as keys 
-              and a dictionary with the cache statistics as values.
+            - A dictionary with the cache level as keys and a list of cache utilization information as values.
         '''
     # Logging cache statistics
     logger.info("Data Cache Statistics:")
@@ -50,7 +52,7 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
     min_util = max_util = cs.count_invalid_entries('L1')
 
     # Loop through instructions
-    for entry in master_inst_list:
+    for entry in master_inst_dict:
 
         if 'fence' in entry.instr_name:
             max_util *= line_size
@@ -115,31 +117,34 @@ def data_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used:
 
     # Update cache utilization information
     cache_dict['Level 1']['max utilization(%)'] = total_util
-    cache_dict['Level 1']['avg utilization'] = sum(data_util_list)/1
+    cache_dict['Level 1']['avg utilization'] = sum(data_util_list)/len(data_util_list)
     ret_dict['Data cache Maximum Utilization(%)'] = [cache_dict['Level 1']['max utilization(%)']]
     ret_dict['Data cache Average Utilization'] = [cache_dict['Level 1']['avg utilization']]
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = '0x800030d0'
-    consts.reg_file['x3'] = '0x800030d0'
+    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
+    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
 
     # Return the final results
     return ret_dict
 
 
-def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
+def instruction_cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
 
     '''
-    Cache simulator for instruction cache.
+    Cache simulator for data cache.
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
+        - master_inst_dict: A dictionary of InstructionEntry objects.
+        - op_dict: A dictionary with the operations as keys and a list of
+            InstructionEntry objects as values.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
         
         Returns:
-            - A list of cache names and a dictionary with the cache names as keys
-              and a dictionary with the cache statistics as values.
-    
-    '''
+            - A dictionary with the cache level as keys and a list of cache utilization information as values.
+        '''
     # Logging instruction cache statistics
     logger.info("Instruction Cache Statistics:")
 
@@ -170,7 +175,7 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
     byte_length = 4
 
     # Loop through master instruction list
-    for entry in master_inst_list:
+    for entry in master_inst_dict:
         if 'fence.i' in entry.instr_name:
             max_util *= line_size
             min_util *= line_size
@@ -202,14 +207,14 @@ def instruction_cache_simulator(master_inst_list: list, ops_dict: dict, extensio
         total_util = temp_total_util
     # Update cache utilization information
     cache_dict['Level 1']['max utilization(%)'] = total_util
-    cache_dict['Level 1']['avg utilization'] = sum(instr_util_list)/1
+    cache_dict['Level 1']['avg utilization'] = sum(instr_util_list)/len(instr_util_list)
     ret_dict['Instr cache Maximum Utilization(%)'] = [cache_dict['Level 1']['max utilization(%)']]
     ret_dict['Instr cache Average Utilization'] = [cache_dict['Level 1']['avg utilization']]
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = '0x800030d0'
-    consts.reg_file['x3'] = '0x800030d0'
+    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
+    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
 
     # Return the final results
     return ret_dict
