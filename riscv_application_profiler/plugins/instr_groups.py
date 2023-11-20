@@ -6,8 +6,9 @@
 from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import re
+from riscv_application_profiler import consts
 
-def group_by_operation(operations: list, isa, extension_list, master_inst_list: list, config, cycle_accurate_config):
+def group_by_operation(operations: list, isa, extension_list, master_inst_dict: dict, config, cycle_accurate_config):
     
 
     '''
@@ -15,13 +16,14 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
 
     Args:
         - operations: A list of operations to group by.
-        - master_inst_list: A list of InstructionEntry objects.
+        - master_inst_dict: A dictionary of InstructionEntry objects.
+        - isa: The ISA used in the application.
+        - extension_list: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
 
     Returns:
-        - A list of operations.
-        - A dictionary with the operations as keys and the number of instructions in each group as values.
-        - A list of InstructionEntry objects based on input extensions.
-        - A dictionary with the operations as keys and a list of InstructionEntry objects as values.
+        - dictionaries containing grouped instructions and counts.
 
     '''
     # Log the start of the process for grouping instructions by operation.
@@ -41,8 +43,8 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
 
     prev_instr_name = None
     prev_instr_addr = None
-    # Iterate through the list of instructions in master_inst_list.
-    for entry in master_inst_list:
+    # Iterate through the list of instructions in master_inst_dict.
+    for entry in master_inst_dict:
         for extension in extension_list:
             for op in operations:
                 try:
@@ -55,13 +57,13 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
                                 if re.match(inst, entry.instr_name) != None:
                                     # assigning latency to instructions
                                     op_dict[op][entry] = cycle_accurate_config['cycles']['instructions_cycles'][inst]['latency']
-                                    master_inst_list[entry] = cycle_accurate_config['cycles']['instructions_cycles'][inst]['latency']
+                                    master_inst_dict[entry] = cycle_accurate_config['cycles']['instructions_cycles'][inst]['latency']
                             
                                     if prev_instr_addr != entry.instr_addr and prev_instr_name == entry.instr_name:
                                         # checking if curent instr is equal to prev instr in case it can be parallelised
                                         if (op_dict[op][prev_instr] - cycle_accurate_config['cycles']['instructions_cycles'][inst]['throughput'] > 0):
                                             op_dict[op][entry] -= op_dict[op][prev_instr] - cycle_accurate_config['cycles']['instructions_cycles'][inst]['throughput']
-                                            master_inst_list[entry] -= master_inst_list[prev_instr] - cycle_accurate_config['cycles']['instructions_cycles'][inst]['throughput']
+                                            master_inst_dict[entry] -= master_inst_dict[prev_instr] - cycle_accurate_config['cycles']['instructions_cycles'][inst]['throughput']
 
                                     prev_instr = entry
                                     prev_instr_name = entry.instr_name
@@ -71,7 +73,7 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
                                     break
                             if matched == False:
                                 op_dict[op][entry] = 1
-                                master_inst_list[entry] = 1
+                                master_inst_dict[entry] = 1
 
                                 prev_instr = entry
                                 prev_instr_name = entry.instr_name
@@ -93,8 +95,11 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_list: 
 
     # Populate the 'Counts' field in the ret_dict with the instruction counts per operation.
     ret_dict['Counts'] = [len(op_dict[op]) for op in operations]
-    # op_dict['total_cycles'] = sum([op_dict[op][entry] for op in operations for entry in op_dict[op]])
-    # print(op_dict['total_cycles'])
+
+    # initialising register values.
+    consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
+    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
+    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
 
     # Log the completion of the computation.
     logger.info("Done")

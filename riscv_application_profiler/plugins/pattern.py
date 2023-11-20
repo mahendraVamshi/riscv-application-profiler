@@ -1,19 +1,26 @@
 from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import re
+from riscv_application_profiler import consts
 
-def group_by_pattern(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
+def group_by_pattern(master_inst_dict: dict, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Groups instructions based on the operation.
 
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
+        - master_inst_dict: A dictionary of InstructionEntry objects.
+        - ops_dict: A dictionary containing the operations as keys and a list of InstructionEntry objects as values.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
+
 
     Returns:
-        - A 
+        - A dictionary with pattern counts, instructions, PC, cycles, and cycles reduced as keys and lists of values.
     '''
     # Log the start of the process for getting the pattern.
     logger.info("Getting Pattern.")
+
 
     # Initialize dictionaries to hold address counts, patterns, names, and cycle information.
     count_dict = {}
@@ -22,8 +29,8 @@ def group_by_pattern(master_inst_list: list, ops_dict: dict, extension_used: lis
     address_pc_dict = {}
     address_cycle_dict = {}
     prev = None
-    # Loop through each entry in the master_inst_list.
-    for entry in master_inst_list:
+    # Loop through each entry in the master_inst_dict.
+    for entry in master_inst_dict:
         name = entry.instr_name+ ' '
         if entry.rs1 is not None:
             name=name+'rs1: '+str(entry.rs1[1])+str(entry.rs1[0])+' '
@@ -36,7 +43,7 @@ def group_by_pattern(master_inst_list: list, ops_dict: dict, extension_used: lis
             count_dict[hex(entry.instr_addr)] = 0
             address_name_dict[hex(entry.instr_addr)] = name
             address_pc_dict[hex(entry.instr_addr)] = hex(entry.instr_addr)
-            address_cycle_dict[hex(entry.instr_addr)] = master_inst_list[entry]
+            address_cycle_dict[hex(entry.instr_addr)] = master_inst_dict[entry]
         count_dict[hex(entry.instr_addr)] += 1
 
     # Group instructions based on their occurrence count.

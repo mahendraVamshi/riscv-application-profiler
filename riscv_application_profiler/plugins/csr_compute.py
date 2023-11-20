@@ -2,17 +2,19 @@ from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 
-def csr_compute(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
+def csr_compute(master_inst_dict: dict, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Computes the number of reads and writes to each CSR.
     
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
-        - ops_dict: A dictionary containing the operations as keys and a list of
+        - master_inst_dict: A dictionary of InstructionEntry objects.
+        - ops_dict: A dictionary containing the operations as keys and a list of InstructionEntry objects as values.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
     
     Returns:
-        - A list of CSRs and a dictionary with the CSRs as keys and the number of reads
-            and writes to each CSR as values.
+        - A dictionary with the CSR names as keys and a list of reads and writes as values.
     '''
     
     # Initialize dictionaries and lists
@@ -23,7 +25,7 @@ def csr_compute(master_inst_list: list, ops_dict: dict, extension_used: list, co
 
     # Logging the CSR computation process
     logger.info("Computing CSRs.")
-    for entry in master_inst_list:
+    for entry in master_inst_dict:
     # Loop through CSR instructions
         if entry in ops_dict['csrs']:
             # If no CSR value is specified
@@ -79,7 +81,7 @@ def csr_compute(master_inst_list: list, ops_dict: dict, extension_used: list, co
                 for op in ops_dict.keys():
                     if entry in ops_dict[op]:
                         ops_dict[op][entry] = ops_dict[op][entry] + cycle_accurate_config['cycles']['flush_cycles']['csr']
-                        master_inst_list[entry] = ops_dict[op][entry]
+                        master_inst_dict[entry] = ops_dict[op][entry]
                         prev_inst_csr = None
     # Populate the ret_dict with CSR information
     for entry in csr_reg_list:

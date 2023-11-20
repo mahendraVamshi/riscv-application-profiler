@@ -3,17 +3,20 @@ from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 from pprint import pprint
 
-def store_load_bypass (master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
+def store_load_bypass (master_inst_dict: dict, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Computes the number of instances of store load bypass.
     
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
+        - master_inst_dict: A dictionary of InstructionEntry objects.
         - ops_dict: A dictionary containing the operations as keys and a list of
             InstructionEntry objects as values.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
     
     Returns:
-        - A list of addresses and a dictionary with the addresses as keys and the number of instances of store load bypass as values.
+        - A dictionary with the addresses, counts, depth and bypass width as keys and their values as values.
         
     '''
 
@@ -30,7 +33,7 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict, extension_used: l
     # if a store is encountered, make a set of bytes touched and look out for loads from these bytes else continue
     # upon encountering a load that touches these bytes, freeze the depth and reset counts/depths
 
-    for entry in master_inst_list:
+    for entry in master_inst_dict:
         if entry in ops_dict['stores']: # this is a store
             # Determine the base address for the memory access.
             reg_name = 'x2' if 'sp' in entry.instr_name else f'x{entry.rs1[0]}'
@@ -106,8 +109,8 @@ def store_load_bypass (master_inst_list: list, ops_dict: dict, extension_used: l
 
     # Reset register values.
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = '0x800030d0'
-    consts.reg_file['x3'] = '0x800030d0'
+    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
+    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
 
     # Populate the result dictionary with store-load bypass information.
     for address in bypass_dict:

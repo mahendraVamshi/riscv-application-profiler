@@ -2,16 +2,21 @@ from riscv_isac.log import *
 from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 
-def jumps_compute(master_inst_list: list ,ops_dict: dict, extension_used: list,config, cycle_accurate_config):
+def jumps_compute(master_inst_dict: dict ,ops_dict: dict, extension_used: list,config, cycle_accurate_config):
     '''
     Computes the number of jumps in the program.
 
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
+        - master_inst_dict: A dictionary of InstructionEntry objects.
         - ops_dict: A dictionary containing the operations as keys and a list of
+        InstructionEntry objects as values.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
+
 
     Returns:
-        - A list of directions and a dictionary with the directions as keys and the number of jumps
+        - A dictionary with the jumps as keys and the number of jumps which are forward and backward.
     '''
     # Log the start of the process for computing jumps.
     logger.info("Computing jumps.")
@@ -24,8 +29,8 @@ def jumps_compute(master_inst_list: list ,ops_dict: dict, extension_used: list,c
     # Initialize a dictionary to hold the resulting direction and count data.
     ret_dict = {'Direction': direc_list, 'Count': []}
 
-    # Iterate through each instruction in master_inst_list.
-    for entry in master_inst_list:
+    # Iterate through each instruction in master_inst_dict.
+    for entry in master_inst_dict:
         
         # Check if the instruction is a jump operation.
         if entry in ops_dict['jumps']:
@@ -60,8 +65,8 @@ def jumps_compute(master_inst_list: list ,ops_dict: dict, extension_used: list,c
 
     # Reset register values.
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = '0x800030d0'
-    consts.reg_file['x3'] = '0x800030d0'
+    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
+    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
     
     # Log the completion of jump computation.
     logger.info('Done.')
@@ -74,16 +79,21 @@ def jumps_compute(master_inst_list: list ,ops_dict: dict, extension_used: list,c
     return ret_dict
 
 
-def jump_size(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
+def jump_size(master_inst_dict: dict, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Computes the number of jumps in the program.
 
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
+        - master_inst_dict: A dict of InstructionEntry objects.
         - ops_dict: A dictionary containing the operations as keys and a list of
+        InstructionEntry objects as values.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
+
 
     Returns:
-        - A list of jumps and a dictionary with the jumps as keys and the number of jumps and jump size.
+        - A dictionary with the jumps as keys and the number of jumps and jump size.
 
     '''
     # Log the start of the process for computing jump size.
@@ -94,8 +104,8 @@ def jump_size(master_inst_list: list, ops_dict: dict, extension_used: list, conf
     target_address = [] # List to store target addresses for jumps.
     ret_dict = {'Instruction name':[],'count':[],'size':[]} # Dictionary to store return data.
 
-    # Iterate through each instruction in master_inst_list.
-    for entry in master_inst_list:
+    # Iterate through each instruction in master_inst_dict.
+    for entry in master_inst_dict:
         # Check if the instruction is a jump operation.
         if entry in ops_dict['jumps']:
             instr = ''  # Initialize instruction string.
@@ -148,8 +158,8 @@ def jump_size(master_inst_list: list, ops_dict: dict, extension_used: list, conf
 
     # Reset register values.
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = '0x800030d0'
-    consts.reg_file['x3'] = '0x800030d0'
+    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
+    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
 
     # Populate the return dictionary with jump instruction data.   
     ret_dict['Instruction name'] = list(jump_instr.keys())

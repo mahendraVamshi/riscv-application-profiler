@@ -3,14 +3,19 @@ from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 import statistics
 
-def register_compute(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
+def register_compute(master_inst_dict: dict, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Computes the number of reads and writes to each register.
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
+        - master_inst_dict: A dictionary of InstructionEntry objects.
+        - ops_dict: A dictionary containing the operations as keys and a list of InstructionEntry objects as values.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
+
 
     Returns:
-        - A list of registers and a dictionary with the registers as keys and the number of reads
+        - A dictionary with the registers as keys and a list of reads and writes as values.
     '''
     # Log the start of the process for computing register read and write counts.
     logger.info("Computing register read writes.")
@@ -24,8 +29,8 @@ def register_compute(master_inst_list: list, ops_dict: dict, extension_used: lis
     # Initialize dictionaries to hold the resulting data.
     ret_dict = {'Register': [], 'Reads': [], 'Writes': []}
 
-    # Iterate through the list of instructions in master_inst_list.
-    for entry in master_inst_list:
+    # Iterate through the list of instructions in master_inst_dict.
+    for entry in master_inst_dict:
         # Check if the instruction uses rs1 register.
         if entry.rs1 is not None:
             name = str(entry.rs1[1]) + str(entry.rs1[0])
@@ -59,18 +64,20 @@ def register_compute(master_inst_list: list, ops_dict: dict, extension_used: lis
     return ret_dict
 
 
-def fregister_compute(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
+def fregister_compute(master_inst_dict: dict, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Computes the number of reads and writes to each floating point register.
-
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
-        - extension_list: A list of extensions.
+        - master_inst_dict: A dictionary of InstructionEntry objects.
+        - ops_dict: A dictionary containing the operations as keys and a list of InstructionEntry objects as values.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
+
 
     Returns:
-        - A list of registers and a dictionary with the registers as keys and the number of reads
-        
-    '''
+        - A dictionary with the registers as keys and a list of reads and writes as values.
+        '''
     # Log the start of the process for computing F_register read and write counts.
     logger.info("Computing F_register read writes.")
 
@@ -97,8 +104,8 @@ def fregister_compute(master_inst_list: list, ops_dict: dict, extension_used: li
     # Initialize dictionaries to hold the resulting data.
     ret_dict = {'F_Register': [], 'Reads': [], 'Writes': []}
 
-    # Iterate through the list of instructions in master_inst_list.
-    for entry in master_inst_list:
+    # Iterate through the list of instructions in master_inst_dict.
+    for entry in master_inst_dict:
         inst_name = str(entry.instr_name)
         # Check if the instruction involves F_registers.
         if 'f' in inst_name:

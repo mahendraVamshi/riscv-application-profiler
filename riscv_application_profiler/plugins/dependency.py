@@ -3,17 +3,19 @@ from riscv_application_profiler.consts import *
 import riscv_application_profiler.consts as consts
 import statistics
 
-def raw_compute(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
+def raw_compute(master_inst_dict: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Groups instructions based on the branch offset.
 
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
+        - master_inst_dict: A dictonary of InstructionEntry objects.
+        - ops_dict: A dictionary with the operations as keys and a list of InstructionEntry objects as values.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
 
     Returns:
-        - A tuple containing a dictionary with the operations as keys and a list of
-            InstructionEntry objects as values, and a dictionary with the operations as
-            keys and the number of instructions in each group as values.
+        - A dictionary with the operations as keys and a list of InstructionEntry objects as values.
     '''
     # Initialize the process of computing register reads after writes.
     logger.info("Computing register reads after writes.")
@@ -34,8 +36,8 @@ def raw_compute(master_inst_list: list, ops_dict: dict, extension_used: list, co
     # Initialize a list to store names of previously encountered registers.
     prev_names = []
 
-    # Iterate through the list of instructions in master_inst_list.
-    for entry in master_inst_list:
+    # Iterate through the list of instructions in master_inst_dict.
+    for entry in master_inst_dict:
         # Check if the instruction uses rs1 register.
         if entry.rs1 is not None:
             name = str(entry.rs1[1]) + str(entry.rs1[0])
