@@ -14,17 +14,19 @@ setup = list()
 
 
 
-def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
+def cache_simulator(master_inst_dict: list, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Cache simulator for data cache.
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
+        - master_inst_dict: A dictionary of InstructionEntry objects.
         - op_dict: A dictionary with the operations as keys and a list of
             InstructionEntry objects as values.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
         
         Returns:
-            - A list of cache names and a dictionary with the cache names as keys 
-              and a dictionary with the cache statistics as values.
+            - A dictionary with the cache level as keys and a list of cache utilization information as values.
         '''
     # Logging cache statistics
     logger.info("Data Cache Statistics:")
@@ -139,7 +141,7 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
     dl1_hit=il1_hit=l2_hit=0
 
     # Loop through instructions
-    for entry in master_inst_list:
+    for entry in master_inst_dict:
         line_num += 1 
         if 'fence' in entry.instr_name:
             d_l1_dirty_lines = cs.dirty_cl_ids('d_l1')
@@ -170,21 +172,21 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
             # sorted_dirty_lines_set = tuple(sorted(dirty_lines_set))
 
             ops_dict['fence'][entry] += 1 # one cycle for fence instruction
-            master_inst_list[entry] += 1
+            master_inst_dict[entry] += 1
 
             ops_dict['fence'][entry] += total_cache_line + l2_total_cache_line # each cache line takes one cycle
-            master_inst_list[entry] += total_cache_line + l2_total_cache_line
+            master_inst_dict[entry] += total_cache_line + l2_total_cache_line
 
 
             dirty_line_index=1 # used to get the next dirty line
             for cache_line in l2_dirty_lines:
                 if (cache_line + cycle_accurate_config['cycles']['bus_latency']['data'] + (number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache'])) > total_cache_line:
                     # to see if last few lines are dirty , and add cycles accordingly 
-                    master_inst_list[entry] += (cache_line + cycle_accurate_config['cycles']['bus_latency']['data'] + (number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache'])) - total_cache_line
+                    master_inst_dict[entry] += (cache_line + cycle_accurate_config['cycles']['bus_latency']['data'] + (number_of_words_in_line - cycle_accurate_config['cycles']['structural_hazards']['data_cache'])) - total_cache_line
                 if (dirty_line_index < len(l2_dirty_lines)) and ((l2_dirty_lines[dirty_line_index] - cache_line) < number_of_words_in_line): 
                     # to see if there is a gap between dirty lines are less than the number of words in a line(structural hazard)
                     ops_dict['fence'][entry] += (number_of_words_in_line ) - (l2_dirty_lines[dirty_line_index] - cache_line)
-                    master_inst_list[entry] += (number_of_words_in_line ) - (l2_dirty_lines[dirty_line_index] - cache_line)
+                    master_inst_dict[entry] += (number_of_words_in_line ) - (l2_dirty_lines[dirty_line_index] - cache_line)
                 dirty_line_index=dirty_line_index+1
 
             # sort of creating afresh cache, as fence instruction invalidates the cache
@@ -237,8 +239,8 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
                     if prev_misses < d_l1.backend.MISS_count:
                         # checking if it's a miss, d_l1.backend.MISS_count is incremented after a load only when it's a miss
                         ops_dict['loads'][entry] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['miss'] 
-                        master_inst_list[entry] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['miss'] 
-                        stage2_dict[line_num] = master_inst_list[entry]
+                        master_inst_dict[entry] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['miss'] 
+                        stage2_dict[line_num] = master_inst_dict[entry]
 
                         # l2 cache checking
 
@@ -249,21 +251,21 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
                             additional_l2_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['L2']['hit']
                             l2_prev_hits = l2.backend.HIT_count
                         ops_dict['loads'][entry] += additional_l2_cycle
-                        master_inst_list[entry] += additional_l2_cycle
-                        stage2_dict[line_num] = master_inst_list[entry]
+                        master_inst_dict[entry] += additional_l2_cycle
+                        stage2_dict[line_num] = master_inst_dict[entry]
 
 
 
                     elif prev_hits < d_l1.backend.HIT_count:
                         # checking if it's a hit, d_l1.backend.HIT_count is incremented after a load only when it's a hit
                         ops_dict['loads'][entry] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['hit'] 
-                        master_inst_list[entry] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['hit'] 
-                        stage2_dict[line_num] = master_inst_list[entry]
+                        master_inst_dict[entry] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['hit'] 
+                        stage2_dict[line_num] = master_inst_dict[entry]
 
                 else:
                     # all non cacheable address access is a miss
                     ops_dict['loads'][entry] = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss']
-                    master_inst_list[entry] = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss']
+                    master_inst_dict[entry] = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss']
                     
 
             elif entry in ops_dict['stores'] :
@@ -275,8 +277,8 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
 
                         # checking if it's a miss, d_l1.backend.MISS_count is incremented after a store only when it's a miss
                         ops_dict['stores'][entry] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['miss'] 
-                        master_inst_list[entry] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['miss'] 
-                        stage2_dict[line_num] = master_inst_list[entry]
+                        master_inst_dict[entry] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['miss'] 
+                        stage2_dict[line_num] = master_inst_dict[entry]
 
                         if l2_prev_misses < l2.backend.MISS_count:
                             additional_l2_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['L2']['miss']
@@ -285,16 +287,16 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
                             additional_l2_cycle = cycle_accurate_config['cycles']['mem_latency']['cacheable']['L2']['hit']
                             l2_prev_hits = l2.backend.HIT_count
                         ops_dict['stores'][entry] += additional_l2_cycle
-                        master_inst_list[entry] += additional_l2_cycle
-                        stage2_dict[line_num] = master_inst_list[entry]
+                        master_inst_dict[entry] += additional_l2_cycle
+                        stage2_dict[line_num] = master_inst_dict[entry]
 
 
 
                     elif prev_hits <= d_l1.backend.HIT_count:
                         # checking if it's a hit, d_l1.backend.HIT_count is incremented or remains same after a store only when it's a hit
                         ops_dict['stores'][entry] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['hit'] 
-                        master_inst_list[entry] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['hit'] 
-                        stage2_dict[line_num] = master_inst_list[entry]
+                        master_inst_dict[entry] = cycle_accurate_config['cycles']['mem_latency']['cacheable']['data']['hit'] 
+                        stage2_dict[line_num] = master_inst_dict[entry]
 
                     # calculating the dirty line using cache line id
                     cl_id = address >> cs.last_level.backend.cl_bits
@@ -307,7 +309,7 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
                 else:
                     # all non cacheable address access is a miss
                     ops_dict['stores'][entry] = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss']
-                    master_inst_list[entry] = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss']
+                    master_inst_dict[entry] = cycle_accurate_config['cycles']['mem_latency']['non_cacheable']['data']['miss']
             
             
             
@@ -412,17 +414,17 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
                 if entry in ops_dict[op]:
                 
                     ops_dict[op][entry] = ops_dict[op][entry] + (fetch_cycle1 - prev_last_stage_cycle1)
-                    master_inst_list[entry] = master_inst_list[entry] + (fetch_cycle1 - prev_last_stage_cycle1)
+                    master_inst_dict[entry] = master_inst_dict[entry] + (fetch_cycle1 - prev_last_stage_cycle1)
                     stage1_dict[line_num] = fetch_cycle1 - prev_last_stage_cycle1
 
                     if line_num in miss_address_dict:
-                        miss_address_dict[line_num] = master_inst_list[entry]
+                        miss_address_dict[line_num] = master_inst_dict[entry]
 
 
-                    # stage2_dict[line_num] = master_inst_list[entry] - stage1_dict[line_num]
-                    prev_last_stage_cycle1 = master_inst_list[entry] - stage1_dict[line_num]
+                    # stage2_dict[line_num] = master_inst_dict[entry] - stage1_dict[line_num]
+                    prev_last_stage_cycle1 = master_inst_dict[entry] - stage1_dict[line_num]
         else:
-            prev_last_stage_cycle1 = master_inst_list[entry]
+            prev_last_stage_cycle1 = master_inst_dict[entry]
 
 
     # Print cache statistics
@@ -471,8 +473,8 @@ def cache_simulator(master_inst_list: list, ops_dict: dict, extension_used: list
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = '0x800030d0'
-    consts.reg_file['x3'] = '0x800030d0'
+    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
+    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
 
     dl1_miss+=d_l1.backend.MISS_count
     il1_miss+=i_l1.backend.MISS_count
