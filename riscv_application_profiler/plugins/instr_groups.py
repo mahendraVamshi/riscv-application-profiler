@@ -95,12 +95,6 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_dict: 
 
     # Populate the 'Counts' field in the ret_dict with the instruction counts per operation.
     ret_dict['Counts'] = [len(op_dict[op]) for op in operations]
-
-    # initialising register values.
-    consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
-    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
-
     # Log the completion of the computation.
     logger.info("Done")
 
