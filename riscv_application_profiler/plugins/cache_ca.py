@@ -307,8 +307,6 @@ def data_cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used:
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
-    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
 
     # Return the final results
     return ret_dict
@@ -527,8 +525,6 @@ def instruction_cache_simulator(master_inst_dict: dict, ops_dict: dict, extensio
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
-    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
 
     # Return the final results
     return ret_dict

@@ -467,8 +467,6 @@ def cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used: list
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
-    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
 
     # print('data l1 and instr l1 util respectivly in %')
     # print (total_util, total_util1)

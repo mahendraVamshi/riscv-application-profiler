@@ -65,8 +65,6 @@ def jumps_compute(master_inst_dict: dict ,ops_dict: dict, extension_used: list,c
 
     # Reset register values.
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
-    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
     
     # Log the completion of jump computation.
     logger.info('Done.')
@@ -158,9 +156,6 @@ def jump_size(master_inst_dict: dict, ops_dict: dict, extension_used: list, conf
 
     # Reset register values.
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
-    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
-
     # Populate the return dictionary with jump instruction data.   
     ret_dict['Instruction name'] = list(jump_instr.keys())
     ret_dict['count'] = [jump_instr[key]['count'] for key in jump_instr.keys()]

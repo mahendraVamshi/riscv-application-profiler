@@ -473,8 +473,6 @@ def cache_simulator(master_inst_dict: list, ops_dict: dict, extension_used: list
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
-    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
 
     dl1_miss+=d_l1.backend.MISS_count
     il1_miss+=i_l1.backend.MISS_count

@@ -109,8 +109,6 @@ def store_load_bypass (master_inst_dict: dict, ops_dict: dict, extension_used: l
 
     # Reset register values.
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
-    consts.reg_file['x2'] = config['profiles']['cfg']['stack_pointer']
-    consts.reg_file['x3'] = config['profiles']['cfg']['global_pointer']
 
     # Populate the result dictionary with store-load bypass information.
     for address in bypass_dict:
