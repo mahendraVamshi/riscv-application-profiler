@@ -8,12 +8,14 @@ The RISC-V Application Profiler is a Python-based tool designed to help software
 git clone https://github.com/mahendraVamshi/pycachesim.git
 cd pycachesim
 pip install -e .
+cd ..
 ```
 
 ```shell
 git clone https://github.com/mahendraVamshi/riscv-isac.git
 cd riscv-isac
 pip install -e .
+cd ..
 ```
 
 ```shell
