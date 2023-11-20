@@ -42,14 +42,16 @@ def run(log, isa, output, verbose, config, cycle_accurate_config): #, check):
         cl_matches_list = [iter_commitlog.__next__() for i in range(len(lines))]
     isac_decoder = disassembler()
     isac_decoder.setup(arch='rv64')
-    master_inst_list = []
+    # master_inst_list = []
+    master_inst_dict = {}
     for entry in cl_matches_list:
         if entry.instr is None:
             continue
         temp_entry = isac_decoder.decode(entry)
-        master_inst_list.append(temp_entry)
-    master_inst_dict = {entry: 1 for entry in master_inst_list}
-    logger.info(f'Parsed {len(master_inst_list)} instructions.')
+        # master_inst_list.append(temp_entry)
+        master_inst_dict[temp_entry] = 1
+    # master_inst_dict = {entry: 1 for entry in master_inst_list}
+    logger.info(f'Parsed {len(master_inst_dict)} instructions.')
     logger.info("Decoding...")
     logger.info("Done decoding instructions.")
     logger.info("Starting to profile...")
@@ -85,7 +87,7 @@ def run(log, isa, output, verbose, config, cycle_accurate_config): #, check):
     isa_arg = isa.split('I')[0]
 
     ret_dict, extension_instruction_list, op_dict = instr_groups.group_by_operation(groups, isa_arg, extension_list, master_inst_dict, config, cycle_accurate_config)
-    if (len(extension_instruction_list)<=len(master_inst_list)):
+    if (len(extension_instruction_list)<=len(master_inst_dict)):
         # left_out=[]
         # for i in master_inst_list:
         #     if i not in extension_instruction_list:
