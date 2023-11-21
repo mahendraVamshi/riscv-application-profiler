@@ -565,6 +565,12 @@ def unified_L2_cache_simulator(master_inst_dict: list, ops_dict: dict, extension
     # Logging cache statistics
     logger.info("Computing Muti Level Cache Statistics.")
 
+    try:
+        config['profiles']['cfg']['l2_cache']
+    except KeyError:
+        logger.error("L2 cache configuration not found.")
+        return None
+    
     # List of cache levels
     cache_list = ['Level 1']
 
@@ -586,7 +592,6 @@ def unified_L2_cache_simulator(master_inst_dict: list, ops_dict: dict, extension
     dCache_replacement_policy = config['profiles']['cfg']['data_cache']['replacement_policy']
     total_cache_line = no_of_sets * no_of_ways
     number_of_words_in_line = line_size//4 # line size in byptes / 4 bytes (word size)
-
 
 
     l2_no_of_sets = config['profiles']['cfg']['l2_cache']['no_of_sets']
