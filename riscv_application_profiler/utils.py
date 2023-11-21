@@ -40,6 +40,9 @@ class Utilities:
 
         logger.debug("Tabulating statistics.")
         table = []
+        if in_dict == None:
+            logger.error("Dictionary is empty.")
+            exit(1)
         key_list = list(in_dict.keys())
         length=len(key_list)
         for i in range(len(in_dict[key_list[0]])):

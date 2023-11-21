@@ -10,18 +10,21 @@ import riscv_application_profiler.consts as consts
 import statistics
 import pprint as pp
 
-def compute_threshold(master_inst_list: list, ops_dict: dict) -> int:
+def compute_threshold(master_inst_dict: dict, ops_dict: dict) -> int:
     '''
     compute the mean plus two standard deviations as the threshold
     
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
+        - master_inst_dict: A dictionary of InstructionEntry objects.
+        - ops_dict: A dictionary containing the operations as keys and a list of InstructionEntry objects as values.
     '''
 
-    # compute the list of branch offsets from the master_inst_list where each entry has an imm field
+    # compute the list of branch offsets from the master_inst_dict where each entry has an imm field
     branch_offsets = [entry.imm for entry in ops_dict['branches'] if entry.imm is not None]
 
     # compute the mean and standard deviation of the branch offsets
+    if len(branch_offsets) == 0:
+        return 0
     mean = statistics.mean(branch_offsets)
     std_dev = statistics.stdev(branch_offsets)
 
@@ -30,23 +33,25 @@ def compute_threshold(master_inst_list: list, ops_dict: dict) -> int:
 
     return int(threshold)
 
-def group_by_branch_offset(master_inst_list: list, ops_dict: dict, extension_used: list):
+def group_by_branch_offset(master_inst_dict: dict, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Groups instructions based on the branch offset.
 
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
+        - master_inst_dict: A dictionary of InstructionEntry objects.
         - branch_threshold: The threshold for a branch to be considered 'long'.
+        - ops_dict: A dictionary containing the operations as keys and a list of InstructionEntry objects as values.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
 
     Returns:
-        - A tuple containing a dictionary with the operations as keys and a list of
-            InstructionEntry objects as values, and a dictionary with the operations as
-            keys and the number of instructions in each group as values.
+        - A dictionary with the branch offset sizes and count as keys and values respectively. 
     '''
     # Logging the grouping process
     logger.info("Grouping instructions by branch offset.")
 
-    branch_threshold = compute_threshold(master_inst_list, ops_dict)
+    branch_threshold = compute_threshold(master_inst_dict, ops_dict)
 
     # Initializing dictionaries and lists
     size_list = ['long', 'short']
@@ -72,13 +77,17 @@ def group_by_branch_offset(master_inst_list: list, ops_dict: dict, extension_use
     return ret_dict
 
 
-def group_by_branch_sign(master_inst_list: list, ops_dict: dict, extension_used: list):
+def group_by_branch_sign(master_inst_dict: dict, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Groups instructions based on the sign bit of the branch offset.
     
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
-        - ops_dict: A dictionary with the operations as keys and a list of InstructionEntry
+        - master_inst_dict: A dictionary of InstructionEntry objects.
+        - ops_dict: A dictionary with the operations as keys and a list of InstructionEntry.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
+
     
     Returns:
         -A list of directions, which in this case are 'positive' and 'negative'.
@@ -115,17 +124,19 @@ def group_by_branch_sign(master_inst_list: list, ops_dict: dict, extension_used:
 
 
 
-def loop_compute(master_inst_list: list, ops_dict: dict, extension_used: list):
+def loop_compute (master_inst_dict: dict, ops_dict: dict, extension_used: list, config, cycle_accurate_config):
     '''
     Groups instructions based on the branch offset.
     
     Args:
-        - master_inst_list: A list of InstructionEntry objects.
-        - ops_dict: A dictionary with the operations as keys and a list of InstructionEntry
+        - master_inst_dict: A dictionary of InstructionEntry objects.
+        - ops_dict: A dictionary with the operations as keys and a list of InstructionEntry.
+        - extension_used: A list of extensions used in the application.
+        - config: A yaml with the configuration information.
+        - cycle_accurate_config: A dyaml with the cycle accurate configuration information.
         
     Returns:
-        - A list of loops, which in this case are loops with a single branch instruction.
-        A dictionary loop_instr containing the counts of instructions in each loop.
+        - A dictionary loop_instr containing the counts of instructions in each loop.
         The keys are the branch instructions, and the values are dictionaries containing the
         'target address', 'depth', 'count' and 'size' of the loop.
             '''

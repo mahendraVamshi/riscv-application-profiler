@@ -10,8 +10,7 @@ dist/
 build/
 
 # riscv opcodes
-riscv_opcodes
-riscv_opcodes/
+rvop_decoder
 
 #files from isac build
 constants.py

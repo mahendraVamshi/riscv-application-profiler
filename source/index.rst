@@ -13,12 +13,6 @@ Welcome to RISC-V Application Profiler's documentation!
    intro
    preview
    adding_plugins
+   plugins
 
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

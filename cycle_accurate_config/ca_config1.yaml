@@ -1,0 +1,62 @@
+
+cycles:
+  # start_cycles: 100
+  instructions_cycles:
+    {add: 
+      {latency : 1,
+      throughput : 1},
+    sub:
+      {latency : 1,
+      throughput : 1},
+    mul:  
+      {latency : 1,
+      throughput : 1},
+    div:
+      {latency : 1,
+      throughput : 1},
+    rem:
+      {latency : 1,
+      throughput : 1},
+    csr:
+      {latency : 1,
+      throughput : 1},
+    s(a-z)l*:
+      {latency : 1,
+      throughput : 1},
+    s(a-z)r*:
+      {latency : 1,
+      throughput : 1},
+    j:
+      {latency : 1,
+      throughput : 1},
+    c.:
+      {latency : 1,
+      throughput : 1}
+      }
+  flush_cycles:
+    csr: 1 
+    branch: 0
+    fence.i: 1
+  reset_cycles: 69
+  pipeline_depth: 2
+  bus_latency: # this is inaccurate
+    data: 8
+    instruction: 9
+  bypass_latency: 1
+  structural_hazards:
+    data_cache: 1
+    bus: 8 # bus capacity in terms of words
+  # replacemnt_latency: 257
+  mem_latency:
+    cacheable:
+      data:
+        hit: 1
+        miss: 8 
+      instruction:
+        hit: 1
+        miss: 8
+    non_cacheable:
+      data:
+        miss: 8 #bus_latency 
+      instruction:
+        miss: 9 #bus_latency 
