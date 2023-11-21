@@ -89,6 +89,8 @@ def csr_compute(master_inst_dict: dict, ops_dict: dict, extension_used: list, co
         ret_dict['Reads'].append(csr[entry]['read'])
         ret_dict['Writes'].append(csr[entry]['write'])
 
+    logger.info("Done.")
+
     # Return the final results
     return ret_dict
 
