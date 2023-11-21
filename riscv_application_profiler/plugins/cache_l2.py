@@ -29,7 +29,7 @@ def cache_simulator(master_inst_dict: list, ops_dict: dict, extension_used: list
             - A dictionary with the cache level as keys and a list of cache utilization information as values.
         '''
     # Logging cache statistics
-    logger.info("Data Cache Statistics:")
+    logger.info("Computing Muti Level Cache Statistics.")
 
     # List of cache levels
     cache_list = ['Level 1']
@@ -491,6 +491,8 @@ def cache_simulator(master_inst_dict: list, ops_dict: dict, extension_used: list
     ret_dict.update(ret_dict_d)
     ret_dict.update(ret_dict_i)
     ret_dict.update(ret_dict2)
+
+    logger.info("Done.")
 
     # Return the final results
     return ret_dict

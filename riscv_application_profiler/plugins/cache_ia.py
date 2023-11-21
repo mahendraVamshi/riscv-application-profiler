@@ -17,7 +17,7 @@ def data_cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used:
             - A dictionary with the cache level as keys and a list of cache utilization information as values.
         '''
     # Logging cache statistics
-    logger.info("Data Cache Statistics:")
+    logger.info("Computing Data Cache Statistics.")
 
     # List of cache levels
     cache_list = ['Level 1']
@@ -129,6 +129,8 @@ def data_cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used:
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
 
+    logger.info("Done.")
+
     # Return the final results
     return ret_dict
 
@@ -149,7 +151,7 @@ def instruction_cache_simulator(master_inst_dict: dict, ops_dict: dict, extensio
             - A dictionary with the cache level as keys and a list of cache utilization information as values.
         '''
     # Logging instruction cache statistics
-    logger.info("Instruction Cache Statistics:")
+    logger.info("Computing Instruction Cache Statistics.")
 
     # Setting up memory and cache parameters
     no_of_sets = config['profiles']['cfg']['instr_cache']['no_of_sets']
@@ -224,6 +226,8 @@ def instruction_cache_simulator(master_inst_dict: dict, ops_dict: dict, extensio
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
+
+    logger.info("Done.")
 
     # Return the final results
     return ret_dict

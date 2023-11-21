@@ -28,7 +28,12 @@ def cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used: list
         Returns:
             - A dictionary with the cache level as keys and a list of cache utilization information as values.
         '''
-    # Logging cache statistics 
+    # Logging cache statistics
+    logger.info("Computing Data and Instruction Cache Statistics.") 
+    
+    if cycle_accurate_config == None:
+        logger.error("Cycle accurate configuration is missing. Please provide a valid cycle accurate configuration.")
+        return None
 
     # List of cache levels
     cache_list = ['Level 1']
@@ -487,6 +492,8 @@ def cache_simulator(master_inst_dict: dict, ops_dict: dict, extension_used: list
 
     # Reset registers
     consts.reg_file = {f'x{i}': '0x00000000' for i in range(32)}
+
+    logger.info("Done")
 
     # Return the final results
     ret_dict.update(ret_dict1)
