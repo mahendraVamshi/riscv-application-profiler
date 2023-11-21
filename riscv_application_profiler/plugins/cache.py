@@ -591,6 +591,8 @@ def unified_L2_cache_simulator(master_inst_dict: list, ops_dict: dict, extension
     line_size = config['profiles']['cfg']['data_cache']['line_size']
     dCache_replacement_policy = config['profiles']['cfg']['data_cache']['replacement_policy']
     total_cache_line = no_of_sets * no_of_ways
+    d_cache_load_from = config['profiles']['cfg']['data_cache']['load_from']
+    d_cache_store_to = config['profiles']['cfg']['data_cache']['store_to']
     number_of_words_in_line = line_size//4 # line size in byptes / 4 bytes (word size)
 
 
@@ -611,7 +613,7 @@ def unified_L2_cache_simulator(master_inst_dict: list, ops_dict: dict, extension
     cache_dictl2 = {"l2": {'max utilization(%)': 0, "avg utilization": 0} }
 
 
-    d_l1 = Cache("d_l1", no_of_sets, no_of_ways, line_size, dCache_replacement_policy, load_from=l2, store_to=l2)
+    d_l1 = Cache("d_l1", no_of_sets, no_of_ways, line_size, dCache_replacement_policy, load_from=d_cache_load_from, store_to=d_cache_store_to)
     cs = CacheSimulator(d_l1, mem)
 
     prev_hits = d_l1.backend.HIT_count
@@ -635,6 +637,8 @@ def unified_L2_cache_simulator(master_inst_dict: list, ops_dict: dict, extension
     no_of_ways1 = config['profiles']['cfg']['instr_cache']['no_of_ways']
     line_size1 = config['profiles']['cfg']['instr_cache']['line_size']
     total_cache_line1 = no_of_sets1 * no_of_ways1
+    icache_load_from = config['profiles']['cfg']['instr_cache']['load_from']
+    icache_store_to = config['profiles']['cfg']['instr_cache']['store_to']
     iCache_replacement_policy = config['profiles']['cfg']['instr_cache']['replacement_policy']
     number_of_words_in_line1 = line_size1//4 # line size in byptes / 4 bytes (word size)
 
@@ -653,7 +657,7 @@ def unified_L2_cache_simulator(master_inst_dict: list, ops_dict: dict, extension
 
 
     
-    i_l1 = Cache("i_l1", no_of_sets1, no_of_ways1, line_size1, iCache_replacement_policy, load_from=l2, store_to=l2)
+    i_l1 = Cache("i_l1", no_of_sets1, no_of_ways1, line_size1, iCache_replacement_policy, load_from=icache_load_from, store_to=icache_store_to)
     cs1 = CacheSimulator(i_l1, mem)
 
 
