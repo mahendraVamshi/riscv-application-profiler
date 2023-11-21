@@ -43,6 +43,7 @@ To profile an application, run:
 ```shell
 riscv_application_profiler profile --log <path-to-log> --output <path-to-output-directory> --config <path-to-config-file> config.yaml
 ```
+To profile an application with cycle accurate simulation, run:
 ```shell
 riscv_application_profiler profile --log <path-to-log> --output <path-to-output-directory> --config <path-to-config-file> config.yaml --cycle_accurate_config <path-to-config-file> config.yaml
 ```
@@ -86,4 +87,4 @@ Lists:
 Histogram for:
 - RegisterFile (XRF/FRF) usage.
 - CSR accesses.
-- D$/I$ Hits/Misses/Usage. 
+- D$/I$ Hits/Misses/Usage/Utilization. 
