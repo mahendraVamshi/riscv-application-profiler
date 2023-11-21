@@ -123,7 +123,8 @@ Value based metrics on branch ops may be inaccurate.")
 
         # total_cycles = op_dict['total_cycles']
         total_cycles = sum([master_inst_dict[entry] for entry in master_inst_dict]) + cycle_accurate_config['cycles']['reset_cycles']
-        print('Total Cycles: ', total_cycles)
+        ret_dict = {"Total Cycles": [total_cycles]}
+        utils.tabulate_stats(ret_dict, header_name='Total Cycles')
         
     else:
         for metric in config['profiles']['cfg']['metrics']:
