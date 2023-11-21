@@ -65,6 +65,11 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_dict: 
                                             op_dict[op][entry] -= op_dict[op][prev_instr] - cycle_accurate_config['cycles']['instructions_cycles'][inst]['throughput']
                                             master_inst_dict[entry] -= master_inst_dict[prev_instr] - cycle_accurate_config['cycles']['instructions_cycles'][inst]['throughput']
 
+                                    #DEBUG
+                                    # if 'rem' in prev_instr_name or 'div' in prev_instr_name:
+                                    #     op_dict[op][entry] += 1
+                                    #     master_inst_dict[entry] += 1
+
                                     prev_instr = entry
                                     prev_instr_name = entry.instr_name
                                     prev_instr_addr = entry.instr_addr
@@ -74,6 +79,11 @@ def group_by_operation(operations: list, isa, extension_list, master_inst_dict: 
                             if matched == False:
                                 op_dict[op][entry] = 1
                                 master_inst_dict[entry] = 1
+
+                                #DEBUG
+                                    # if 'rem' in prev_instr_name or 'div' in prev_instr_name:
+                                    #     op_dict[op][entry] += 1
+                                    #     master_inst_dict[entry] += 1
 
                                 prev_instr = entry
                                 prev_instr_name = entry.instr_name
