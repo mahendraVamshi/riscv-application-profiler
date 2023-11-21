@@ -6,9 +6,9 @@
 # :param cl_size: number of bytes that can be addressed individually
 # :param replacement_policy: FIFO, LRU (default), MRU or RR
 # :param write_back: if true (default), write back will be done on evict.
-#                     Otherwise write-through is used
+#                     Otherwise write-through is used. If false, write through
 # :param write_allocate: if true (default), a load will be issued on a
-#                         write miss
+#                         write miss. If false, write no allocate
 # :param write_combining: if true, this cache will combine writes and
 #                         issue them on evicts(default is false)
 # :param subblock_size: the minimum blocksize that write-combining can
