@@ -16,7 +16,7 @@ The RISC-V Application Profiler is a Python-based tool designed to help software
   cd riscv-application-profiler
   pip install -e .
   cd ..
-  
+
   git clone https://github.com/mahendraVamshi/riscv-application-profiler.git
   cd riscv-application-profiler
   pip install -e .
@@ -31,7 +31,7 @@ To display the help message, run:
 
 To generate a log file, run:
 
-..code:: shell
+'''shell
   spike --log-commits <path-to-binary>
 
 **NOTE**: You need to use `--enable-commitlog` while configuring [spike](https://github.com/riscv-software-src/riscv-isa-sim#build-steps).
