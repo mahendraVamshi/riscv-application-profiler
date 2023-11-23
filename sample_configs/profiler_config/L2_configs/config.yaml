@@ -56,7 +56,7 @@ profiles:
       dependency:
         raw_compute:
           - RAW dependency Computation.
-      csr_compute: # mandatory
+      csr_compute: 
         csr_compute:
           - CSR computation.
       cache:

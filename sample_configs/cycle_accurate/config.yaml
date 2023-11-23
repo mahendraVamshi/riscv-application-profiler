@@ -1,4 +1,4 @@
-
+# YAML without l2 cache congifuration
 cycles:
   # start_cycles: 100
   instructions_cycles:
@@ -51,13 +51,10 @@ cycles:
     cacheable:
       data:
         hit: 1
-        miss: 1 
+        miss: 8 
       instruction:
         hit: 1
-        miss: 1 
-      L2:
-        hit: 1
-        miss: 16 #bus_latency + (size of cache line in bytes /4) eg: 8 + (32/4) = 16
+        miss: 8
     non_cacheable:
       data:
         miss: 8 #bus_latency 
