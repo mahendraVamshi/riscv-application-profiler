@@ -570,6 +570,11 @@ def unified_L2_cache_simulator(master_inst_dict: list, ops_dict: dict, extension
     except KeyError:
         logger.error("L2 cache configuration not found.")
         return None
+    try:
+        cycle_accurate_config['cycles']['mem_latency']['l2']
+    except KeyError:
+        logger.error("L2 cache cycle accurate configuration not found.")
+        return None
     
     # List of cache levels
     cache_list = ['Level 1']
