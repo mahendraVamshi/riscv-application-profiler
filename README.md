@@ -55,13 +55,13 @@ riscv_application_profiler profile --log <path-to-log> --output <path-to-output-
 ```
 **Info**:
 
-Path to the log file is mandatory. Example log files can be found in the sample_artifacts/logs directory.
+Path to the log file is mandatory. Example log files can be found in the `sample_artifacts/logs` directory.
 
 Path to the output directory is optional. If not provided, the profiler will create a directory named `build` in the current working directory.
 
-Path to the config file is optional. If not provided, the profiler will use the default config file, which is `config.yaml` located in sample_configs/profiler_config directory.
+Path to the config file is mandatory. Example `config.yaml` is located in `sample_configs/profiler_config` directory. L2 cache config files are located in `sample_configs/profiler_config/L2_configs` directory. 
 
-Path to the cycle accurate config file is optional. If not provided, the profiler will use the default config file, which is `config.yaml` located in sample_configs/cycle_accurate directory.
+Path to the cycle accurate config file is optional. Example `config.yaml` is located in `sample_configs/cycle_accurate` directory. Use this option only if you want to profile an application with cycle accurate simulation. L2 cache config files are located in `sample_configs/cycle_accurate/L2_configs` directory.
 
 Command line options to the `profile` command:
 
