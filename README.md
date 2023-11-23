@@ -2,6 +2,8 @@
 
 The RISC-V Application Profiler is a Python-based tool designed to help software developers optimize the performance of their applications on RISC-V hardware. It works by parsing execution logs and providing insights about the application's behavior. The tool has a modular design, where performance metrics are added as plugins, allowing developers to customize the profiler to their specific needs. The profiler is highly accessible, easy to use, and can be adapted to capture different types of performance metrics. Overall, the RISC-V Application Profiler is a flexible and customizable solution for software developers who want to ensure optimal performance of their applications on RISC-V platforms.
 
+Detailed documentation can be found [here](https://riscv-application-profiler.readthedocs.io/en/latest/).
+
 ## Installation
 
 Install `pycachesim`. This is a requirement to use the `caches` plugin in the profiler.
