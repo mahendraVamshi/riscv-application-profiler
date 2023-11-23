@@ -108,6 +108,10 @@ Value based metrics on branch ops may be inaccurate.")
 
     if cycle_accurate_config != None:
 
+        if 'cache' not in config['profiles']['cfg']['metrics'] or 'csr_compute' not in config['profiles']['cfg']['metrics']:
+            logger.error("Cache and CSR compute metrics are not enabled. Please enable them for cycle accurate profiling.")
+            raise SystemExit(1)
+
         for metric in config['profiles']['cfg']['metrics']:
             # Finding the new plugin file mentioned in the yaml file
             spec = importlib.util.spec_from_file_location("plugins", f"riscv_application_profiler/plugins/{metric}.py")

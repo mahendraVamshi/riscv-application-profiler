@@ -23,7 +23,7 @@ cd ..
 
 Finally, install the profiler itself.
 ```shell
-git clone https://github.com/mahendraVamshi/riscv-application-profiler.git -b vamshi
+git clone https://github.com/mahendraVamshi/riscv-application-profiler.git
 cd riscv-application-profiler
 pip install -e .
 ```
@@ -51,6 +51,15 @@ To profile an application with cycle accurate simulation, run:
 ```shell
 riscv_application_profiler profile --log <path-to-log> --output <path-to-output-directory> --config <path-to-config-file> config.yaml --cycle_accurate_config <path-to-config-file> config.yaml
 ```
+**Info**:
+
+Path to the log file is mandatory. Example log files can be found in the sample_artifacts/logs directory.
+
+Path to the output directory is optional. If not provided, the profiler will create a directory named `build` in the current working directory.
+
+Path to the config file is optional. If not provided, the profiler will use the default config file, which is `config.yaml` located in sample_configs/profiler_config directory.
+
+Path to the cycle accurate config file is optional. If not provided, the profiler will use the default config file, which is `config.yaml` located in sample_configs/cycle_accurate directory.
 
 Command line options to the `profile` command:
 
@@ -71,16 +80,20 @@ Options:
 
 Example:
 
-Instruction accurate profiling:
+To profile an application, run:
+
 ```shell
-riscv_application_profiler profile --log ./tests/hello.log --output ./build --config ./sample_config/config.yaml   
+riscv_application_profiler profile --log ./sample_artifacts/logs/hello.log --output ./build --config ./sample_configs/profiler_config/config.yaml   
 ```
-Cycle accurate profiling:
+To profile an application with cycle accurate simulation, run:
+
 ```shell
-riscv_application_profiler profile --log ./tests/hello.log --output ./build --config ./sample_config/config1.yaml  --cycle_accurate_config ./cycle_accurate_config/ca_config.yaml
+riscv_application_profiler profile --log ./sample_artifacts/logs/hello.log --output ./build --config ./sample_configs/profiler_config/L2_configs/config.yaml --cycle_accurate_config ./sample_configs/cycle_accurate/L2_configs/config.yaml 
 ```
 
 **Note**: The log file should be an execution log generated using spike as of today. Support for configuring log formats will be added in the future.
+
+**Note**: Metrics such as grouping instructs by operation and privledge mode are hard coded in the profiler.py file as the input to these functions is the commit log. However, the metrics such as grouping instructs by CSRs and cache computation is mandatory for a cycle accurate profiling.
 
 ## Features
 
@@ -101,3 +114,4 @@ Histogram for:
 - RegisterFile (XRF/FRF) usage.
 - CSR accesses.
 - D$/I$ Hits/Misses/Usage/Utilization. 
+- Unifed L2 Cache Hits/Misses/Usage/Utilization.
