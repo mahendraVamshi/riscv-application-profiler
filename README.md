@@ -4,6 +4,8 @@ The RISC-V Application Profiler is a Python-based tool designed to help software
 
 ## Installation
 
+Install `pycachesim`. This is a requirement to use the `caches` plugin in the profiler.
+
 ```shell
 git clone https://github.com/mahendraVamshi/pycachesim.git
 cd pycachesim
@@ -11,6 +13,7 @@ pip install -e .
 cd ..
 ```
 
+Install `riscv_isac`. This is a development version of isac.
 ```shell
 git clone https://github.com/mahendraVamshi/riscv-isac.git
 cd riscv-isac
@@ -18,6 +21,7 @@ pip install -e .
 cd ..
 ```
 
+Finally, install the profiler itself.
 ```shell
 git clone https://github.com/mahendraVamshi/riscv-application-profiler.git -b vamshi
 cd riscv-application-profiler
