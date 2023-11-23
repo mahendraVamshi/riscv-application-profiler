@@ -11,14 +11,12 @@ The RISC-V Application Profiler is a Python-based tool designed to help software
   cd pycachesim
   pip install -e .
   cd ..
-
-..code:: shell
+  
   git clone https://github.com/mahendraVamshi/riscv-isac.git
   cd riscv-application-profiler
   pip install -e .
   cd ..
-
-..code:: shell
+  
   git clone https://github.com/mahendraVamshi/riscv-application-profiler.git
   cd riscv-application-profiler
   pip install -e .
@@ -60,6 +58,7 @@ Example:
   riscv_application_profiler profile --log ./tests/hello.log --output ./build --config ./sample_config/config.yaml 
 
 To profile an application with cycle accurate simulation, run:
+
 ..code:: shell
   riscv_application_profiler profile --log ./tests/hello.log --output ./build --config ./sample_config/config.yaml --cycle_accurate_config ./sample_config/config.yaml
 
