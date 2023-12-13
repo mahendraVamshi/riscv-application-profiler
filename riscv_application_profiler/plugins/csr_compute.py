@@ -67,8 +67,11 @@ def csr_compute(master_inst_dict: dict, ops_dict: dict, extension_used: list, co
                             csr[csr_reg]['write'] += 1
                             prev_inst_csr = csr[csr_reg]
                     elif 'rs' in entry.instr_name or 'rc' in entry.instr_name:
-                        rs1 = str(entry.rs1[1]) + str(entry.rs1[0])
-                        if rs1 == 'x0':
+                        if entry.rs1 is not None:
+                            rs1 = str(entry.rs1[1]) + str(entry.rs1[0])
+                        else:
+                            rs1 = None
+                        if entry.imm == 0 or rs1 == 'x0':
                             csr[csr_reg]['read'] += 1
                         else:
                             csr[csr_reg]['read'] += 1
