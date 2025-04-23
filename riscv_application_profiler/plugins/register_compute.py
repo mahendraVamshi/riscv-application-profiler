@@ -31,6 +31,9 @@ def register_compute(master_inst_dict: dict, ops_dict: dict, extension_used: lis
 
     # Iterate through the list of instructions in master_inst_dict.
     for entry in master_inst_dict:
+        inst_name = str(entry.instr_name)
+        if 'f' in inst_name:
+            continue
         # Check if the instruction uses rs1 register.
         if entry.rs1 is not None:
             name = str(entry.rs1[1]) + str(entry.rs1[0])

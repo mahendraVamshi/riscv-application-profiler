@@ -21,7 +21,7 @@ def raw_compute(master_inst_dict: list, ops_dict: dict, extension_used: list, co
     logger.info("Computing register reads after writes.")
 
     # Get a list of all registers in the register file.
-    reg_list = list(consts.reg_file.keys())
+    reg_list = list(consts.reg_file.keys()) + list(consts.freg_file.keys())
 
     # Initialize a dictionary to hold register information, initially all with a depth of 1.
     regs = {i: {'depth': 1} for i in reg_list}

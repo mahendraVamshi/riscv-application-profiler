@@ -2,6 +2,9 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-04-2025
+- minor fix
+
 ## [1.0.0] - 2023-09-13
 - Support including a config file
 - Changed store_load_bypass to track bytes

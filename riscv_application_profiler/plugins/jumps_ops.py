@@ -126,7 +126,8 @@ def jump_size(master_inst_dict: dict, ops_dict: dict, extension_used: list, conf
                     elif entry.instr_name == 'c.j':
                         instr = f"{entry.instr_name} {entry.imm}"
                     elif entry.instr_name == 'jal':
-                        rd = f"{entry.rd[1]}{entry.rd[0]}"
+                        print(entry)
+                        rd = f"{entry.reg_commit[1]}{entry.reg_commit[0]}"
                         instr = f"{entry.instr_name} {rd}, {entry.imm}"
                         consts.reg_file['x1'] = hex(int(entry.instr_addr) + 4)
             elif entry.instr_name in {'c.jr', 'c.jalr'}:
